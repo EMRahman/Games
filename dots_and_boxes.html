@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#102c35">
+  <meta name="description" content="Boxed In is a local two-player game of Dots and Boxes for desktop, iPhone, and iPad.">
+  <title>Boxed In — Dots and Boxes</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #102c35;
+      --navy-soft: #183d47;
+      --paper: #f4efdF;
+      --paper-deep: #e7ddc5;
+      --ink: #172f35;
+      --muted: #66777a;
+      --rule: rgba(28, 74, 84, .18);
+      --coral: #ec5f50;
+      --coral-soft: #f7b2a8;
+      --blue: #168aa0;
+      --blue-soft: #9ed6dc;
+      --yellow: #f0bd4b;
+      --board-size: 5;
+      --step: 76px;
+      --dot: 13px;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { min-width: 320px; min-height: 100%; background: var(--navy); -webkit-text-size-adjust: 100%; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      color: #f8f4e8;
+      overflow-x: hidden;
+      font-family: ui-rounded, "SF Pro Rounded", "Avenir Next", Avenir, system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(39, 158, 171, .22), transparent 29rem),
+        radial-gradient(circle at 88% 90%, rgba(236, 95, 80, .14), transparent 31rem),
+        var(--navy);
+    }
+    button, select { font: inherit; }
+    button:focus-visible, select:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+
+    .app { width: min(1080px, calc(100% - 28px)); margin: 0 auto; padding: 18px 0 30px; }
+    .topbar { min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 44px; height: 44px; display: grid; grid-template-columns: repeat(3, 5px); grid-template-rows: repeat(3, 5px);
+      place-content: center; gap: 6px; border: 1px solid rgba(255,255,255,.18); border-radius: 13px;
+      background: rgba(255,255,255,.06); box-shadow: 0 10px 26px rgba(0,0,0,.18); transform: rotate(-3deg);
+    }
+    .brand-mark i { width: 5px; height: 5px; border-radius: 50%; background: #f8f4e8; box-shadow: 0 0 7px rgba(255,255,255,.25); }
+    h1 { margin: 0; font-size: 18px; line-height: 1; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #9ab4b8; font: 750 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .15em; text-transform: uppercase; }
+    .top-actions { display: flex; gap: 8px; }
+    .icon-btn, .text-btn, .primary-btn {
+      appearance: none; min-height: 44px; border: 1px solid rgba(255,255,255,.17); border-radius: 11px;
+      color: #f8f4e8; background: rgba(255,255,255,.06); cursor: pointer; transition: transform .16s, background .16s, border-color .16s;
+    }
+    .icon-btn { width: 44px; padding: 0; font-weight: 900; }
+    .text-btn, .primary-btn { padding: 0 16px; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+    .primary-btn { border-color: #ec7568; background: var(--coral); box-shadow: 0 8px 22px rgba(236,95,80,.2); }
+    .text-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    .game-layout { display: grid; grid-template-columns: 205px minmax(0, 1fr) 205px; gap: 20px; align-items: center; margin-top: 20px; }
+    .player-card {
+      position: relative; overflow: hidden; min-width: 0; padding: 18px; border: 1px solid rgba(255,255,255,.13); border-radius: 19px;
+      background: rgba(255,255,255,.055); box-shadow: 0 18px 45px rgba(0,0,0,.16); transition: transform .2s, background .2s, border-color .2s;
+    }
+    .player-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; opacity: .28; background: var(--player); transition: opacity .2s; }
+    .player-card.active { transform: translateY(-5px); border-color: color-mix(in srgb, var(--player) 65%, white); background: rgba(255,255,255,.085); }
+    .player-card.active::before { opacity: 1; }
+    .player-card.p1 { --player: var(--coral); }
+    .player-card.p2 { --player: #31b4c7; }
+    .player-kicker { color: #93abb0; font: 800 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; }
+    .player-name { display: flex; align-items: center; gap: 9px; margin: 9px 0 18px; }
+    .swatch { width: 22px; height: 22px; flex: 0 0 auto; border-radius: 7px; background: var(--player); transform: rotate(-4deg); box-shadow: inset 0 -3px 5px rgba(0,0,0,.12); }
+    .player-name h2 { min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; font-size: 14px; letter-spacing: .06em; white-space: nowrap; }
+    .score-label { color: #93abb0; font: 800 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .13em; text-transform: uppercase; }
+    .score { margin-top: 4px; color: var(--player); font: 900 42px/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .turn-tag { min-height: 25px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.1); color: transparent; font: 850 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; text-transform: uppercase; }
+    .active .turn-tag { color: #f8f4e8; }
+    .turn-tag::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; border-radius: 50%; background: currentColor; vertical-align: 1px; box-shadow: 0 0 8px currentColor; }
+
+    .game { min-width: 0; text-align: center; }
+    .status-wrap { min-height: 64px; display: grid; place-items: center; margin-bottom: 8px; }
+    .round-label { margin: 0 0 6px; color: #91aaae; font: 800 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .15em; text-transform: uppercase; }
+    #status { margin: 0; font-size: clamp(18px, 2.7vw, 25px); line-height: 1.15; letter-spacing: -.02em; }
+    #status .p1-text { color: #ff8175; }
+    #status .p2-text { color: #58c9d8; }
+
+    .paper {
+      display: inline-block; position: relative; max-width: 100%; padding: 22px; border-radius: 9px 15px 11px 16px;
+      background-color: var(--paper);
+      background-image: linear-gradient(var(--rule) 1px, transparent 1px), linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+      background-size: 24px 24px;
+      box-shadow: 0 25px 55px rgba(0,0,0,.31), inset 0 0 0 1px rgba(255,255,255,.7);
+      transform: rotate(-.35deg);
+    }
+    .paper::before, .paper::after { content: ""; position: absolute; z-index: -1; inset: 5px -5px -6px 6px; border-radius: inherit; background: #d6ccb3; transform: rotate(1deg); }
+    .paper::after { inset: 10px -8px -10px 11px; z-index: -2; background: #b9ad92; transform: rotate(-.6deg); }
+    .board {
+      position: relative; width: calc(var(--step) * var(--board-size)); height: calc(var(--step) * var(--board-size));
+      max-width: 100%; color: var(--ink); cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+    }
+    .box {
+      position: absolute; z-index: 0; display: grid; place-items: center; border-radius: 9px; pointer-events: none;
+      background: var(--owner); color: rgba(255,255,255,.9); font: 900 calc(var(--step) * .34)/1 ui-rounded, system-ui, sans-serif;
+      transform: scale(.84) rotate(var(--tilt, -1deg)); opacity: .72; animation: claim .28s ease-out both;
+    }
+    .box.p1 { --owner: var(--coral-soft); color: #96392f; }
+    .box.p2 { --owner: var(--blue-soft); color: #126778; }
+    @keyframes claim { from { opacity: 0; transform: scale(.35) rotate(-8deg); } }
+    .dot { position: absolute; z-index: 4; width: var(--dot); height: var(--dot); margin: calc(var(--dot) / -2); border-radius: 50%; background: var(--ink); box-shadow: 0 2px 0 rgba(255,255,255,.35); pointer-events: none; }
+    .edge {
+      appearance: none; position: absolute; z-index: 2; border: 0; padding: 0; background: transparent; cursor: pointer; pointer-events: none; touch-action: manipulation;
+    }
+    .edge::before { content: ""; position: absolute; border-radius: 999px; background: rgba(23,47,53,.12); transition: transform .13s, background .13s, box-shadow .13s; }
+    .edge.horizontal { width: var(--step); height: 44px; margin-top: -22px; }
+    .edge.horizontal::before { left: 5px; right: 5px; top: 50%; height: 7px; transform: translateY(-50%) scaleX(.78); }
+    .edge.vertical { width: 44px; height: var(--step); margin-left: -22px; }
+    .edge.vertical::before { top: 5px; bottom: 5px; left: 50%; width: 7px; transform: translateX(-50%) scaleY(.78); }
+    .edge:not(.claimed):hover::before, .edge:not(.claimed):focus-visible::before { background: rgba(23,47,53,.42); }
+    .edge.horizontal:not(.claimed):hover::before, .edge.horizontal:not(.claimed):focus-visible::before { transform: translateY(-50%) scaleX(.94); }
+    .edge.vertical:not(.claimed):hover::before, .edge.vertical:not(.claimed):focus-visible::before { transform: translateX(-50%) scaleY(.94); }
+    .edge.claimed { cursor: default; }
+    .edge.claimed::before { background: var(--edge-color); box-shadow: 0 2px 0 rgba(0,0,0,.11); }
+    .edge.claimed.p1 { --edge-color: var(--coral); }
+    .edge.claimed.p2 { --edge-color: var(--blue); }
+    .edge.horizontal.claimed::before { transform: translateY(-50%) scaleX(.94); }
+    .edge.vertical.claimed::before { transform: translateX(-50%) scaleY(.94); }
+    .edge.last::before { box-shadow: 0 0 0 3px rgba(255,255,255,.72), 0 2px 0 rgba(0,0,0,.12); }
+
+    .controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 22px; }
+    .size-control { position: relative; }
+    .size-control select {
+      appearance: none; min-height: 44px; border: 1px solid rgba(255,255,255,.17); border-radius: 11px; padding: 0 35px 0 13px;
+      color: #f8f4e8; background: var(--navy-soft); cursor: pointer; font-size: 10px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase;
+    }
+    .size-control::after { content: "⌄"; position: absolute; right: 13px; top: 10px; pointer-events: none; color: #9cb4b7; }
+    .how-to { margin: 13px 0 0; color: #91aaae; font-size: 10px; line-height: 1.45; }
+    .how-to strong { color: #f4efe3; }
+
+    .build-note { max-width: 760px; margin: 23px auto 0; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.1); color: #77969b; font: 650 9px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .build-note span { color: #acc4c7; }
+    .toast {
+      position: fixed; z-index: 30; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translate(-50%, 12px);
+      max-width: calc(100% - 30px); padding: 10px 15px; border: 1px solid rgba(255,255,255,.16); border-radius: 10px;
+      background: #193d47; color: #fff; opacity: 0; pointer-events: none; box-shadow: 0 13px 32px rgba(0,0,0,.3);
+      font-size: 11px; transition: opacity .18s, transform .18s;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (hover: hover) and (pointer: fine) {
+      .icon-btn:hover, .text-btn:hover, .primary-btn:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.38); }
+    }
+    @media (max-width: 1050px) {
+      .game-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; gap: 10px; margin-top: 10px; }
+      .game { grid-column: 1 / -1; grid-row: 1; }
+      .player-card { grid-row: 2; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; align-items: center; }
+      .player-name { margin: 7px 0 0; }
+      .score-wrap { text-align: right; }
+      .score { font-size: 30px; }
+      .turn-tag { grid-column: 1 / -1; margin-top: 8px; padding-top: 8px; min-height: 17px; }
+      .player-card.active { transform: translateY(-2px); }
+    }
+    @media (max-width: 580px) {
+      :root { --step: calc((100vw - 74px) / var(--board-size)); --dot: 11px; }
+      .app { width: calc(100% - 18px); padding-top: 9px; }
+      .topbar { min-height: 46px; }
+      .brand-mark { width: 38px; height: 38px; gap: 5px; }
+      h1 { font-size: 15px; }
+      .brand p { font-size: 7px; }
+      .top-actions .icon-btn:first-child { display: none; }
+      .game-layout { margin-top: 5px; }
+      .status-wrap { min-height: 55px; margin-bottom: 3px; }
+      .paper { padding: 22px; }
+      .player-card { padding: 10px 11px; border-radius: 14px; }
+      .player-kicker, .turn-tag { font-size: 7px; }
+      .player-name h2 { font-size: 11px; }
+      .swatch { width: 17px; height: 17px; border-radius: 5px; }
+      .score-label { font-size: 7px; }
+      .score { font-size: 25px; }
+      .controls { margin-top: 17px; }
+      .text-btn, .primary-btn { padding-inline: 12px; font-size: 9px; }
+      .how-to { margin-top: 10px; font-size: 9px; }
+      .build-note { margin-top: 17px; font-size: 8px; }
+    }
+    @media (max-width: 360px) {
+      :root { --step: calc((100vw - 56px) / var(--board-size)); }
+      .app { width: calc(100% - 12px); }
+      .controls { gap: 6px; }
+      .size-control select, .text-btn, .primary-btn { padding-left: 10px; padding-right: 10px; }
+      .size-control select { padding-right: 29px; }
+      .size-control::after { right: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <div><h1>Boxed In</h1><p>Dots &amp; Boxes · Local match</p></div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="help" type="button" aria-label="Show how to play">?</button>
+        <button class="icon-btn" id="sound" type="button" aria-label="Mute sound" aria-pressed="false">♪</button>
+      </div>
+    </header>
+
+    <section class="game-layout">
+      <aside class="player-card p1 active" id="player-1-card">
+        <div>
+          <div class="player-kicker">Player one</div>
+          <div class="player-name"><span class="swatch" aria-hidden="true"></span><h2>CORAL</h2></div>
+        </div>
+        <div class="score-wrap"><div class="score-label">Boxes</div><div class="score" id="score-1">0</div></div>
+        <div class="turn-tag">Draw a line</div>
+      </aside>
+
+      <section class="game" aria-label="Dots and Boxes game">
+        <div class="status-wrap" aria-live="polite">
+          <div><p class="round-label" id="round-label">Round 1 · 25 boxes remain</p><h2 id="status"><span class="p1-text">Coral</span>, draw the first line</h2></div>
+        </div>
+
+        <div class="paper">
+          <div class="board" id="board" role="group" aria-label="Dots and Boxes board"></div>
+        </div>
+
+        <div class="controls">
+          <button class="text-btn" id="undo" type="button" disabled>Undo line</button>
+          <button class="primary-btn" id="new-game" type="button">New game</button>
+          <label class="size-control">
+            <span class="sr-only" hidden>Board size</span>
+            <select id="board-size" aria-label="Board size">
+              <option value="4">4 × 4 boxes</option>
+              <option value="5" selected>5 × 5 boxes</option>
+              <option value="6">6 × 6 boxes</option>
+            </select>
+          </label>
+        </div>
+        <p class="how-to"><strong>Close a box to claim it and play again.</strong> Most boxes wins.</p>
+      </section>
+
+      <aside class="player-card p2" id="player-2-card">
+        <div>
+          <div class="player-kicker">Player two</div>
+          <div class="player-name"><span class="swatch" aria-hidden="true"></span><h2>TIDE</h2></div>
+        </div>
+        <div class="score-wrap"><div class="score-label">Boxes</div><div class="score" id="score-2">0</div></div>
+        <div class="turn-tag">Draw a line</div>
+      </aside>
+    </section>
+
+    <footer class="build-note" aria-label="Build information">
+      <span>prompt</span> Create a new game: dots and boxes; for 2 huamn players · <span>date</span> 1 October 2026 · <span>model</span> GPT-5 Codex
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const board = document.querySelector('#board');
+      const paper = document.querySelector('.paper');
+      const statusEl = document.querySelector('#status');
+      const roundLabel = document.querySelector('#round-label');
+      const undoButton = document.querySelector('#undo');
+      const newGameButton = document.querySelector('#new-game');
+      const sizeSelect = document.querySelector('#board-size');
+      const playerCards = [null, document.querySelector('#player-1-card'), document.querySelector('#player-2-card')];
+      const scoreEls = [null, document.querySelector('#score-1'), document.querySelector('#score-2')];
+      const names = [null, 'Coral', 'Tide'];
+      const textClasses = [null, 'p1-text', 'p2-text'];
+
+      let size = 5;
+      let currentPlayer = 1;
+      let startingPlayer = 1;
+      let round = 1;
+      let edges = new Map();
+      let boxes = [];
+      let moves = [];
+      let scores = [0, 0, 0];
+      let state = 'playing';
+      let muted = false;
+      let audioContext = null;
+      let toastTimer = 0;
+
+      const edgeKey = (kind, row, col) => `${kind}-${row}-${col}`;
+
+      function setupGame(advanceStarter = false) {
+        if (advanceStarter) startingPlayer = startingPlayer === 1 ? 2 : 1;
+        currentPlayer = startingPlayer;
+        edges = new Map();
+        boxes = Array.from({ length: size }, () => Array(size).fill(0));
+        moves = [];
+        scores = [0, 0, 0];
+        state = 'playing';
+        document.documentElement.style.setProperty('--board-size', size);
+        buildBoard();
+        updateStatus(`${names[currentPlayer]}, draw the first line`);
+        render();
+      }
+
+      function buildBoard() {
+        board.innerHTML = '';
+        for (let row = 0; row <= size; row++) {
+          for (let col = 0; col <= size; col++) {
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.style.left = `calc(var(--step) * ${col})`;
+            dot.style.top = `calc(var(--step) * ${row})`;
+            board.appendChild(dot);
+          }
+        }
+        for (let row = 0; row <= size; row++) {
+          for (let col = 0; col < size; col++) addEdge('h', row, col);
+        }
+        for (let row = 0; row < size; row++) {
+          for (let col = 0; col <= size; col++) addEdge('v', row, col);
+        }
+      }
+
+      function addEdge(kind, row, col) {
+        const edge = document.createElement('button');
+        edge.type = 'button';
+        edge.className = `edge ${kind === 'h' ? 'horizontal' : 'vertical'}`;
+        edge.dataset.key = edgeKey(kind, row, col);
+        edge.dataset.kind = kind;
+        edge.dataset.row = row;
+        edge.dataset.col = col;
+        edge.dataset.label = `${kind === 'h' ? 'Horizontal' : 'Vertical'} line, row ${row + 1}, column ${col + 1}`;
+        edge.setAttribute('aria-label', edge.dataset.label);
+        edge.style.left = `calc(var(--step) * ${col})`;
+        edge.style.top = `calc(var(--step) * ${row})`;
+        board.appendChild(edge);
+      }
+
+      function touchingBoxes(kind, row, col) {
+        const candidates = kind === 'h'
+          ? [[row - 1, col], [row, col]]
+          : [[row, col - 1], [row, col]];
+        return candidates.filter(([r, c]) => r >= 0 && c >= 0 && r < size && c < size);
+      }
+
+      function boxIsClosed(row, col) {
+        return edges.has(edgeKey('h', row, col)) &&
+          edges.has(edgeKey('h', row + 1, col)) &&
+          edges.has(edgeKey('v', row, col)) &&
+          edges.has(edgeKey('v', row, col + 1));
+      }
+
+      function playEdge(kind, row, col) {
+        if (state !== 'playing') return;
+        const key = edgeKey(kind, row, col);
+        if (edges.has(key)) return;
+
+        const player = currentPlayer;
+        edges.set(key, player);
+        const claimed = [];
+        touchingBoxes(kind, row, col).forEach(([boxRow, boxCol]) => {
+          if (!boxes[boxRow][boxCol] && boxIsClosed(boxRow, boxCol)) {
+            boxes[boxRow][boxCol] = player;
+            scores[player]++;
+            claimed.push([boxRow, boxCol]);
+          }
+        });
+        moves.push({ key, player, claimed });
+
+        if (claimed.length) {
+          tone(claimed.length === 2 ? 'double' : 'claim');
+          if (scores[1] + scores[2] === size * size) finishGame();
+          else updateStatus(`${names[player]} claimed ${claimed.length === 2 ? 'two boxes' : 'a box'} — play again`);
+        } else {
+          tone('line');
+          currentPlayer = currentPlayer === 1 ? 2 : 1;
+          updateStatus(`${names[currentPlayer]}, draw a line`);
+        }
+        render(key);
+      }
+
+      function edgeAtPoint(x, y) {
+        const step = board.clientWidth / size;
+        const safeX = Math.max(0, Math.min(board.clientWidth, x));
+        const safeY = Math.max(0, Math.min(board.clientHeight, y));
+        const horizontalRow = Math.max(0, Math.min(size, Math.round(safeY / step)));
+        const horizontalCol = Math.max(0, Math.min(size - 1, Math.floor(safeX / step)));
+        const verticalRow = Math.max(0, Math.min(size - 1, Math.floor(safeY / step)));
+        const verticalCol = Math.max(0, Math.min(size, Math.round(safeX / step)));
+        const horizontalDistance = Math.abs(safeY - horizontalRow * step);
+        const verticalDistance = Math.abs(safeX - verticalCol * step);
+        return horizontalDistance <= verticalDistance
+          ? ['h', horizontalRow, horizontalCol]
+          : ['v', verticalRow, verticalCol];
+      }
+
+      function finishGame() {
+        state = 'finished';
+        if (scores[1] === scores[2]) {
+          statusEl.textContent = 'A perfectly boxed draw!';
+          tone('draw');
+        } else {
+          const winner = scores[1] > scores[2] ? 1 : 2;
+          statusEl.innerHTML = `<span class="${textClasses[winner]}">${names[winner]} wins ${scores[winner]}–${scores[winner === 1 ? 2 : 1]}!</span>`;
+          tone('win');
+          celebrate(winner);
+        }
+      }
+
+      function updateStatus(message) {
+        const safeName = names[currentPlayer];
+        if (message.startsWith(safeName)) {
+          statusEl.innerHTML = `<span class="${textClasses[currentPlayer]}">${safeName}</span>${message.slice(safeName.length)}`;
+        } else {
+          statusEl.textContent = message;
+        }
+      }
+
+      function render(lastKey = moves.at(-1)?.key) {
+        board.querySelectorAll('.edge').forEach(edge => {
+          const owner = edges.get(edge.dataset.key);
+          edge.classList.toggle('claimed', Boolean(owner));
+          edge.classList.toggle('p1', owner === 1);
+          edge.classList.toggle('p2', owner === 2);
+          edge.classList.toggle('last', edge.dataset.key === lastKey);
+          edge.disabled = Boolean(owner) || state !== 'playing';
+          edge.setAttribute('aria-pressed', owner ? 'true' : 'false');
+          edge.setAttribute('aria-label', owner ? `${edge.dataset.label}, claimed by ${names[owner]}` : edge.dataset.label);
+        });
+
+        board.querySelectorAll('.box').forEach(box => box.remove());
+        for (let row = 0; row < size; row++) {
+          for (let col = 0; col < size; col++) {
+            const owner = boxes[row][col];
+            if (!owner) continue;
+            const box = document.createElement('span');
+            box.className = `box p${owner}`;
+            box.textContent = owner === 1 ? 'C' : 'T';
+            box.setAttribute('aria-hidden', 'true');
+            box.style.left = `calc(var(--step) * ${col} + 7px)`;
+            box.style.top = `calc(var(--step) * ${row} + 7px)`;
+            box.style.width = 'calc(var(--step) - 14px)';
+            box.style.height = 'calc(var(--step) - 14px)';
+            box.style.setProperty('--tilt', `${((row * 3 + col * 2) % 5) - 2}deg`);
+            board.prepend(box);
+          }
+        }
+
+        scoreEls[1].textContent = scores[1];
+        scoreEls[2].textContent = scores[2];
+        playerCards[1].classList.toggle('active', state === 'playing' && currentPlayer === 1);
+        playerCards[2].classList.toggle('active', state === 'playing' && currentPlayer === 2);
+        undoButton.disabled = moves.length === 0;
+        const remaining = size * size - scores[1] - scores[2];
+        roundLabel.textContent = state === 'finished'
+          ? `Round ${round} complete · ${size * size} boxes claimed`
+          : `Round ${round} · ${remaining} ${remaining === 1 ? 'box' : 'boxes'} remain`;
+      }
+
+      function undo() {
+        const move = moves.pop();
+        if (!move) return;
+        edges.delete(move.key);
+        move.claimed.forEach(([row, col]) => {
+          boxes[row][col] = 0;
+          scores[move.player]--;
+        });
+        currentPlayer = move.player;
+        state = 'playing';
+        updateStatus(`${names[currentPlayer]}, your line was undone`);
+        tone('undo');
+        render();
+      }
+
+      function showToast(message) {
+        clearTimeout(toastTimer);
+        const toast = document.querySelector('#toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        toastTimer = window.setTimeout(() => toast.classList.remove('show'), 2300);
+      }
+
+      function ensureAudio() {
+        if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') audioContext.resume();
+      }
+
+      function tone(kind) {
+        if (muted) return;
+        try {
+          ensureAudio();
+          const now = audioContext.currentTime;
+          const notes = {
+            line: [180, .06], claim: [330, .16], double: [440, .2], undo: [135, .09], draw: [230, .3], win: [520, .42]
+          }[kind];
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          oscillator.type = kind === 'line' ? 'triangle' : 'sine';
+          oscillator.frequency.setValueAtTime(notes[0], now);
+          if (kind === 'claim' || kind === 'double' || kind === 'win') oscillator.frequency.exponentialRampToValueAtTime(notes[0] * 1.5, now + notes[1]);
+          gain.gain.setValueAtTime(.035, now);
+          gain.gain.exponentialRampToValueAtTime(.0001, now + notes[1]);
+          oscillator.connect(gain).connect(audioContext.destination);
+          oscillator.start(now);
+          oscillator.stop(now + notes[1]);
+        } catch (_) { /* Audio is optional. */ }
+      }
+
+      function celebrate(player) {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const color = player === 1 ? '#ec5f50' : '#31b4c7';
+        const finishedEdges = [...board.querySelectorAll('.edge.claimed')];
+        for (let i = 0; i < 12; i++) {
+          window.setTimeout(() => {
+            const edge = finishedEdges[i % finishedEdges.length];
+            if (!edge?.isConnected) return;
+            edge.animate([
+              { filter: 'brightness(1)', transform: 'scale(1)' },
+              { filter: `drop-shadow(0 0 7px ${color}) brightness(1.5)`, transform: 'scale(1.06)' },
+              { filter: 'brightness(1)', transform: 'scale(1)' }
+            ], { duration: 450, easing: 'ease-out' });
+          }, i * 45);
+        }
+      }
+
+      paper.addEventListener('click', event => {
+        const edge = event.target.closest('.edge');
+        if (edge) {
+          playEdge(edge.dataset.kind, Number(edge.dataset.row), Number(edge.dataset.col));
+          return;
+        }
+        const x = event.offsetX - (event.target === paper ? board.offsetLeft : 0);
+        const y = event.offsetY - (event.target === paper ? board.offsetTop : 0);
+        const [kind, row, col] = edgeAtPoint(x, y);
+        playEdge(kind, row, col);
+      });
+      undoButton.addEventListener('click', undo);
+      newGameButton.addEventListener('click', () => {
+        round++;
+        setupGame(true);
+      });
+      sizeSelect.addEventListener('change', () => {
+        size = Number(sizeSelect.value);
+        round = 1;
+        startingPlayer = 1;
+        setupGame(false);
+        showToast(`${size} × ${size} board ready`);
+      });
+      document.querySelector('#help').addEventListener('click', () => {
+        showToast('Take turns joining dots. Complete a box to claim it and immediately draw another line.');
+      });
+      document.querySelector('#sound').addEventListener('click', event => {
+        muted = !muted;
+        event.currentTarget.textContent = muted ? '∕' : '♪';
+        event.currentTarget.setAttribute('aria-pressed', String(muted));
+        event.currentTarget.setAttribute('aria-label', muted ? 'Enable sound' : 'Mute sound');
+        if (!muted) tone('undo');
+        showToast(muted ? 'Sound muted' : 'Sound enabled');
+      });
+
+      console.info('Boxed In — Dots and Boxes | Prompt: Create a new game: dots and boxes; for 2 huamn players | Date: 1 October 2026 | Model: GPT-5 Codex');
+      setupGame(false);
+    })();
+  </script>
+</body>
+</html>

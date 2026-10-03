@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101711">
+  <title>Pocket Snake</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --navy: #08263b;
+      --blue: #1d6d98;
+      --blue-hi: #3191bb;
+      --plastic: #ecebe8;
+      --plastic-dark: #b9bab7;
+      --key: #e9e8e4;
+      --lcd: #aab99a;
+      --ink: #1d2c22;
+      --paper: #e8f3f5;
+      /* Calibrated to a roughly 17 × 16.5 mm MacBook Air keytop with 19 mm pitch on iPhone-sized displays. */
+      --touch-key-width: clamp(84px, 26.15vw, 102px);
+      --touch-key-height: clamp(81px, 25.4vw, 99px);
+      --touch-key-gap: clamp(11px, 3.3vw, 14px);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; height: 100%; min-height: 100dvh; margin: 0; overscroll-behavior: none; }
+    body {
+      overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none;
+      background:
+        radial-gradient(circle at 50% 36%, rgba(53, 139, 176, .26), transparent 35%),
+        linear-gradient(145deg, #071b2b, #0a3048 54%, #061824);
+      color: var(--paper);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .18;
+      background-image: linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px);
+      background-size: 34px 34px;
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 35%, #000);
+      mask-image: linear-gradient(to bottom, transparent, #000 35%, #000);
+    }
+    button { font: inherit; touch-action: manipulation; }
+    .top-actions {
+      position: fixed; z-index: 20; top: max(18px, env(safe-area-inset-top)); right: max(20px, env(safe-area-inset-right)); display: flex; gap: 9px;
+    }
+    .action {
+      appearance: none; border: 1px solid rgba(219, 243, 250, .34); border-radius: 7px;
+      padding: 10px 13px; background: rgba(5, 27, 42, .7); color: #edfaff; cursor: pointer;
+      font-size: 10px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase;
+      box-shadow: 0 6px 22px rgba(0,0,0,.22); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .action:hover { border-color: rgba(219, 243, 250, .72); background: rgba(15, 58, 82, .88); }
+    .touch-scores, .touch-controls, .layout-toggle { display: none; }
+    .touch-scores {
+      position: fixed; z-index: 30; top: max(12px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left));
+      gap: 6px; pointer-events: none;
+    }
+    .touch-score {
+      min-width: 58px; padding: 6px 8px 5px; border: 1px solid rgba(29,44,34,.36); border-radius: 7px;
+      background: rgba(170,185,154,.82); color: var(--ink); box-shadow: 0 3px 12px rgba(0,0,0,.14);
+      text-align: right; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    .touch-score span { display: block; font-size: 7px; font-weight: 900; letter-spacing: .12em; }
+    .touch-score strong { display: block; margin-top: 2px; font: 900 14px/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .touch-controls {
+      position: fixed; z-index: 30; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+      flex-direction: column; align-items: center;
+    }
+    .layout-toggle {
+      width: 58px; min-width: 58px; padding: 5px 4px; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+      letter-spacing: .08em;
+    }
+    .layout-toggle-title { font-size: 7px; line-height: 1; opacity: .72; }
+    .layout-toggle-label { font-size: 9px; line-height: 1; }
+    .touch-dpad {
+      display: grid; grid-template-columns: repeat(3, var(--touch-key-width)); grid-template-rows: repeat(2, var(--touch-key-height)); gap: var(--touch-key-gap);
+    }
+    .touch-key {
+      appearance: none; width: var(--touch-key-width); height: var(--touch-key-height); padding: 0; border: 1px solid rgba(29,44,34,.58); border-radius: 16px;
+      background: rgba(170,185,154,.88); color: var(--ink); box-shadow: inset 0 1px rgba(255,255,255,.28), 0 5px 18px rgba(0,0,0,.2);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font: 900 34px/1 ui-monospace, SFMono-Regular, Menlo, monospace; cursor: pointer; touch-action: none;
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    .key-number { display: none; }
+    .key-arrow { line-height: 1; }
+    .touch-key:active, .touch-key.active { transform: translateY(2px) scale(.95); background: rgba(194,207,181,.96); box-shadow: inset 0 2px 5px rgba(29,44,34,.28); }
+    .touch-key.up { grid-column: 2; grid-row: 1; }
+    .touch-key.left { grid-column: 1; grid-row: 2; }
+    .touch-key.right { grid-column: 3; grid-row: 2; }
+    .touch-key.down { grid-column: 2; grid-row: 2; }
+    .touch-dpad[data-layout="keypad"] { grid-template-rows: repeat(3, var(--touch-key-height)); }
+    .touch-dpad[data-layout="keypad"] .touch-key { border-radius: 45% 45% 38% 38% / 30% 30% 48% 48%; }
+    .touch-dpad[data-layout="keypad"] .touch-key.down { grid-row: 3; }
+    .touch-dpad[data-layout="keypad"] .key-number { display: block; font-size: 34px; }
+    .touch-dpad[data-layout="keypad"] .key-arrow { margin-top: 5px; font-size: 14px; }
+    .stage {
+      position: relative; width: 100%; height: 100%; padding: 16px 24px;
+      display: grid; grid-template-columns: minmax(300px, 390px) 230px; justify-content: center; align-items: center; gap: clamp(28px, 5vw, 72px);
+    }
+    .phone {
+      position: relative; width: min(330px, calc(100vh * .38)); aspect-ratio: 50.5 / 123.8;
+      padding: 6.5% 7.5% 7%; display: flex; flex-direction: column; align-items: center;
+      border-radius: 46% 46% 28% 28% / 8% 8% 6% 6%;
+      background:
+        linear-gradient(90deg, transparent 0 4%, rgba(255,255,255,.22) 5%, transparent 9% 91%, rgba(0,0,0,.16) 95%, transparent 97%),
+        linear-gradient(155deg, #5e6870, #3f4b52 39%, #29363e 72%, #1a2830);
+      box-shadow: inset 8px 0 16px rgba(255,255,255,.13), inset -10px 0 18px rgba(0,0,0,.22), 0 35px 80px rgba(0,0,0,.5);
+      isolation: isolate;
+    }
+    .phone::before {
+      content: ""; position: absolute; z-index: -1; inset: 2.5% 6% 1.5%; border-radius: 44% 44% 22% 22% / 7% 7% 5% 5%;
+      background: linear-gradient(100deg, #c9ccca, #8e9698 46%, #c4c8c6 72%, #747f82);
+      box-shadow: inset 2px 0 3px #fff, inset -3px 0 5px rgba(0,0,0,.17);
+    }
+    .speaker { width: 25%; height: 1.1%; min-height: 5px; margin-top: 1%; border-radius: 10px; background: #19262b; box-shadow: inset 0 2px 2px #07181f; }
+    .brand { margin: 2.6% 0 2%; color: #1d292e; font-size: clamp(11px, 1.8vh, 16px); line-height: 1; font-weight: 900; letter-spacing: .08em; }
+    .screen-bezel {
+      position: relative; width: 84%; padding: 7% 6.2% 6%; border-radius: 44% 44% 25% 25% / 18% 18% 17% 17%;
+      background: linear-gradient(150deg, #18313a, #0a171c 54%, #263c43); box-shadow: inset 0 2px 4px #42545a, 0 4px 8px rgba(0,0,0,.3);
+    }
+    .screen-bezel::before { content: ""; position: absolute; top: 6%; left: 50%; transform: translateX(-50%); width: 6px; height: 3px; border-radius: 50%; background: #627175; }
+    .lcd-wrap {
+      position: relative; width: 100%; aspect-ratio: 84 / 48; overflow: hidden; background: var(--lcd);
+      border: 2px solid #627065; box-shadow: inset 0 0 13px rgba(27, 42, 31, .32), 0 0 0 2px rgba(255,255,255,.13);
+    }
+    .lcd-wrap::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .22;
+      background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(255,255,255,.18) 2px 3px);
+      mix-blend-mode: screen;
+    }
+    canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; touch-action: none; }
+    .soft-row { width: 80%; height: 7%; min-height: 28px; margin-top: 3.5%; display: grid; grid-template-columns: 1fr 1.15fr 1fr; align-items: center; gap: 9%; }
+    .soft-key, .navi {
+      appearance: none; border: 0; cursor: pointer; color: #172b33;
+      background: linear-gradient(#fafaf7, #c5c5c2); box-shadow: 0 3px 4px rgba(0,0,0,.34), inset 0 1px #fff;
+    }
+    .soft-key { height: 54%; border-radius: 50%; transform: rotate(-8deg); }
+    .soft-key:last-child { transform: rotate(8deg); }
+    .navi { align-self: stretch; border-radius: 44% 44% 50% 50%; font-size: clamp(8px, 1vh, 11px); font-weight: 900; letter-spacing: .04em; }
+    .soft-key:active, .navi:active, .key.active, .key:active { transform: translateY(2px); box-shadow: inset 0 2px 5px rgba(0,0,0,.22); }
+    .soft-key:first-child:active { transform: rotate(-8deg) translateY(2px); }
+    .soft-key:last-child:active { transform: rotate(8deg) translateY(2px); }
+    .keypad { flex: 1; width: 76%; margin-top: 2%; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(4, 1fr); column-gap: 11%; row-gap: 2.5%; }
+    .key {
+      appearance: none; min-width: 0; min-height: 0; border: 0; border-radius: 45% 45% 38% 38% / 30% 30% 48% 48%;
+      background: linear-gradient(145deg, #fdfcf9, #d6d5d1 56%, #aeadab); color: #172c35; cursor: pointer;
+      box-shadow: 0 3px 4px rgba(0,0,0,.34), inset 1px 1px 1px #fff; line-height: 1;
+    }
+    .key span { display: block; font-size: clamp(13px, 2.1vh, 20px); font-weight: 800; }
+    .key small { display: block; margin-top: 2px; font-size: clamp(5px, .72vh, 7px); font-weight: 900; letter-spacing: .05em; }
+    .info { align-self: center; }
+    .kicker { margin: 0 0 10px; color: #80d3ef; font-size: 10px; font-weight: 900; letter-spacing: .2em; }
+    .info h1 { margin: 0 0 13px; font-size: clamp(30px, 4vw, 48px); line-height: .9; letter-spacing: -.055em; }
+    .info h1 span { display: block; color: #6ec9e8; }
+    .info > p { margin: 0 0 22px; color: #afcbd4; font-size: 12px; line-height: 1.55; }
+    .stats { padding: 15px; border: 1px solid rgba(198,235,245,.18); border-radius: 11px; background: rgba(4,25,39,.55); box-shadow: 0 12px 35px rgba(0,0,0,.16); }
+    .stat { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px solid rgba(215,241,247,.1); }
+    .stat:last-child { border-bottom: 0; }
+    .stat span { color: #87a9b5; font-size: 9px; font-weight: 800; letter-spacing: .14em; }
+    .stat b { color: #f4fbfc; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 18px; }
+    .level-control { display: flex; align-items: center; gap: 9px; }
+    .level-control button { width: 24px; height: 23px; border: 1px solid #47768a; border-radius: 5px; background: #123d54; color: white; cursor: pointer; }
+    .keys-help { margin-top: 14px; color: #91b0ba; font-size: 10px; line-height: 1.8; }
+    kbd { display: inline-block; min-width: 19px; padding: 2px 4px; border: 1px solid #52798a; border-radius: 4px; background: #0b2f44; color: #fff; text-align: center; font: 700 9px ui-monospace, monospace; }
+    .status { margin-top: 11px; color: #cfe6eb; font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    :fullscreen .stage { padding: 10px 24px; }
+    :fullscreen .phone { width: min(350px, calc(100vh * .38)); }
+    body.sim-fullscreen { position: fixed; inset: 0; z-index: 9999; }
+    @media (max-width: 720px) {
+      .stage { display: flex; padding: 10px; align-items: center; justify-content: center; }
+      .phone { width: min(calc(100vw - 20px), calc(100vh * .38)); }
+      .info { display: none; }
+      .top-actions { top: 9px; right: 9px; }
+      .action { padding: 8px 9px; font-size: 8px; background: rgba(5,27,42,.82); }
+    }
+
+    /* Screen-only mode: preserve the original 84:48 LCD ratio at the largest possible size. */
+    body { background: #101711; }
+    body::before, .speaker, .brand, .soft-row, .keypad, .info, .phone::before, .screen-bezel::before { display: none; }
+    .stage {
+      display: flex; width: 100vw; height: 100vh; height: 100dvh; padding: 0; gap: 0;
+      align-items: center; justify-content: center;
+    }
+    .phone {
+      width: 100vw; height: 100vh; height: 100dvh; aspect-ratio: auto; padding: 0; display: grid; place-items: center;
+      border-radius: 0; background: none; box-shadow: none;
+    }
+    .screen-bezel {
+      width: 100%; height: 100%; padding: 0; border-radius: 0; background: none; box-shadow: none;
+      display: grid; place-items: center;
+    }
+    .lcd-wrap {
+      position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: min(100vw, calc(100vh * 1.75)); width: min(100vw, calc(100dvh * 1.75));
+      height: min(100vh, calc(100vw / 1.75)); height: min(100dvh, calc(100vw / 1.75));
+      border: 0; box-shadow: 0 0 70px rgba(155, 178, 143, .19);
+    }
+    .top-actions { top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); opacity: .3; transition: opacity .15s; }
+    .top-actions:hover, .top-actions:focus-within { opacity: 1; }
+    .action { padding: 8px 10px; border-color: rgba(29,44,34,.32); background: rgba(170,185,154,.78); color: #1d2c22; box-shadow: none; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .action:hover { border-color: #1d2c22; background: #b9c8aa; }
+    @media (hover: none), (pointer: coarse), (any-pointer: coarse) {
+      .top-actions { gap: 6px; opacity: .78; }
+      .action { min-height: 44px; }
+      .layout-toggle { position: absolute; top: calc(100% + 8px); right: 0; display: flex; }
+      .touch-scores { display: flex; }
+      .touch-controls { display: flex; }
+    }
+    @media (orientation: portrait) and (hover: none), (orientation: portrait) and (pointer: coarse), (orientation: portrait) and (any-pointer: coarse) {
+      .lcd-wrap {
+        --portrait-top-space: max(120px, calc(env(safe-area-inset-top) + 108px));
+        --portrait-bottom-space: calc(max(14px, env(safe-area-inset-bottom)) + var(--touch-key-height) + var(--touch-key-height) + var(--touch-key-gap) + 12px);
+        top: calc((var(--portrait-top-space) + 100vh - var(--portrait-bottom-space)) / 2);
+        top: calc((var(--portrait-top-space) + 100dvh - var(--portrait-bottom-space)) / 2);
+        width: auto;
+        height: max(1px, min(calc(100vw / 1.75), calc(100vh - var(--portrait-top-space) - var(--portrait-bottom-space))));
+        height: max(1px, min(calc(100vw / 1.75), calc(100dvh - var(--portrait-top-space) - var(--portrait-bottom-space))));
+        aspect-ratio: 1.75;
+      }
+      body[data-control-layout="keypad"] .lcd-wrap {
+        --portrait-bottom-space: calc(max(14px, env(safe-area-inset-bottom)) + var(--touch-key-height) + var(--touch-key-height) + var(--touch-key-height) + var(--touch-key-gap) + var(--touch-key-gap) + 12px);
+      }
+    }
+    @media (orientation: landscape) and (hover: none), (orientation: landscape) and (pointer: coarse), (orientation: landscape) and (any-pointer: coarse) {
+      .top-actions { left: max(154px, calc(env(safe-area-inset-left) + 154px)); right: auto; }
+      .layout-toggle { position: fixed; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); left: auto; }
+      .touch-controls { left: auto; right: max(12px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); transform: none; }
+      .lcd-wrap {
+        left: max(8px, env(safe-area-inset-left)); transform: translateY(-50%);
+        width: min(calc(100vw - 370px - env(safe-area-inset-left) - env(safe-area-inset-right)), calc(100dvh * 1.75));
+        height: auto; aspect-ratio: 1.75;
+      }
+    }
+    :fullscreen .stage { padding: 0; }
+    :fullscreen .phone { width: 100vw; }
+  </style>
+</head>
+<body>
+  <div class="touch-scores" aria-label="Current and locally saved scores">
+    <div class="touch-score"><span>SCORE</span><strong id="touch-score">0000</strong></div>
+    <div class="touch-score"><span>LOCAL BEST</span><strong id="touch-best">0000</strong></div>
+  </div>
+  <div class="top-actions">
+    <button class="action" id="new-game" type="button">New game</button>
+    <button class="action" id="fullscreen" type="button">Full screen</button>
+    <button class="action layout-toggle" id="layout-toggle" type="button" aria-pressed="true" aria-label="Switch to arrow key layout">
+      <span class="layout-toggle-title">Keys</span><span class="layout-toggle-label">Arrows</span>
+    </button>
+  </div>
+
+  <main class="stage">
+    <section class="phone" aria-label="Retro handset">
+      <div class="speaker"></div>
+      <div class="brand">SIDE QUEST</div>
+      <div class="screen-bezel">
+        <div class="lcd-wrap"><canvas id="lcd" width="84" height="48" aria-label="Snake game screen. Swipe to steer and tap to pause or start."></canvas></div>
+      </div>
+      <div class="soft-row">
+        <button class="soft-key" id="soft-new" aria-label="New game"></button>
+        <button class="navi" id="navi" type="button">NAVI</button>
+        <button class="soft-key" id="soft-pause" aria-label="Pause game"></button>
+      </div>
+      <div class="keypad" aria-label="Phone keypad">
+        <button class="key" type="button"><span>1</span><small>.,?!</small></button>
+        <button class="key" type="button" data-dir="up"><span>2</span><small>▲ ABC</small></button>
+        <button class="key" type="button"><span>3</span><small>DEF</small></button>
+        <button class="key" type="button" data-dir="left"><span>4</span><small>◀ GHI</small></button>
+        <button class="key" type="button"><span>5</span><small>JKL</small></button>
+        <button class="key" type="button" data-dir="right"><span>6</span><small>MNO ▶</small></button>
+        <button class="key" type="button"><span>7</span><small>PQRS</small></button>
+        <button class="key" type="button" data-dir="down"><span>8</span><small>▼ TUV</small></button>
+        <button class="key" type="button"><span>9</span><small>WXYZ</small></button>
+        <button class="key" type="button"><span>*</span><small>+</small></button>
+        <button class="key" type="button"><span>0</span><small>_</small></button>
+        <button class="key" type="button"><span>#</span><small>⇧</small></button>
+      </div>
+    </section>
+
+    <aside class="info">
+      <p class="kicker">MONOCHROME EDITION</p>
+      <h1>POCKET <span>SNAKE</span></h1>
+      <p>Old-school Snake on an 84 × 48 monochrome screen. Eat, grow, and avoid the walls and your own tail.</p>
+      <div class="stats">
+        <div class="stat"><span>SCORE</span><b id="score">0000</b></div>
+        <div class="stat"><span>TOP SCORE</span><b id="best">0000</b></div>
+        <div class="stat"><span>LEVEL</span><div class="level-control"><button id="level-down" type="button">−</button><b id="level">5</b><button id="level-up" type="button">+</button></div></div>
+      </div>
+      <div class="keys-help"><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> or <kbd>2</kbd> <kbd>4</kbd> <kbd>6</kbd> <kbd>8</kbd> move<br><kbd>Enter</kbd> start/pause · <kbd>F</kbd> full screen</div>
+      <div class="status" id="status">Press Enter to start</div>
+    </aside>
+  </main>
+
+  <div class="touch-controls">
+    <div class="touch-dpad" id="touch-dpad" data-layout="keypad" aria-label="Direction controls">
+      <button class="touch-key up" type="button" data-dir="up" aria-label="Turn up"><span class="key-number">2</span><span class="key-arrow">↑</span></button>
+      <button class="touch-key left" type="button" data-dir="left" aria-label="Turn left"><span class="key-number">4</span><span class="key-arrow">←</span></button>
+      <button class="touch-key down" type="button" data-dir="down" aria-label="Turn down"><span class="key-number">8</span><span class="key-arrow">↓</span></button>
+      <button class="touch-key right" type="button" data-dir="right" aria-label="Turn right"><span class="key-number">6</span><span class="key-arrow">→</span></button>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const canvas = document.querySelector('#lcd');
+      const ctx = canvas.getContext('2d', { alpha: false });
+      const scoreEl = document.querySelector('#score');
+      const bestEl = document.querySelector('#best');
+      const touchScoreEl = document.querySelector('#touch-score');
+      const touchBestEl = document.querySelector('#touch-best');
+      const touchControls = document.querySelector('.touch-controls');
+      const touchDpad = document.querySelector('#touch-dpad');
+      const layoutToggle = document.querySelector('#layout-toggle');
+      const layoutToggleLabel = document.querySelector('.layout-toggle-label');
+      const levelEl = document.querySelector('#level');
+      const statusEl = document.querySelector('#status');
+      const fullscreenButton = document.querySelector('#fullscreen');
+      const COLS = 26, ROWS = 12, CELL = 3, PLAY_X = 3, PLAY_Y = 11;
+      const STORE_KEY = 'pocket-snake-best-v1';
+      const LAYOUT_KEY = 'pocket-snake-control-layout-v1';
+      // Builds before the rename stored values under model-numbered keys; carry them over once,
+      // preferring the newest model's key.
+      const LEGACY_MODELS = ['3210', '8210'];
+      const LEGACY_BEST = /^[a-z]+-(\d{4})-snake-best-v1$/, LEGACY_LAYOUT = /^[a-z]+-(\d{4})-control-layout-v1$/;
+      const legacyValues = pattern => Object.keys(localStorage)
+        .map(k => [k, LEGACY_MODELS.indexOf((k.match(pattern) || [])[1])])
+        .filter(([, rank]) => rank >= 0)
+        .sort((x, y) => x[1] - y[1])
+        .map(([k]) => localStorage.getItem(k));
+      const BG = '#aab99a', INK = '#1d2c22';
+      const touchDevice = window.matchMedia('(hover: none), (pointer: coarse), (any-pointer: coarse)').matches;
+      const DIRS = { up: {x: 0, y: -1}, down: {x: 0, y: 1}, left: {x: -1, y: 0}, right: {x: 1, y: 0} };
+      const FONT = {
+        ' ': '000/000/000/000/000', '0': '111/101/101/101/111', '1': '010/110/010/010/111',
+        '2': '111/001/111/100/111', '3': '111/001/111/001/111', '4': '101/101/111/001/001',
+        '5': '111/100/111/001/111', '6': '111/100/111/101/111', '7': '111/001/010/010/010',
+        '8': '111/101/111/101/111', '9': '111/101/111/001/111', ':': '000/010/000/010/000',
+        'A': '010/101/111/101/101', 'B': '110/101/110/101/110', 'C': '011/100/100/100/011',
+        'D': '110/101/101/101/110', 'E': '111/100/110/100/111', 'G': '011/100/101/101/011',
+        'I': '111/010/010/010/111', 'K': '101/101/110/101/101', 'L': '100/100/100/100/111',
+        'M': '10001/11011/10101/10101/10101', 'N': '101/111/111/111/101', 'O': '010/101/101/101/010',
+        'P': '110/101/110/100/100', 'R': '110/101/110/101/101', 'S': '011/100/010/001/110',
+        'T': '111/010/010/010/010', 'U': '101/101/101/101/111', 'V': '101/101/101/101/010',
+        'W': '10001/10101/10101/11011/10001', 'Y': '101/101/010/010/010'
+      };
+
+      function loadBest() {
+        try {
+          const current = localStorage.getItem(STORE_KEY);
+          const stored = Number(current || Math.max(0, ...legacyValues(LEGACY_BEST).map(Number).filter(Number.isFinite)));
+          const value = Number.isFinite(stored) && stored > 0 ? Math.floor(stored) : 0;
+          if (!current && value) localStorage.setItem(STORE_KEY, String(value));
+          return value;
+        }
+        catch { return 0; }
+      }
+
+      function recordBest(value) {
+        if (!Number.isFinite(value) || value <= best) return;
+        best = Math.floor(value);
+        try { localStorage.setItem(STORE_KEY, String(best)); } catch { /* Storage is optional. */ }
+      }
+
+      function setControlLayout(layout, save = false) {
+        const selected = layout === 'keyboard' ? 'keyboard' : 'keypad';
+        document.body.dataset.controlLayout = selected;
+        touchControls.dataset.layout = selected;
+        touchDpad.dataset.layout = selected;
+        const keypadSelected = selected === 'keypad';
+        layoutToggle.setAttribute('aria-pressed', String(keypadSelected));
+        layoutToggle.setAttribute('aria-label', keypadSelected ? 'Switch to arrow key layout' : 'Switch to phone keypad layout');
+        layoutToggleLabel.textContent = keypadSelected ? 'Arrows' : 'Keypad';
+        if (save) try { localStorage.setItem(LAYOUT_KEY, selected); } catch { /* Storage is optional. */ }
+      }
+
+      try {
+        const current = localStorage.getItem(LAYOUT_KEY);
+        const savedLayout = current || legacyValues(LEGACY_LAYOUT)[0] || null;
+        setControlLayout(savedLayout, !current && !!savedLayout);
+      }
+      catch { setControlLayout('keypad'); }
+
+      canvas.dataset.display = '84x48';
+      canvas.dataset.playfield = `${COLS}x${ROWS}`;
+
+      let state = 'menu', snake = [], food = null, direction = DIRS.right, directionQueue = [];
+      let score = 0, best = loadBest(), level = 5, growth = 0;
+      let accumulator = 0, lastLoop = performance.now(), blink = 0, audioContext = null;
+
+      function textWidth(text, scale = 1) {
+        return [...text].reduce((width, char, index) => width + ((FONT[char]?.split('/')[0].length || 3) + (index < text.length - 1 ? 1 : 0)) * scale, 0);
+      }
+      function lcdText(text, x, y, scale = 1, align = 'left') {
+        text = text.toUpperCase();
+        if (align === 'center') x -= Math.floor(textWidth(text, scale) / 2);
+        if (align === 'right') x -= textWidth(text, scale);
+        ctx.fillStyle = INK;
+        for (const char of text) {
+          const rows = (FONT[char] || FONT[' ']).split('/');
+          const width = rows[0].length;
+          rows.forEach((row, py) => [...row].forEach((pixel, px) => {
+            if (pixel === '1') ctx.fillRect(x + px * scale, y + py * scale, scale, scale);
+          }));
+          x += (width + 1) * scale;
+        }
+      }
+      function clear() { ctx.fillStyle = BG; ctx.fillRect(0, 0, 84, 48); }
+      function drawMenu() {
+        clear();
+        ctx.fillStyle = INK; ctx.fillRect(7, 5, 70, 1); ctx.fillRect(7, 41, 70, 1);
+        lcdText('SNAKE', 42, 10, 2, 'center');
+        lcdText(`LEVEL ${level}`, 42, 25, 1, 'center');
+        if (blink % 20 < 14) lcdText(touchDevice ? 'TAP START' : 'ENTER START', 42, 33, 1, 'center');
+      }
+      function drawGame() {
+        clear();
+        lcdText(String(score).padStart(4, '0'), 2, 2);
+        lcdText(`L${level}`, 82, 2, 1, 'right');
+        ctx.fillStyle = INK;
+        ctx.fillRect(1, 8, 82, 1);
+        ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(1.5, 10.5, 81, 37);
+        snake.forEach((part, index) => {
+          const x = PLAY_X + part.x * CELL, y = PLAY_Y + part.y * CELL;
+          if (index === 0) {
+            ctx.fillRect(x, y, 3, 3);
+            ctx.fillStyle = BG;
+            const facing = directionQueue[0] || direction;
+            const eyeX = facing.x > 0 ? x + 2 : facing.x < 0 ? x : x + 1;
+            const eyeY = facing.y > 0 ? y + 2 : facing.y < 0 ? y : y + 1;
+            ctx.fillRect(eyeX, eyeY, 1, 1); ctx.fillStyle = INK;
+          } else {
+            ctx.fillRect(x, y, 2, 2);
+          }
+        });
+        if (food) {
+          const x = PLAY_X + food.x * CELL, y = PLAY_Y + food.y * CELL;
+          if (blink % 8 < 5) { ctx.fillRect(x + 1, y, 1, 3); ctx.fillRect(x, y + 1, 3, 1); }
+          else { ctx.fillRect(x, y, 3, 3); ctx.fillStyle = BG; ctx.fillRect(x + 1, y + 1, 1, 1); }
+        }
+      }
+      function drawOverlay(title, subtitle) {
+        clear();
+        ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(3.5, 5.5, 77, 36);
+        lcdText(title, 42, 11, title.length <= 6 ? 2 : 1, 'center');
+        lcdText(subtitle, 42, 27, 1, 'center');
+        if (blink % 20 < 14) lcdText(touchDevice ? 'TAP' : 'ENTER', 42, 34, 1, 'center');
+      }
+      function draw() {
+        ctx.imageSmoothingEnabled = false;
+        if (state === 'menu') drawMenu();
+        else if (state === 'playing') drawGame();
+        else if (state === 'paused') { drawGame(); ctx.fillStyle = BG; ctx.fillRect(19, 18, 46, 12); ctx.strokeStyle = INK; ctx.strokeRect(19.5, 18.5, 45, 11); lcdText('PAUSED', 42, 22, 1, 'center'); }
+        else if (state === 'over') drawOverlay('GAME OVER', `SCORE ${score}`);
+        else if (state === 'won') drawOverlay('YOU WIN', `SCORE ${score}`);
+      }
+      function updateLabels() {
+        scoreEl.textContent = String(score).padStart(4, '0');
+        bestEl.textContent = String(best).padStart(4, '0');
+        touchScoreEl.textContent = String(score).padStart(4, '0');
+        touchBestEl.textContent = String(best).padStart(4, '0');
+        levelEl.textContent = level;
+        statusEl.textContent = state === 'playing' ? 'Playing' : state === 'paused' ? 'Paused' : state === 'over' ? 'Game over — Enter to retry' : 'Press Enter to start';
+      }
+      function beep(frequency, duration = .055) {
+        try {
+          audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+          const oscillator = audioContext.createOscillator(), gain = audioContext.createGain();
+          oscillator.type = 'square'; oscillator.frequency.value = frequency; gain.gain.value = .035;
+          oscillator.connect(gain); gain.connect(audioContext.destination); oscillator.start();
+          gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + duration); oscillator.stop(audioContext.currentTime + duration);
+        } catch { /* sound is optional */ }
+      }
+      function placeFood() {
+        const open = [];
+        for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+          if (!snake.some(part => part.x === x && part.y === y)) open.push({x, y});
+        }
+        if (!open.length) { endGame(true); return; }
+        food = open[Math.floor(Math.random() * open.length)];
+      }
+      function startGame() {
+        const y = Math.floor(ROWS / 2), x = Math.floor(COLS / 2);
+        snake = Array.from({length: 6}, (_, i) => ({x: x - i, y}));
+        direction = DIRS.right; directionQueue = []; score = 0; growth = 0; accumulator = 0; state = 'playing';
+        canvas.dataset.head = `${x},${y}`; canvas.dataset.direction = '1,0';
+        placeFood(); updateLabels(); draw(); beep(420, .04);
+      }
+      function endGame(won = false) {
+        state = won ? 'won' : 'over';
+        recordBest(score);
+        updateLabels(); draw();
+        if (won) beep(880, .12); else { beep(150, .18); setTimeout(() => beep(110, .2), 100); }
+      }
+      function tick() {
+        if (directionQueue.length) direction = directionQueue.shift();
+        const head = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
+        const hitWall = head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS;
+        const bodyToCheck = growth > 0 ? snake : snake.slice(0, -1);
+        const hitSelf = bodyToCheck.some(part => part.x === head.x && part.y === head.y);
+        if (hitWall || hitSelf) { endGame(); return; }
+        snake.unshift(head);
+        canvas.dataset.head = `${head.x},${head.y}`; canvas.dataset.direction = `${direction.x},${direction.y}`;
+        if (food && head.x === food.x && head.y === food.y) {
+          score += level * 10; growth += 4; beep(760 + level * 25);
+          recordBest(score);
+          placeFood(); updateLabels();
+        }
+        if (growth > 0) growth--; else snake.pop();
+      }
+      function changeDirection(name) {
+        if (state === 'menu' || state === 'over' || state === 'won') startGame();
+        if (state !== 'playing') return;
+        const next = DIRS[name];
+        const previous = directionQueue.length ? directionQueue[directionQueue.length - 1] : direction;
+        const reverses = next.x + previous.x === 0 && next.y + previous.y === 0;
+        const repeats = next.x === previous.x && next.y === previous.y;
+        if (reverses || repeats || directionQueue.length >= 2) return;
+        directionQueue.push(next);
+        // Guarantee that a valid turn is applied within roughly 55 ms instead of
+        // making the player wait for an entire movement interval.
+        const step = 255 - level * 19;
+        accumulator = Math.max(accumulator, step - 55);
+        draw();
+        document.querySelectorAll(`[data-dir="${name}"]`).forEach(button => {
+          button.classList.add('active');
+          setTimeout(() => button.classList.remove('active'), 90);
+        });
+      }
+      function togglePause() {
+        if (state === 'menu' || state === 'over' || state === 'won') startGame();
+        else { state = state === 'playing' ? 'paused' : 'playing'; accumulator = 0; updateLabels(); draw(); beep(state === 'playing' ? 500 : 300, .04); }
+      }
+      function changeLevel(amount) {
+        if (state === 'playing') return;
+        level = Math.max(1, Math.min(9, level + amount)); levelEl.textContent = level; draw(); beep(360 + level * 30, .03);
+      }
+      async function toggleFullscreen() {
+        try {
+          if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+          else await document.exitFullscreen();
+        } catch {
+          document.body.classList.toggle('sim-fullscreen');
+          fullscreenButton.textContent = document.body.classList.contains('sim-fullscreen') ? 'Exit full screen' : 'Full screen';
+        }
+      }
+
+      addEventListener('keydown', event => {
+        const names = {ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right'};
+        const keypad = {2: 'up', 4: 'left', 6: 'right', 8: 'down'};
+        if (names[event.key]) { event.preventDefault(); changeDirection(names[event.key]); }
+        else if (keypad[event.key] && !event.ctrlKey && !event.metaKey && !event.altKey) { event.preventDefault(); changeDirection(keypad[event.key]); }
+        else if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); togglePause(); }
+        else if (event.key.toLowerCase() === 'f') toggleFullscreen();
+        else if (event.key.toLowerCase() === 'n') startGame();
+      });
+      document.querySelectorAll('[data-dir]').forEach(button => {
+        const turn = event => { event.preventDefault(); changeDirection(button.dataset.dir); };
+        button.addEventListener('pointerdown', turn);
+        button.addEventListener('click', event => { if (event.detail === 0) turn(event); });
+      });
+      layoutToggle.addEventListener('click', () => setControlLayout(touchDpad.dataset.layout === 'keypad' ? 'keyboard' : 'keypad', true));
+      let gestureStart = null;
+      canvas.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'mouse') return;
+        event.preventDefault();
+        canvas.setPointerCapture?.(event.pointerId);
+        gestureStart = { x: event.clientX, y: event.clientY };
+      });
+      canvas.addEventListener('pointerup', event => {
+        if (!gestureStart || event.pointerType === 'mouse') return;
+        event.preventDefault();
+        const dx = event.clientX - gestureStart.x;
+        const dy = event.clientY - gestureStart.y;
+        gestureStart = null;
+        if (Math.hypot(dx, dy) < 14) togglePause();
+        else changeDirection(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+      });
+      canvas.addEventListener('pointercancel', () => { gestureStart = null; });
+      document.querySelector('#new-game').addEventListener('click', startGame);
+      document.querySelector('#soft-new').addEventListener('click', startGame);
+      document.querySelector('#navi').addEventListener('click', togglePause);
+      document.querySelector('#soft-pause').addEventListener('click', togglePause);
+      document.querySelector('#level-down').addEventListener('click', () => changeLevel(-1));
+      document.querySelector('#level-up').addEventListener('click', () => changeLevel(1));
+      fullscreenButton.addEventListener('click', toggleFullscreen);
+      document.addEventListener('fullscreenchange', () => { fullscreenButton.textContent = document.fullscreenElement ? 'Exit full screen' : 'Full screen'; });
+
+      setInterval(() => {
+        const now = performance.now(), delta = Math.min(250, now - lastLoop); lastLoop = now; blink++;
+        if (state === 'playing') {
+          accumulator += delta;
+          const step = 255 - level * 19;
+          while (accumulator >= step && state === 'playing') { tick(); accumulator -= step; }
+        }
+        draw();
+      }, 33);
+
+      bestEl.textContent = String(best).padStart(4, '0'); updateLabels(); draw();
+
+      console.groupCollapsed('%cPocket Snake — generation info', 'font-weight:bold;font-size:14px');
+      console.log('Prompt: create a html webpage for a snake game styled like a classic early-2000s mobile phone. (paraphrased to remove third-party brand names)');
+      console.log('Date: 29 September 2026');
+      console.log('Model: GPT-5.6-Sol xhigh');
+      console.log('Revision: Retheme the game as a different classic phone, separate the touch layout switch from the direction keys, and match the classic 84 × 48 Snake playfield proportions. (paraphrased to remove third-party brand names)');
+      console.log('Revision date: 1 October 2026');
+      console.log('Revision model: GPT-5 Codex');
+      console.log('Revision: Make all the changes to derisk as much as possible (rename to Pocket Snake and remove phone-maker branding).');
+      console.log('Revision date: 2 October 2026');
+      console.log('Revision model: Claude Code');
+      console.groupEnd();
+    })();
+  </script>
+</body>
+</html>

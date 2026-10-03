@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17132b">
+  <title>Recall Club — Memory Match</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #17132b;
+      --panel: rgba(37, 30, 65, .78);
+      --panel-solid: #282044;
+      --line: rgba(232, 225, 255, .14);
+      --ink: #fbf8ff;
+      --muted: #aaa3bf;
+      --violet: #8a6cf0;
+      --violet-2: #6549cf;
+      --coral: #ff7a7d;
+      --gold: #ffd064;
+      --mint: #63ddbb;
+      --blue: #5fbde8;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { min-height: 100%; margin: 0; }
+    body {
+      min-height: 100vh; min-height: 100dvh; color: var(--ink); overflow-x: hidden;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(127, 91, 231, .25), transparent 28rem),
+        radial-gradient(circle at 88% 84%, rgba(244, 111, 132, .14), transparent 32rem),
+        linear-gradient(145deg, #201938 0%, #100d1e 65%, #171229 100%);
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .28;
+      background-image: radial-gradient(rgba(255,255,255,.14) .7px, transparent .7px);
+      background-size: 19px 19px; -webkit-mask-image: linear-gradient(to bottom, black, transparent 92%); mask-image: linear-gradient(to bottom, black, transparent 92%);
+    }
+    button { font: inherit; touch-action: manipulation; }
+    button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+    .app { width: min(1120px, calc(100% - 30px)); margin: 0 auto; padding: 19px 0 30px; position: relative; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 43px; height: 43px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 6px;
+      border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,.04); box-shadow: 0 11px 28px rgba(0,0,0,.22);
+    }
+    .brand-mark i { border-radius: 5px; background: linear-gradient(145deg, #9f84fa, #6043c8); box-shadow: inset 0 1px rgba(255,255,255,.24); }
+    .brand-mark i:nth-child(2), .brand-mark i:nth-child(3) { background: linear-gradient(145deg, #ff9693, #d64c69); }
+    h1 { margin: 0; font-size: 17px; line-height: 1; letter-spacing: .17em; font-weight: 900; }
+    .brand p { margin: 6px 0 0; color: var(--muted); font: 700 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .17em; }
+    .top-actions { display: flex; gap: 8px; }
+    .icon-button, .button {
+      appearance: none; color: var(--ink); border: 1px solid var(--line); cursor: pointer;
+      transition: transform .16s, border-color .16s, background .16s, opacity .16s;
+    }
+    .icon-button:hover, .button:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.35); }
+    .icon-button { width: 40px; height: 40px; border-radius: 10px; background: var(--panel); font-size: 16px; }
+
+    .status-panel {
+      margin: 17px 0 12px; min-height: 72px; padding: 12px 17px; display: flex; align-items: center; justify-content: space-between; gap: 15px;
+      border: 1px solid var(--line); border-radius: 15px; background: var(--panel); box-shadow: 0 15px 42px rgba(0,0,0,.16); backdrop-filter: blur(13px); -webkit-backdrop-filter: blur(13px);
+    }
+    .turn-copy { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .turn-orb { width: 12px; height: 12px; flex: 0 0 auto; border-radius: 50%; background: var(--player-color, var(--coral)); box-shadow: 0 0 0 5px color-mix(in srgb, var(--player-color, var(--coral)) 13%, transparent), 0 0 17px var(--player-color, var(--coral)); }
+    .eyebrow { margin: 0 0 4px; color: var(--muted); font-size: 8px; font-weight: 850; letter-spacing: .18em; text-transform: uppercase; }
+    #status { margin: 0; font-size: clamp(14px, 2.5vw, 19px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stats { display: flex; gap: 7px; flex: 0 0 auto; }
+    .stat { min-width: 65px; padding: 7px 10px; text-align: right; border-left: 1px solid var(--line); }
+    .stat span { display: block; color: var(--muted); font-size: 7px; font-weight: 800; letter-spacing: .12em; }
+    .stat b { display: block; margin-top: 3px; font: 850 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    .players { margin-bottom: 12px; display: grid; grid-template-columns: repeat(var(--players, 1), minmax(100px, 1fr)); gap: 8px; }
+    .player-score {
+      min-width: 0; padding: 10px 11px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      border: 1px solid var(--line); border-radius: 12px; background: rgba(35, 29, 59, .63); color: var(--muted); transition: .2s;
+    }
+    .player-score.active { color: var(--ink); border-color: color-mix(in srgb, var(--color) 60%, transparent); background: color-mix(in srgb, var(--color) 11%, rgba(35,29,59,.7)); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,.18); }
+    .player-ident { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .player-dot { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; background: var(--color); box-shadow: 0 0 10px var(--color); }
+    .player-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+    .player-pairs { color: var(--ink); font: 900 20px/1 ui-monospace, monospace; }
+    .player-pairs small { color: var(--muted); font-size: 8px; font-weight: 700; }
+
+    .table {
+      position: relative; min-height: 470px; padding: 20px; display: grid; place-items: center; overflow: hidden;
+      border: 1px solid var(--line); border-radius: 22px;
+      background:
+        radial-gradient(circle at center, rgba(117, 85, 198, .1), transparent 52%),
+        linear-gradient(145deg, rgba(37, 30, 64, .78), rgba(22, 18, 40, .86));
+      box-shadow: 0 24px 65px rgba(0,0,0,.23); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    }
+    .table::before { content: ""; position: absolute; inset: 0; opacity: .16; background-image: linear-gradient(30deg, transparent 24%, rgba(255,255,255,.055) 25%, rgba(255,255,255,.055) 26%, transparent 27%, transparent 74%, rgba(255,255,255,.055) 75%, rgba(255,255,255,.055) 76%, transparent 77%); background-size: 32px 55px; }
+    .table.privacy .card-grid { filter: blur(13px) brightness(.45); transform: scale(.985); pointer-events: none; }
+
+    .card-grid {
+      --cols: 4; width: min(100%, calc(var(--cols) * 106px)); display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+      gap: clamp(6px, 1vw, 11px); position: relative; z-index: 1; transition: filter .25s, transform .25s;
+    }
+    .memory-card { appearance: none; min-width: 0; aspect-ratio: .78; padding: 0; border: 0; background: transparent; perspective: 800px; cursor: pointer; }
+    .memory-card:disabled { cursor: default; }
+    .card-inner { width: 100%; height: 100%; position: relative; display: block; transform-style: preserve-3d; transition: transform .42s cubic-bezier(.2,.7,.2,1); }
+    .memory-card.revealed .card-inner, .memory-card.matched .card-inner { transform: rotateY(180deg); }
+    .card-face {
+      position: absolute; inset: 0; display: grid; place-items: center; border-radius: clamp(8px, 1.4vw, 14px); backface-visibility: hidden;
+      box-shadow: 0 8px 18px rgba(0,0,0,.24); overflow: hidden;
+    }
+    .card-back {
+      border: 1px solid rgba(255,255,255,.19); background: linear-gradient(145deg, #7258dc, #4d35ae);
+    }
+    .card-back::before { content: ""; position: absolute; inset: 11%; border: 1px solid rgba(255,255,255,.2); border-radius: 9px; background: repeating-linear-gradient(45deg, rgba(255,255,255,.08) 0 2px, transparent 2px 8px); }
+    .card-back::after { content: "✦"; position: relative; color: rgba(255,255,255,.8); font-size: clamp(15px, 2.8vw, 28px); text-shadow: 0 3px 8px rgba(24,7,70,.4); }
+    .card-front { transform: rotateY(180deg); border: 1px solid hsla(var(--hue), 80%, 78%, .38); background: radial-gradient(circle at 35% 28%, hsla(var(--hue), 80%, 72%, .25), transparent 43%), linear-gradient(145deg, #31294c, #201a37); }
+    .symbol { color: hsl(var(--hue), 88%, 72%); font: 500 clamp(22px, 5vw, 47px)/1 Georgia, serif; text-shadow: 0 0 18px hsla(var(--hue), 80%, 65%, .44); transform: scale(.82); transition: transform .34s .16s; }
+    .revealed .symbol, .matched .symbol { transform: scale(1); }
+    .memory-card.matched .card-face { box-shadow: 0 0 0 2px hsla(var(--hue), 75%, 70%, .72), 0 0 24px hsla(var(--hue), 75%, 65%, .27); }
+    .memory-card.matched { animation: matched .48s ease; }
+    @keyframes matched { 50% { transform: translateY(-7px) scale(1.04); } }
+
+    .controls { margin-top: 13px; display: flex; justify-content: center; gap: 8px; }
+    .button { min-height: 41px; padding: 0 15px; border-radius: 10px; background: rgba(42, 34, 70, .76); font-size: 9px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+    .button.primary { color: #fff; border-color: transparent; background: linear-gradient(135deg, #9075f0, #6447cc); box-shadow: 0 8px 22px rgba(92, 59, 195, .27); }
+
+    .overlay { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: max(19px, env(safe-area-inset-top)) max(19px, env(safe-area-inset-right)) max(19px, env(safe-area-inset-bottom)) max(19px, env(safe-area-inset-left)); background: rgba(8, 6, 17, .74); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); opacity: 1; transition: opacity .22s; }
+    .overlay.hidden { opacity: 0; pointer-events: none; }
+    .panel { width: min(470px, 100%); padding: 28px; text-align: center; border: 1px solid rgba(232,225,255,.23); border-radius: 22px; background: linear-gradient(145deg, rgba(49, 39, 80, .98), rgba(25, 20, 44, .98)); box-shadow: 0 30px 90px rgba(0,0,0,.5); transform: none; transition: transform .22s; }
+    .hidden .panel { transform: translateY(10px) scale(.98); }
+    .panel-icon { width: 62px; height: 62px; margin: 0 auto 17px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.04); color: var(--gold); font-size: 27px; }
+    .panel .eyebrow { color: var(--violet); }
+    .panel h2 { margin: 7px 0 0; font-size: clamp(29px, 8vw, 43px); line-height: .98; letter-spacing: -.045em; }
+    .panel-copy { max-width: 370px; margin: 14px auto 20px; color: #b9b1ca; font-size: 12px; line-height: 1.6; }
+    .choice-label { margin: 18px 0 8px; color: var(--muted); font-size: 8px; font-weight: 850; letter-spacing: .15em; }
+    .choices { display: flex; justify-content: center; flex-wrap: wrap; gap: 7px; }
+    .choice { appearance: none; min-width: 46px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 9px; background: rgba(18,14,34,.6); color: var(--muted); cursor: pointer; font-size: 10px; font-weight: 850; }
+    .choice.active { color: #fff; border-color: rgba(151,124,244,.7); background: rgba(124,91,224,.24); box-shadow: inset 0 0 0 1px rgba(151,124,244,.12); }
+    .choice.wide { min-width: 100px; }
+    .choice small { display: block; margin-top: 3px; color: #817a91; font-size: 7px; font-weight: 650; }
+    .panel .primary { min-width: 175px; margin-top: 21px; }
+    .rankings { margin: 17px 0 20px; display: grid; gap: 6px; text-align: left; }
+    .rank { padding: 9px 11px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); font-size: 10px; }
+    .rank:first-child { color: var(--ink); border-color: rgba(255,208,100,.38); background: rgba(255,208,100,.06); }
+    .rank b { color: var(--ink); font: 850 14px/1 ui-monospace, monospace; }
+    .toast { position: fixed; z-index: 40; left: 50%; bottom: max(25px, env(safe-area-inset-bottom)); transform: translate(-50%, 14px); padding: 9px 14px; border: 1px solid var(--line); border-radius: 9px; background: #2d254a; color: var(--ink); font-size: 10px; opacity: 0; pointer-events: none; transition: .2s; box-shadow: 0 10px 35px rgba(0,0,0,.35); }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .spark { position: fixed; z-index: 20; width: 8px; height: 13px; pointer-events: none; animation: spark-fall 1.5s ease-in forwards; }
+    @keyframes spark-fall { from { transform: translate(0, -25px) rotate(0deg); } to { transform: translate(var(--drift), 105vh) rotate(var(--spin)); } }
+
+    @media (max-width: 720px) {
+      .app { width: calc(100% - 18px); padding-top: 11px; }
+      .players { display: flex; overflow-x: auto; padding: 2px 1px 5px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+      .player-score { min-width: 120px; flex: 1 0 120px; }
+      .table { min-height: 430px; padding: 12px 8px; border-radius: 17px; }
+      .card-grid { gap: 6px; }
+      .status-panel { margin-top: 12px; padding: 10px 12px; }
+      .stat { min-width: 49px; padding: 5px 7px; }
+      .stat b { font-size: 13px; }
+    }
+    @media (max-width: 480px) {
+      .brand-mark { width: 36px; height: 36px; }
+      h1 { font-size: 13px; }
+      .brand p { font-size: 7px; }
+      .top-actions .icon-button:first-child { display: none; }
+      .status-panel { min-height: 60px; }
+      #status { font-size: 12px; white-space: normal; }
+      .turn-orb { width: 9px; height: 9px; }
+      .stat:first-child { display: none; }
+      .table { min-height: 390px; }
+      .controls { flex-wrap: wrap; }
+      .button { min-height: 38px; padding: 0 11px; font-size: 8px; }
+      .panel { padding: 24px 17px; }
+    }
+    @media (pointer: coarse) {
+      .icon-button { width: 44px; height: 44px; }
+      .button, .choice { min-height: 44px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <div><h1>RECALL CLUB</h1><p>MEMORY MATCH · 1–5 PLAYERS</p></div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-button" id="help" type="button" aria-label="How to play">?</button>
+        <button class="icon-button" id="sound" type="button" aria-label="Mute sound" aria-pressed="false">♪</button>
+      </div>
+    </header>
+
+    <section class="status-panel" id="status-panel" aria-live="polite">
+      <div class="turn-copy"><span class="turn-orb" aria-hidden="true"></span><div><p class="eyebrow" id="turn-label">Waiting for players</p><h2 id="status">Set up a new memory match</h2></div></div>
+      <div class="stats">
+        <div class="stat"><span>MOVES</span><b id="moves">00</b></div>
+        <div class="stat"><span>LEFT</span><b id="pairs-left">--</b></div>
+        <div class="stat"><span>TIME</span><b id="time">0:00</b></div>
+      </div>
+    </section>
+
+    <section class="players" id="players" aria-label="Player scores"></section>
+
+    <section class="table" id="table">
+      <div class="card-grid" id="card-grid" role="grid" aria-label="Memory card grid"></div>
+    </section>
+
+    <div class="controls">
+      <button class="button" id="restart" type="button">Restart round</button>
+      <button class="button primary" id="new-game" type="button">New game setup</button>
+    </div>
+  </main>
+
+  <div class="overlay" id="setup" role="dialog" aria-modal="true" aria-labelledby="setup-title">
+    <section class="panel">
+      <div class="panel-icon">✦</div>
+      <p class="eyebrow">WELCOME TO RECALL CLUB</p>
+      <h2 id="setup-title">START A MATCH</h2>
+      <p class="panel-copy">Turn over two cards. Find a matching pair to score and play again; miss and the turn passes to the next player.</p>
+      <div class="choice-label">NUMBER OF PLAYERS</div>
+      <div class="choices" id="player-choices" aria-label="Number of players">
+        <button class="choice active" data-players="1" type="button">1</button>
+        <button class="choice" data-players="2" type="button">2</button>
+        <button class="choice" data-players="3" type="button">3</button>
+        <button class="choice" data-players="4" type="button">4</button>
+        <button class="choice" data-players="5" type="button">5</button>
+      </div>
+      <div class="choice-label">TABLE SIZE</div>
+      <div class="choices" id="difficulty-choices" aria-label="Table size">
+        <button class="choice wide active" data-level="easy" type="button">Easy<small>8 pairs</small></button>
+        <button class="choice wide" data-level="classic" type="button">Classic<small>10 pairs</small></button>
+        <button class="choice wide" data-level="expert" type="button">Expert<small>18 pairs</small></button>
+      </div>
+      <button class="button primary" id="start" type="button">Deal the cards</button>
+    </section>
+  </div>
+
+  <div class="overlay hidden" id="result" role="dialog" aria-modal="true" aria-labelledby="result-title">
+    <section class="panel">
+      <div class="panel-icon" id="result-icon">★</div>
+      <p class="eyebrow" id="result-eyebrow">MATCH COMPLETE</p>
+      <h2 id="result-title">WINNER</h2>
+      <p class="panel-copy" id="result-copy"></p>
+      <div class="rankings" id="rankings"></div>
+      <button class="button primary" id="play-again" type="button">Play again</button>
+    </section>
+  </div>
+
+  <div class="overlay hidden" id="help-panel" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <section class="panel">
+      <div class="panel-icon">?</div>
+      <p class="eyebrow">RULES OF PLAY</p>
+      <h2 id="help-title">HOW TO PLAY</h2>
+      <p class="panel-copy">Choose any two face-down cards. A matching pair scores one point and lets you continue. A mismatch ends your turn. When every pair is found, the player with the most pairs wins. Ties are shared.</p>
+      <button class="button primary" id="close-help" type="button">Back to the table</button>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const SYMBOLS = ['☀', '☾', '✦', '♞', '❋', '⌁', '◈', '♬', '⚓', '☂', '✿', '♜', '✈', '⌛', '⚡', '☕', '♣', '∞'];
+      const PLAYER_COLORS = ['#ff7a7d', '#ffd064', '#63ddbb', '#5fbde8', '#b67af4'];
+      const LEVELS = {
+        easy: { pairs: 8, columns: 4 },
+        classic: { pairs: 10, columns: 5 },
+        expert: { pairs: 18, columns: 6 }
+      };
+      const $ = selector => document.querySelector(selector);
+      const gridEl = $('#card-grid');
+      const tableEl = $('#table');
+      const playersEl = $('#players');
+      const statusPanel = $('#status-panel');
+      const statusEl = $('#status');
+      const turnLabelEl = $('#turn-label');
+      const movesEl = $('#moves');
+      const pairsLeftEl = $('#pairs-left');
+      const timeEl = $('#time');
+      const setupEl = $('#setup');
+      const resultEl = $('#result');
+
+      let playerCount = 1;
+      let selectedLevel = 'easy';
+      let cards = [];
+      let players = [];
+      let currentPlayer = 0;
+      let revealed = [];
+      let moveCount = 0;
+      let pairsFound = 0;
+      let state = 'setup';
+      let elapsed = 0;
+      let timer = 0;
+      let resolveTimer = 0;
+      let muted = false;
+      let audioContext = null;
+      let toastTimer = 0;
+
+      function shuffle(items) {
+        const result = [...items];
+        for (let i = result.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [result[i], result[j]] = [result[j], result[i]];
+        }
+        return result;
+      }
+
+      function makeDeck() {
+        const count = LEVELS[selectedLevel].pairs;
+        return shuffle(SYMBOLS.slice(0, count).flatMap((symbol, pair) => [
+          { id: `${pair}-a`, pair, symbol, hue: (pair * 47 + 8) % 360, revealed: false, matched: false },
+          { id: `${pair}-b`, pair, symbol, hue: (pair * 47 + 8) % 360, revealed: false, matched: false }
+        ]));
+      }
+
+      function startGame() {
+        window.clearTimeout(resolveTimer);
+        window.clearInterval(timer);
+        cards = makeDeck();
+        players = Array.from({ length: playerCount }, (_, index) => ({
+          name: playerCount === 1 ? 'Solo player' : `Player ${index + 1}`,
+          color: PLAYER_COLORS[index], score: 0
+        }));
+        currentPlayer = 0;
+        revealed = [];
+        moveCount = 0;
+        pairsFound = 0;
+        elapsed = 0;
+        state = 'playing';
+        setupEl.classList.add('hidden');
+        resultEl.classList.add('hidden');
+        tableEl.classList.remove('privacy');
+        gridEl.style.setProperty('--cols', LEVELS[selectedLevel].columns);
+        timer = window.setInterval(() => { elapsed++; renderStats(); }, 1000);
+        announceTurn('Choose two cards to find a pair.');
+        render();
+        window.setTimeout(() => gridEl.querySelector('.memory-card')?.focus(), 80);
+      }
+
+      function restartRound() {
+        if (state === 'setup') return;
+        startGame();
+        showToast('Round restarted');
+      }
+
+      function render() {
+        gridEl.innerHTML = cards.map((card, index) => `
+          <button class="memory-card${card.revealed ? ' revealed' : ''}${card.matched ? ' matched' : ''}" type="button"
+            data-index="${index}" role="gridcell" aria-label="${card.matched ? `Matched ${card.symbol}` : card.revealed ? `Revealed ${card.symbol}` : `Face-down card ${index + 1}`}"
+            aria-pressed="${card.revealed || card.matched}" ${card.revealed || card.matched || state !== 'playing' || revealed.length >= 2 ? 'disabled' : ''}>
+            <span class="card-inner">
+              <span class="card-face card-back"></span>
+              <span class="card-face card-front" style="--hue:${card.hue}"><span class="symbol">${card.symbol}</span></span>
+            </span>
+          </button>`).join('');
+        renderPlayers();
+        renderStats();
+      }
+
+      function renderPlayers() {
+        playersEl.style.setProperty('--players', players.length || 1);
+        playersEl.innerHTML = players.map((player, index) => `
+          <div class="player-score${index === currentPlayer && state === 'playing' ? ' active' : ''}" style="--color:${player.color}">
+            <div class="player-ident"><i class="player-dot"></i><span class="player-name">${player.name}</span></div>
+            <div class="player-pairs">${player.score}<small> pair${player.score === 1 ? '' : 's'}</small></div>
+          </div>`).join('');
+      }
+
+      function renderStats() {
+        movesEl.textContent = String(moveCount).padStart(2, '0');
+        pairsLeftEl.textContent = Math.max(0, LEVELS[selectedLevel].pairs - pairsFound);
+        timeEl.textContent = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
+      }
+
+      function announceTurn(message) {
+        const player = players[currentPlayer];
+        statusPanel.style.setProperty('--player-color', player?.color || PLAYER_COLORS[0]);
+        turnLabelEl.textContent = playerCount === 1 ? 'Solo challenge' : `${player.name}'s turn`;
+        statusEl.textContent = message;
+      }
+
+      function chooseCard(index) {
+        if (state !== 'playing' || revealed.length >= 2) return;
+        const card = cards[index];
+        if (!card || card.revealed || card.matched) return;
+        card.revealed = true;
+        revealed.push(index);
+        tone('flip');
+        render();
+        if (revealed.length === 1) {
+          announceTurn('Now find its matching card.');
+          return;
+        }
+        moveCount++;
+        state = 'resolving';
+        render();
+        resolveTimer = window.setTimeout(resolvePair, 720);
+      }
+
+      function resolvePair() {
+        const [firstIndex, secondIndex] = revealed;
+        const first = cards[firstIndex];
+        const second = cards[secondIndex];
+        if (first.pair === second.pair) {
+          first.matched = second.matched = true;
+          players[currentPlayer].score++;
+          pairsFound++;
+          revealed = [];
+          tone('match');
+          if (pairsFound === LEVELS[selectedLevel].pairs) {
+            finishGame();
+            return;
+          }
+          state = 'playing';
+          announceTurn('Match found — play again!');
+          render();
+        } else {
+          first.revealed = second.revealed = false;
+          revealed = [];
+          tone('miss');
+          if (playerCount === 1) {
+            state = 'playing';
+            announceTurn('No match. Try another pair.');
+            render();
+          } else {
+            currentPlayer = (currentPlayer + 1) % playerCount;
+            state = 'playing';
+            announceTurn('No match — choose two cards.');
+            render();
+          }
+        }
+      }
+
+      function finishGame() {
+        state = 'complete';
+        window.clearInterval(timer);
+        render();
+        const highScore = Math.max(...players.map(player => player.score));
+        const winners = players.filter(player => player.score === highScore);
+        if (playerCount === 1) {
+          $('#result-title').textContent = 'BOARD CLEARED!';
+          $('#result-copy').textContent = `You found all ${highScore} pairs in ${moveCount} moves and ${formatTime(elapsed)}.`;
+          $('#result-icon').textContent = '✦';
+        } else if (winners.length === 1) {
+          $('#result-title').textContent = `${winners[0].name.toUpperCase()} WINS`;
+          $('#result-copy').textContent = `${winners[0].name} found ${highScore} pairs and wins the match. Great memory!`;
+          $('#result-icon').textContent = String(players.indexOf(winners[0]) + 1);
+        } else {
+          $('#result-title').textContent = 'SHARED VICTORY';
+          $('#result-copy').textContent = `${winners.map(player => player.name).join(' and ')} tied with ${highScore} pairs each.`;
+          $('#result-icon').textContent = '=';
+        }
+        const ranking = players.map((player, index) => ({ ...player, index })).sort((a, b) => b.score - a.score);
+        $('#rankings').innerHTML = ranking.map((player, index) => `
+          <div class="rank"><span>${index + 1}. ${player.name}</span><b>${player.score} pair${player.score === 1 ? '' : 's'}</b></div>`).join('');
+        tone('win');
+        celebrate();
+        window.setTimeout(() => {
+          resultEl.classList.remove('hidden');
+          window.setTimeout(() => $('#play-again').focus(), 40);
+        }, 520);
+      }
+
+      function formatTime(seconds) {
+        return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+      }
+
+      function showSetup() {
+        window.clearTimeout(resolveTimer);
+        window.clearInterval(timer);
+        state = 'setup';
+        setupEl.classList.remove('hidden');
+        resultEl.classList.add('hidden');
+        tableEl.classList.add('privacy');
+        window.setTimeout(() => $('#start').focus(), 40);
+      }
+
+      function showToast(message) {
+        window.clearTimeout(toastTimer);
+        const toast = $('#toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        toastTimer = window.setTimeout(() => toast.classList.remove('show'), 1400);
+      }
+
+      function celebrate() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        for (let i = 0; i < 58; i++) {
+          const spark = document.createElement('i');
+          spark.className = 'spark';
+          spark.style.left = `${Math.random() * 100}vw`;
+          spark.style.background = PLAYER_COLORS[i % PLAYER_COLORS.length];
+          spark.style.setProperty('--drift', `${Math.random() * 170 - 85}px`);
+          spark.style.setProperty('--spin', `${Math.random() * 1000 - 500}deg`);
+          spark.style.animationDelay = `${Math.random() * .4}s`;
+          spark.style.animationDuration = `${1.15 + Math.random() * .75}s`;
+          document.body.appendChild(spark);
+          window.setTimeout(() => spark.remove(), 2400);
+        }
+      }
+
+      function ensureAudio() {
+        if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') audioContext.resume();
+      }
+
+      function tone(kind) {
+        if (muted) return;
+        try {
+          ensureAudio();
+          const now = audioContext.currentTime;
+          const sound = {
+            flip: [240, .07, 'sine'], match: [380, .2, 'sine'], miss: [120, .13, 'triangle'], win: [330, .48, 'sine']
+          }[kind];
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          oscillator.type = sound[2];
+          oscillator.frequency.setValueAtTime(sound[0], now);
+          if (kind === 'match') oscillator.frequency.exponentialRampToValueAtTime(570, now + sound[1]);
+          if (kind === 'win') oscillator.frequency.exponentialRampToValueAtTime(720, now + sound[1]);
+          gain.gain.setValueAtTime(.04, now);
+          gain.gain.exponentialRampToValueAtTime(.0001, now + sound[1]);
+          oscillator.connect(gain).connect(audioContext.destination);
+          oscillator.start(now);
+          oscillator.stop(now + sound[1]);
+        } catch (_) { /* Sound is an optional enhancement. */ }
+      }
+
+      gridEl.addEventListener('click', event => {
+        const card = event.target.closest('.memory-card');
+        if (card) chooseCard(Number(card.dataset.index));
+      });
+      $('#player-choices').addEventListener('click', event => {
+        const choice = event.target.closest('[data-players]');
+        if (!choice) return;
+        playerCount = Number(choice.dataset.players);
+        document.querySelectorAll('[data-players]').forEach(button => button.classList.toggle('active', button === choice));
+      });
+      $('#difficulty-choices').addEventListener('click', event => {
+        const choice = event.target.closest('[data-level]');
+        if (!choice) return;
+        selectedLevel = choice.dataset.level;
+        document.querySelectorAll('[data-level]').forEach(button => button.classList.toggle('active', button === choice));
+      });
+      $('#start').addEventListener('click', startGame);
+      $('#restart').addEventListener('click', restartRound);
+      $('#new-game').addEventListener('click', showSetup);
+      $('#play-again').addEventListener('click', startGame);
+      $('#help').addEventListener('click', () => {
+        $('#help-panel').classList.remove('hidden');
+        window.setTimeout(() => $('#close-help').focus(), 40);
+      });
+      $('#close-help').addEventListener('click', () => $('#help-panel').classList.add('hidden'));
+      $('#sound').addEventListener('click', event => {
+        muted = !muted;
+        event.currentTarget.textContent = muted ? '∕' : '♪';
+        event.currentTarget.setAttribute('aria-pressed', muted);
+        event.currentTarget.setAttribute('aria-label', muted ? 'Enable sound' : 'Mute sound');
+        if (!muted) tone('flip');
+        showToast(muted ? 'Sound muted' : 'Sound enabled');
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !$('#help-panel').classList.contains('hidden')) $('#help-panel').classList.add('hidden');
+      });
+
+      cards = [];
+      renderStats();
+
+      console.groupCollapsed('%cRecall Club — generation info', 'font-weight:bold;font-size:14px');
+      console.log('Prompt: create a html webpage for a memory match game. it\'s a 2 player game.');
+      console.log('Date: 29 September 2026');
+      console.log('Model: GPT-5.6-Sol xhigh');
+      console.groupEnd();
+    })();
+  </script>
+</body>
+</html>

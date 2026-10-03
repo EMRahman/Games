@@ -1,0 +1,1521 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1b1712">
+  <meta name="description" content="Iron Routes is a cross-country railway building game for 2–5 players against computer opponents or friends sharing one device, on desktop, iPhone, and iPad.">
+  <title>Iron Routes — Railway Empire</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #1b1712;
+      --panel: #241e17;
+      --panel-2: #2d261d;
+      --line: rgba(240, 220, 180, .13);
+      --line-strong: rgba(240, 220, 180, .27);
+      --ink: #f6efe2;
+      --muted: #b4a68e;
+      --brass: #e8b04b;
+      --danger: #ff7a6b;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; margin: 0; }
+    html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+    body { overflow: hidden; color: var(--ink); background: var(--bg); font-family: var(--sans); }
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+    [hidden] { display: none !important; }
+
+    .app { height: 100vh; height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+
+    /* ---------- Top bar ---------- */
+    .topbar {
+      display: flex; align-items: center; gap: 10px; min-width: 0;
+      padding: calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));
+      border-bottom: 1px solid var(--line); background: linear-gradient(180deg, #2a221a, #1d1813);
+    }
+    .icon-btn {
+      flex: 0 0 auto; width: 44px; height: 44px; display: grid; place-items: center;
+      border: 1px solid var(--line-strong); border-radius: 12px; background: rgba(255, 255, 255, .05);
+      color: var(--ink); font-size: 17px; font-weight: 800; text-decoration: none;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .brand-mark { width: 34px; height: 34px; flex: 0 0 auto; }
+    .brand h1 { margin: 0; font: 900 17px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+    .brand small { display: block; margin-top: 4px; color: var(--muted); font: 700 10px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .spacer { flex: 1 1 auto; }
+    @media (max-width: 420px) { .brand small { display: none; } .brand h1 { font-size: 15px; } }
+
+    /* ---------- Layout ---------- */
+    .main {
+      min-height: 0; display: grid; gap: 10px;
+      grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr);
+      padding: 8px calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
+    }
+    .main.wide { grid-template-columns: minmax(0, 1fr) clamp(280px, 30vw, 390px); grid-template-rows: minmax(0, 1fr); }
+    .mapwrap {
+      position: relative; min-width: 0; min-height: 0; overflow: hidden;
+      border: 1px solid var(--line); border-radius: 16px; background: #a9c9d4;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .4);
+    }
+    .main:not(.wide) .mapwrap { height: var(--mh, 56vh); }
+    #map { display: block; width: 100%; height: 100%; touch-action: none; user-select: none; -webkit-user-select: none; }
+    .zoom { position: absolute; left: 8px; bottom: 8px; display: flex; gap: 6px; }
+    .zoom button {
+      width: 44px; height: 44px; border: 1px solid rgba(40, 30, 20, .35); border-radius: 11px;
+      background: rgba(250, 244, 230, .92); color: #2b2218; font: 800 18px/1 var(--mono); box-shadow: 0 4px 12px rgba(0, 0, 0, .2);
+    }
+    .final-banner {
+      position: absolute; left: 50%; top: 10px; transform: translateX(-50%);
+      padding: 7px 12px; border-radius: 999px; background: #b8322a; color: #fff;
+      font: 800 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; box-shadow: 0 6px 18px rgba(0, 0, 0, .3);
+      white-space: nowrap; pointer-events: none;
+    }
+
+    /* Map art */
+    .land { fill: #eadfc2; stroke: #8f7d5e; stroke-width: 1.2; }
+    .lake { fill: #a9c9d4; stroke: #8fa9b2; stroke-width: .8; }
+    .border { fill: none; stroke: #a8936c; stroke-width: 1; stroke-dasharray: 4 3; }
+    .grat { stroke: rgba(80, 110, 120, .15); stroke-width: .6; }
+    .route .hit { stroke: transparent; stroke-width: 16; fill: none; pointer-events: stroke; cursor: pointer; }
+    .route .out { fill: none; stroke: #2c241b; stroke-width: 8.5; }
+    .route .car { fill: none; stroke-width: 6; }
+    .route.claimed .out { stroke: #fff; stroke-width: 9.5; }
+    .route.claimed .car { stroke-width: 7; }
+    .route.blocked { opacity: .28; }
+    .route.sel .out { stroke: #ffcf3f; stroke-width: 12; }
+    .route.hint .out { stroke: #ffe39a; stroke-width: 10.5; }
+    .city circle { fill: #fffaf0; stroke: #3a2f22; stroke-width: 2; }
+    .city.hi circle { fill: #ffcf3f; stroke: #7a3d00; stroke-width: 2.5; }
+    .city.done circle { fill: #8fd6a5; }
+    .city text { font: 700 10.5px var(--sans); fill: #2b2218; paint-order: stroke; stroke: rgba(250, 244, 230, .9); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+    .city.hi text { font-weight: 900; fill: #7a3d00; }
+
+    /* ---------- Panel ---------- */
+    .panel {
+      min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+      display: flex; flex-direction: column; gap: 12px;
+      padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(170deg, #2a231b, #1f1a14);
+    }
+    .now { display: flex; align-items: center; gap: 12px; }
+    .now .badge { width: 42px; height: 42px; flex: 0 0 auto; border-radius: 12px; background: var(--pc); box-shadow: 0 0 0 3px rgba(255, 255, 255, .8) inset, 0 4px 10px rgba(0, 0, 0, .3); }
+    .now .who { flex: 1 1 auto; min-width: 0; }
+    .now b { display: block; overflow: hidden; font-size: 17px; text-overflow: ellipsis; white-space: nowrap; }
+    .now small { display: block; margin-top: 3px; color: var(--muted); font: 700 10px/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .now .score { text-align: right; font: 900 22px/1 var(--mono); color: var(--brass); }
+    .now .score small { text-align: right; }
+    .instruction { margin: 0; color: #e4dac8; font-size: 14px; line-height: 1.45; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .btn {
+      min-height: 44px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 11px;
+      background: rgba(255, 255, 255, .06); color: var(--ink); font-size: 14px; font-weight: 750;
+    }
+    .btn.primary { border-color: transparent; background: var(--brass); color: #2a1a00; }
+    .btn.grow { flex: 1 1 auto; }
+    .btn:disabled { opacity: .38; cursor: not-allowed; }
+    .section-title { margin: 4px 0 0; color: var(--muted); font: 800 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+
+    .market { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+    .tcard {
+      position: relative; min-height: 64px; padding: 0; display: grid; place-items: center; align-content: center; gap: 2px;
+      border: 2px solid rgba(0, 0, 0, .35); border-radius: 9px; background: var(--cc); color: var(--ct);
+      box-shadow: 0 3px 0 rgba(0, 0, 0, .3); font: 800 9px/1 var(--mono); letter-spacing: 0; text-transform: uppercase; overflow: hidden; white-space: nowrap;
+    }
+    .tcard .sym { font-size: 20px; line-height: 1; }
+    .tcard.loco { background: conic-gradient(from 30deg, #d83a3a, #ef8a24, #f2cf2e, #2f9e57, #2f6fdb, #8c55d6, #d83a3a); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .7); }
+    .tcard.deck { background: repeating-linear-gradient(135deg, #4a3c2c 0 6px, #3b3023 6px 12px); color: var(--brass); }
+    .tcard.empty { background: rgba(255, 255, 255, .04); border-style: dashed; color: var(--muted); }
+    .tcard:disabled { opacity: .35; cursor: not-allowed; }
+    .tcard .n { position: absolute; top: 3px; right: 5px; font-size: 10px; }
+
+    .tickets + .section-title, .hand + .section-title { margin-top: 6px; }
+    .hand { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 5px; }
+    .hand .tcard { min-height: 52px; box-shadow: none; }
+    .hand .tcard.zero { opacity: .22; }
+    .hand .tcard b { font-size: 15px; }
+    @media (max-width: 420px) { .hand { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+
+    .tickets { display: grid; gap: 6px; }
+    .ticket {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px;
+      min-height: 46px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px;
+      background: #f3e8cf; color: #2b2218; text-align: left;
+    }
+    .ticket b { display: block; font: 800 13px/1.25 var(--sans); }
+    .ticket small { color: #6c5b40; font: 700 10.5px var(--mono); }
+    .ticket .pts { min-width: 34px; padding: 6px 7px; border-radius: 8px; background: #2b2218; color: #f3e8cf; font: 900 14px/1 var(--mono); text-align: center; }
+    .ticket.done { background: #cdebd3; }
+    .ticket.done .pts { background: #1f7a3c; }
+    .ticket.lost { background: #e9c8c0; }
+    .ticket.sel { box-shadow: 0 0 0 3px var(--brass); }
+    .ticket input { width: 20px; height: 20px; accent-color: #b8322a; }
+    .ticket.pick { grid-template-columns: auto minmax(0, 1fr) auto; cursor: pointer; }
+
+    .claim-box { padding: 12px; border: 1px solid var(--brass); border-radius: 12px; background: rgba(232, 176, 75, .08); }
+    .claim-box h3 { margin: 0 0 4px; font: 800 14px/1.3 var(--sans); }
+    .claim-box p { margin: 0 0 8px; color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .pay-btn { display: inline-flex; align-items: center; gap: 6px; }
+    .pip { display: inline-block; width: 14px; height: 14px; border-radius: 4px; background: var(--cc); box-shadow: 0 0 0 1px rgba(0, 0, 0, .4); vertical-align: -2px; }
+    .pip.loco { background: conic-gradient(#d83a3a, #f2cf2e, #2f9e57, #2f6fdb, #8c55d6, #d83a3a); }
+
+    .plist { display: grid; gap: 6px; }
+    .pl { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 48px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 255, 255, .03); }
+    .pl.cur { border-color: var(--pc); background: rgba(255, 255, 255, .07); }
+    .pl .sw { width: 22px; height: 22px; border-radius: 6px; background: var(--pc); box-shadow: 0 0 0 2px rgba(255, 255, 255, .7) inset; }
+    .pl .nm { overflow: hidden; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+    .pl .sub { display: block; color: var(--muted); font: 700 10px/1.3 var(--mono); letter-spacing: .03em; }
+    .pl .pts { font: 900 16px/1 var(--mono); color: var(--brass); }
+    .tag { padding: 2px 4px; border-radius: 4px; background: rgba(255, 255, 255, .1); color: var(--muted); font: 800 8.5px/1 var(--mono); letter-spacing: .06em; vertical-align: 2px; }
+    .log { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; font-size: 12.5px; line-height: 1.4; color: #d6cab6; }
+    .log li { padding-left: 9px; border-left: 3px solid var(--lc, var(--line-strong)); }
+    .speed { display: inline-flex; gap: 3px; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, .06); }
+    .speed button { min-height: 38px; min-width: 44px; padding: 0 8px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font: 800 10px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+    .speed button[aria-pressed="true"] { background: rgba(232, 176, 75, .18); color: var(--brass); }
+    .thinking { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 50%; background: var(--brass); animation: think 1s ease-in-out infinite; }
+    @keyframes think { 50% { opacity: .25; transform: scale(.7); } }
+    details.more summary { min-height: 44px; display: flex; align-items: center; color: var(--muted); font: 800 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+    .rlist { display: grid; gap: 5px; }
+    .rrow { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 255, 255, .03); text-align: left; font-size: 13px; }
+    .rrow .len { margin-left: auto; color: var(--muted); font: 700 11px var(--mono); }
+
+    /* ---------- Overlays ---------- */
+    .overlay {
+      position: fixed; inset: 0; z-index: 20; display: grid; place-items: center;
+      padding: calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+      background: rgba(12, 9, 6, .76); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+      overflow-y: auto; overscroll-behavior: contain;
+    }
+    .overlay.soft { background: rgba(12, 9, 6, .45); }
+    .sheet {
+      width: min(520px, 100%); max-height: 100%; overflow-y: auto; padding: 22px;
+      border: 1px solid var(--line-strong); border-radius: 20px; background: linear-gradient(170deg, #322920, #221c15);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+    }
+    .sheet h2 { margin: 0 0 6px; font: 900 21px/1.15 var(--mono); letter-spacing: .04em; text-transform: uppercase; }
+    .sheet h3 { margin: 18px 0 8px; font: 800 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+    .sheet p, .sheet li { color: #e1d6c2; font-size: 14px; line-height: 1.5; }
+    .sheet ul { padding-left: 20px; margin: 6px 0; }
+    .sheet .lead { margin: 0 0 12px; color: var(--muted); }
+    .sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    kbd { padding: 1px 5px; border: 1px solid var(--line-strong); border-radius: 5px; font: 700 12px var(--mono); }
+    .credits { display: grid; gap: 4px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font: 600 11px/1.45 var(--mono); }
+    .credits span { color: var(--brass); text-transform: uppercase; letter-spacing: .08em; margin-right: 6px; }
+    .seats { display: grid; gap: 8px; }
+    .seat { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 0 0 0 10px; border: 1px solid var(--line-strong); border-radius: 11px; background: rgba(255, 255, 255, .04); }
+    .seat .sw { width: 18px; height: 18px; border-radius: 5px; flex: 0 0 auto; background: var(--pc); }
+    .seat input { min-width: 0; width: 100%; min-height: 44px; border: 0; background: transparent; font-size: 16px; }
+    .seat input:focus-visible { outline: none; }
+    .seat:focus-within { border-color: var(--brass); }
+    .seat select, .seat .kind { flex: 0 0 auto; min-height: 44px; padding: 0 10px; border: 0; border-left: 1px solid var(--line-strong); background: rgba(255, 255, 255, .06); color: var(--ink); font: 800 11px/1 var(--mono); letter-spacing: .05em; text-transform: uppercase; }
+    .seat .kind { min-width: 64px; }
+    .seat > :last-child { border-radius: 0 11px 11px 0; }
+    .seat .kind[aria-pressed="true"] { background: rgba(232, 176, 75, .16); color: var(--brass); }
+    .seat select option { background: #2a231b; color: var(--ink); }
+    .counter { display: flex; align-items: center; gap: 10px; }
+    .counter output { min-width: 2ch; font: 900 20px/1 var(--mono); text-align: center; }
+    .curtain { text-align: center; }
+    .curtain .badge { width: 64px; height: 64px; margin: 6px auto 14px; border-radius: 18px; background: var(--pc); box-shadow: 0 0 0 4px rgba(255, 255, 255, .15); }
+    .results { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .results th, .results td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: right; }
+    .results th:first-child, .results td:first-child { text-align: left; }
+    .results th { color: var(--muted); font: 800 10px/1.2 var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+    .results td:last-child { color: var(--brass); font: 900 15px var(--mono); }
+    .results .sw { display: inline-block; width: 12px; height: 12px; margin-right: 6px; border-radius: 3px; background: var(--pc); vertical-align: -1px; }
+    .toast { position: fixed; z-index: 40; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); max-width: min(92vw, 460px); padding: 12px 16px; border-radius: 12px; background: #f3e8cf; color: #2b2218; font-size: 14px; font-weight: 650; text-align: center; box-shadow: 0 14px 40px rgba(0, 0, 0, .45); transform: translateX(-50%); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="icon-btn" href="index.html" aria-label="Back to all games">←</a>
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="8" fill="#e8b04b"/><path d="M6 22h22M6 12h22" stroke="#2a1a00" stroke-width="2.4"/><path d="M10 8v18M17 8v18M24 8v18" stroke="#2a1a00" stroke-width="3" stroke-linecap="round"/></svg>
+        <div><h1>Iron Routes</h1><small id="subInfo">Railway empire</small></div>
+      </div>
+      <span class="spacer"></span>
+      <button class="icon-btn" type="button" id="btnHelp" aria-label="How to play">?</button>
+      <button class="icon-btn" type="button" id="btnNew" aria-label="New game">↺</button>
+    </header>
+
+    <main class="main" id="main">
+      <div class="mapwrap" id="mapwrap">
+        <svg id="map" role="group" aria-label="Railway map" viewBox="-52 -14 944 618"></svg>
+        <div class="final-banner" id="finalBanner" hidden>Final round</div>
+        <div class="zoom" role="group" aria-label="Map zoom">
+          <button type="button" id="zIn" aria-label="Zoom in">+</button>
+          <button type="button" id="zOut" aria-label="Zoom out">−</button>
+          <button type="button" id="zFit" aria-label="Show the whole map">⤢</button>
+        </div>
+      </div>
+      <aside class="panel" id="panel" aria-label="Game controls">
+        <section class="now" id="now"></section>
+        <p class="instruction" id="instruction" aria-live="polite"></p>
+        <div id="claimBox"></div>
+        <div id="actions"></div>
+        <div id="handWrap"></div>
+        <p class="section-title">Players</p>
+        <div class="plist" id="plist"></div>
+        <p class="section-title">Game log</p>
+        <ol class="log" id="log"></ol>
+      </aside>
+    </main>
+  </div>
+
+  <div class="overlay" id="setup" role="dialog" aria-modal="true" aria-labelledby="setupTitle" hidden>
+    <form class="sheet" id="setupForm">
+      <h2 id="setupTitle">New game</h2>
+      <p class="lead">Claim railway routes between cities, link up your secret destination tickets, and build the longest line across the continent.</p>
+      <h3>Players</h3>
+      <div class="counter">
+        <button class="icon-btn" type="button" id="pMinus" aria-label="Fewer players">−</button>
+        <output id="pCount">3</output>
+        <button class="icon-btn" type="button" id="pPlus" aria-label="More players">+</button>
+        <span class="instruction" style="font-size:13px;color:var(--muted)">2–5 players</span>
+      </div>
+      <div class="seats" id="seats" style="margin-top:10px"></div>
+      <p class="lead" style="margin-top:12px;font-size:13px">With two or more humans, the game asks you to pass the device between turns, so cards and tickets stay private.</p>
+      <div class="sheet-actions">
+        <button class="btn primary grow" type="submit">Start game</button>
+        <button class="btn" type="button" id="setupCancel">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="overlay" id="ticketSheet" role="dialog" aria-modal="true" aria-labelledby="ticketTitle" hidden>
+    <div class="sheet">
+      <h2 id="ticketTitle">Destination tickets</h2>
+      <p class="lead" id="ticketLead"></p>
+      <div class="tickets" id="ticketChoices"></div>
+      <div class="sheet-actions">
+        <button class="btn primary grow" type="button" id="ticketKeep">Keep selected</button>
+        <button class="btn" type="button" id="ticketPeek">Peek at map</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="curtain" role="dialog" aria-modal="true" aria-labelledby="curtainTitle" hidden>
+    <div class="sheet curtain" id="curtainCard">
+      <div class="badge" aria-hidden="true"></div>
+      <p class="lead" style="margin:0">Pass the device</p>
+      <h2 id="curtainTitle"></h2>
+      <p id="curtainText">Your cards and tickets are hidden until you're ready.</p>
+      <div class="sheet-actions"><button class="btn primary grow" type="button" id="curtainGo">Show my hand</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overSheet" role="dialog" aria-modal="true" aria-labelledby="overTitle" hidden>
+    <div class="sheet">
+      <h2 id="overTitle"></h2>
+      <p class="lead" id="overLead"></p>
+      <table class="results" id="overTable"></table>
+      <h3>Destination tickets</h3>
+      <div id="overTickets"></div>
+      <div class="sheet-actions">
+        <button class="btn primary grow" type="button" id="overNew">New game</button>
+        <button class="btn" type="button" id="overView">View map</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay soft" id="helpSheet" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
+    <div class="sheet">
+      <h2 id="helpTitle">How to play</h2>
+      <p class="lead">Score the most points by claiming railway routes, linking the cities on your destination tickets, and building the longest continuous line.</p>
+      <h3>On your turn, do one thing</h3>
+      <ul>
+        <li><strong>Draw train cards.</strong> Take two cards, from the five face-up cards or the face-down deck. A face-up locomotive is wild, but taking one uses your whole turn, and it can't be your second card.</li>
+        <li><strong>Claim a route.</strong> Tap a route on the map. Pay as many cards of its colour as it has spaces. Grey routes take any one colour. Locomotives can stand in for any colour.</li>
+        <li><strong>Draw destination tickets.</strong> Draw three tickets and keep at least one.</li>
+      </ul>
+      <h3>Scoring</h3>
+      <ul>
+        <li>Routes score as you claim them: 1, 3, 5, 8, 11 or 15 points for 1 to 6 spaces.</li>
+        <li>At the end, each ticket whose two cities you've joined with your own routes adds its value. Each unfinished ticket subtracts it.</li>
+        <li>The longest continuous line earns a 12-point bonus. Ties all score it.</li>
+      </ul>
+      <h3>Details</h3>
+      <ul>
+        <li>Everyone starts with 40 trains, 4 train cards, and 3 tickets, and keeps at least 2 of the tickets.</li>
+        <li>If three locomotives are ever face up together, all five face-up cards are replaced.</li>
+        <li>Double routes: one player can't claim both tracks. With 2 or 3 players, only one track of each pair can be used.</li>
+        <li>When a player ends a turn with 2 or fewer trains, everyone, including that player, gets one last turn.</li>
+      </ul>
+      <h3>Computer players</h3>
+      <ul>
+        <li><strong>Easy</strong> computers play loosely. <strong>Normal</strong> computers plan the shortest lines for their tickets. <strong>Hard</strong> computers also take on more tickets, and grab locomotives when they're short of cards.</li>
+        <li>Computers' cards and tickets stay hidden. Use the speed buttons during their turns.</li>
+      </ul>
+      <h3>Controls</h3>
+      <p>Drag to pan and pinch, use the mouse wheel, or use the + and − buttons to zoom. Tap a ticket to highlight its cities. You can also claim from the <em>Routes you can claim</em> list. Keyboard: <kbd>D</kbd> draws from the deck, <kbd>1</kbd>–<kbd>5</kbd> take a face-up card, <kbd>T</kbd> draws tickets, <kbd>Esc</kbd> clears a selection. The game saves on this device after every move.</p>
+      <div class="credits">
+        <div><span>prompt</span> Suggest another 2 games in the current collection. How about a property-trading game? Or a railway route-building game? (paraphrased to remove third-party brand names)</div>
+        <div><span>date</span> 2 October 2026</div>
+        <div><span>v2 prompt</span> Make all the changes to derisk as much as possible (original rail network, colours, tickets and scoring)</div>
+        <div><span>v2 date</span> 2 October 2026</div>
+        <div><span>built with</span> Claude Code</div>
+      </div>
+      <div class="sheet-actions"><button class="btn primary grow" type="button" data-close>Got it</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      // ---------- Map data ----------
+      // [name, longitude, latitude, label side]
+      const CITIES = {
+        VAN: ['Vancouver', -123.1, 49.3, 'l'], SEA: ['Seattle', -122.3, 47.6, 'l'], SPO: ['Spokane', -117.4, 47.7, 't'],
+        POR: ['Portland', -122.7, 45.5, 'l'], SFO: ['San Francisco', -122.4, 37.8, 'l'], LAX: ['Los Angeles', -118.2, 34.1, 'l'],
+        SDG: ['San Diego', -117.2, 32.7, 'b'], LVS: ['Las Vegas', -115.1, 36.2, 'r'], PHX: ['Phoenix', -112.1, 33.4, 'b'],
+        SLC: ['Salt Lake City', -111.9, 40.8, 'b'], BOI: ['Boise', -116.2, 43.6, 'b'], CAL: ['Calgary', -114.1, 51.0, 't'],
+        BIL: ['Billings', -108.5, 45.8, 't'], DEN: ['Denver', -105.0, 39.7, 'r'], ABQ: ['Albuquerque', -106.6, 35.1, 'r'],
+        ELP: ['El Paso', -106.4, 31.8, 'b'], SAT: ['San Antonio', -98.5, 29.4, 'b'], WIN: ['Winnipeg', -97.1, 49.9, 't'],
+        BIS: ['Bismarck', -100.8, 46.8, 't'], OMA: ['Omaha', -95.9, 41.3, 't'], KC: ['Kansas City', -94.6, 39.1, 'b'],
+        OKC: ['Oklahoma City', -97.5, 35.5, 'b'], DAL: ['Dallas', -96.8, 32.8, 'r'], HOU: ['Houston', -95.4, 29.8, 'b'],
+        MIN: ['Minneapolis', -93.3, 45.0, 't'], CHI: ['Chicago', -87.6, 41.9, 't'], STL: ['St. Louis', -90.2, 38.6, 'b'],
+        MEM: ['Memphis', -90.0, 35.1, 'l'], NOL: ['New Orleans', -90.1, 30.0, 'b'], ATL: ['Atlanta', -84.4, 33.7, 'b'],
+        NAS: ['Nashville', -86.8, 36.2, 't'], DET: ['Detroit', -83.0, 42.3, 't'], CIN: ['Cincinnati', -84.5, 39.1, 'b'],
+        TOR: ['Toronto', -79.4, 43.7, 't'], MTL: ['Montréal', -73.6, 45.5, 't'], BOS: ['Boston', -71.1, 42.4, 'r'],
+        NYC: ['New York', -74.0, 40.7, 'r'], WAS: ['Washington', -77.0, 38.9, 'r'], CHA: ['Charlotte', -80.8, 35.2, 'r'],
+        MIA: ['Miami', -80.2, 25.8, 'r'], JAX: ['Jacksonville', -81.7, 30.3, 'r']
+      };
+      const proj = (lon, lat) => [Math.round((lon + 126) * 15.32 * 10) / 10, Math.round((52 - lat) * 20 * 10) / 10];
+      Object.values(CITIES).forEach(c => { [c.x, c.y] = proj(c[1], c[2]); });
+
+      // [from, to, colour, colour of the twin track]
+      const ROUTE_DEFS = [
+        ['VAN', 'SEA', 'orange'], ['SEA', 'POR', 'blue', 'red'], ['VAN', 'CAL', 'black'], ['VAN', 'SPO', 'gray'],
+        ['SEA', 'SPO', 'green', 'gray'], ['SPO', 'CAL', 'purple'], ['SPO', 'BOI', 'yellow'], ['SPO', 'BIL', 'red'],
+        ['CAL', 'BIL', 'gray'], ['CAL', 'WIN', 'orange'], ['POR', 'BOI', 'white'], ['POR', 'SFO', 'black', 'yellow'],
+        ['SFO', 'LAX', 'green', 'blue'], ['SFO', 'LVS', 'purple'], ['SFO', 'BOI', 'gray'], ['LAX', 'SDG', 'white'],
+        ['LAX', 'LVS', 'red', 'gray'], ['SDG', 'PHX', 'orange'], ['LVS', 'PHX', 'gray'], ['LVS', 'SLC', 'green'],
+        ['BOI', 'SLC', 'orange', 'gray'], ['BOI', 'BIL', 'blue'], ['SLC', 'BIL', 'black'], ['SLC', 'DEN', 'white'],
+        ['PHX', 'ABQ', 'red'], ['PHX', 'ELP', 'yellow'], ['ABQ', 'ELP', 'gray'], ['ABQ', 'DEN', 'purple', 'green'],
+        ['BIL', 'DEN', 'yellow'], ['BIL', 'BIS', 'green'], ['BIS', 'WIN', 'gray'], ['WIN', 'MIN', 'yellow'],
+        ['BIS', 'MIN', 'white'], ['BIS', 'OMA', 'gray'], ['DEN', 'OMA', 'blue'], ['DEN', 'KC', 'gray'],
+        ['ABQ', 'OKC', 'orange'], ['ELP', 'SAT', 'purple'], ['SAT', 'DAL', 'white', 'gray'], ['SAT', 'HOU', 'black'],
+        ['DAL', 'HOU', 'red'], ['DAL', 'OKC', 'yellow', 'purple'], ['OKC', 'KC', 'green'], ['KC', 'OMA', 'red', 'black'],
+        ['OMA', 'MIN', 'purple'], ['MIN', 'CHI', 'green', 'orange'], ['OMA', 'CHI', 'gray'], ['KC', 'STL', 'yellow', 'white'],
+        ['OKC', 'MEM', 'black'], ['DAL', 'MEM', 'blue'], ['HOU', 'NOL', 'purple', 'gray'], ['MEM', 'NOL', 'purple'],
+        ['MEM', 'STL', 'gray'], ['STL', 'CHI', 'blue'], ['STL', 'CIN', 'red'], ['STL', 'NAS', 'white'],
+        ['MEM', 'NAS', 'gray'], ['NOL', 'ATL', 'green'], ['NOL', 'JAX', 'gray'], ['JAX', 'MIA', 'yellow', 'green'],
+        ['ATL', 'JAX', 'white'], ['ATL', 'NAS', 'orange', 'gray'], ['ATL', 'CHA', 'purple'], ['CHA', 'JAX', 'blue'],
+        ['CHA', 'WAS', 'black', 'red'], ['NAS', 'CIN', 'yellow'], ['CIN', 'WAS', 'gray'], ['CIN', 'DET', 'purple', 'black'],
+        ['CHI', 'DET', 'white'], ['DET', 'TOR', 'gray', 'blue'], ['MIN', 'DET', 'black'], ['TOR', 'MTL', 'red'],
+        ['TOR', 'NYC', 'green'], ['MTL', 'BOS', 'white', 'orange'], ['MTL', 'NYC', 'gray'], ['BOS', 'NYC', 'purple', 'black'],
+        ['NYC', 'WAS', 'yellow', 'blue'], ['DET', 'WAS', 'orange'], ['CHI', 'CIN', 'gray'], ['NAS', 'CHA', 'gray'],
+        ['NOL', 'MIA', 'red']
+      ];
+      const ROUTES = [];
+      ROUTE_DEFS.forEach(([a, b, c1, c2]) => {
+        const A = CITIES[a];
+        const B = CITIES[b];
+        const len = Math.max(1, Math.min(6, Math.round(Math.hypot(B.x - A.x, B.y - A.y) / 38)));
+        const id = ROUTES.length;
+        ROUTES.push({ id, a, b, c: c1, len, twin: c2 ? id + 1 : -1, side: c2 ? -1 : 0 });
+        if (c2) ROUTES.push({ id: id + 1, a, b, c: c2, len, twin: id, side: 1 });
+      });
+      const POINTS = [0, 1, 3, 5, 8, 11, 15];
+
+      const TICKET_DEFS = [
+        ['SEA', 'SAT'], ['SPO', 'ATL'], ['SFO', 'CHI'], ['SDG', 'NYC'], ['POR', 'MIA'], ['VAN', 'WAS'], ['CAL', 'DAL'],
+        ['BOI', 'NOL'], ['SLC', 'TOR'], ['LVS', 'DET'], ['PHX', 'CHA'], ['ABQ', 'BOS'], ['ELP', 'CIN'], ['DEN', 'MTL'],
+        ['BIL', 'HOU'], ['BIS', 'JAX'], ['WIN', 'NAS'], ['MIN', 'SAT'], ['OMA', 'WAS'], ['KC', 'BOS'], ['OKC', 'DET'],
+        ['DAL', 'CHA'], ['HOU', 'TOR'], ['MEM', 'MTL'], ['STL', 'JAX'], ['CHI', 'MIA'], ['CIN', 'NOL'], ['NAS', 'BOS'],
+        ['ATL', 'TOR'], ['LAX', 'DEN'], ['SFO', 'PHX'], ['VAN', 'BIL'], ['SPO', 'SLC'], ['BIS', 'KC'], ['WIN', 'CHI'],
+        ['DAL', 'STL'], ['HOU', 'ATL'], ['CHA', 'NYC'], ['LVS', 'SAT'], ['CAL', 'OMA']
+      ];
+
+      const CC = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'black', 'white'];
+      const CARD = {
+        red: { c: '#d83a3a', t: '#fff', s: '♥', n: 'Red' },
+        orange: { c: '#ef8a24', t: '#2a1400', s: '▲', n: 'Orange' },
+        yellow: { c: '#f2cf2e', t: '#2a2300', s: '★', n: 'Yellow' },
+        green: { c: '#2f9e57', t: '#fff', s: '♣', n: 'Green' },
+        blue: { c: '#2f6fdb', t: '#fff', s: '●', n: 'Blue' },
+        purple: { c: '#8c55d6', t: '#fff', s: '✦', n: 'Purple' },
+        black: { c: '#26282b', t: '#fff', s: '■', n: 'Black' },
+        white: { c: '#f4f1e8', t: '#222', s: '○', n: 'White' },
+        loco: { c: '#888', t: '#fff', s: '✱', n: 'Loco' },
+        gray: { c: '#a9afb3', t: '#222', s: '', n: 'Grey' }
+      };
+      Object.values(CARD).forEach(k => { if (k.s) k.s += '︎'; });
+
+      const PCOLORS = ['#ff4d6d', '#2fa4ff', '#2fd67f', '#ffc533', '#b07cff'];
+      const DEFAULT_NAMES = ['Player 1', 'Ada', 'Bram', 'Cleo', 'Dev'];
+      const CPU_NAMES = ['Fay', 'Ada', 'Bram', 'Cleo', 'Dev'];
+      const LEVELS = { easy: 'Easy', normal: 'Normal', hard: 'Hard' };
+      const SPEEDS = { slow: 1200, normal: 650, fast: 180 };
+      const STORE = 'iron-routes-save-v2';
+      const PREFS = 'iron-routes-prefs-v1';
+      const SEAT_KEY = 'iron-routes-seats-v1';
+
+      // ---------- Helpers ----------
+      const $ = s => document.querySelector(s);
+      const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const range = n => Array.from({ length: n }, (_, i) => i);
+      const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+      const store = {
+        get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+        set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage is optional */ } }
+      };
+      const cname = k => CITIES[k][0];
+      const rname = r => `${cname(r.a)}–${cname(r.b)}`;
+
+      // ---------- Graph helpers ----------
+      const ADJ = {};
+      Object.keys(CITIES).forEach(k => { ADJ[k] = []; });
+      ROUTES.forEach(r => { ADJ[r.a].push(r); ADJ[r.b].push(r); });
+      const other = (r, k) => (r.a === k ? r.b : r.a);
+
+      // Shortest path with a cost function per route; returns { cost, routes }.
+      function shortest(from, to, costOf) {
+        const dist = {};
+        const prev = {};
+        const done = new Set();
+        Object.keys(CITIES).forEach(k => { dist[k] = Infinity; });
+        dist[from] = 0;
+        for (;;) {
+          let u = null;
+          Object.keys(dist).forEach(k => { if (!done.has(k) && (u === null || dist[k] < dist[u])) u = k; });
+          if (u === null || dist[u] === Infinity) break;
+          if (u === to) break;
+          done.add(u);
+          ADJ[u].forEach(r => {
+            const c = costOf(r);
+            if (c === Infinity) return;
+            const v = other(r, u);
+            if (dist[u] + c < dist[v]) { dist[v] = dist[u] + c; prev[v] = r; }
+          });
+        }
+        if (dist[to] === Infinity) return { cost: Infinity, routes: [] };
+        const routes = [];
+        for (let k = to; k !== from; k = other(prev[k], k)) routes.push(prev[k]);
+        return { cost: dist[to], routes };
+      }
+
+      const TICKETS = TICKET_DEFS.map(([a, b], id) => {
+        const pts = shortest(a, b, r => r.len).cost;
+        return { id, a, b, pts };
+      });
+
+      // ---------- State ----------
+      let S = null;
+      let prefs = Object.assign({ speed: 'normal' }, store.get(PREFS) || {});
+      let timer = null;
+      let sel = -1;
+      let hiTicket = -1;
+
+      const P = i => S.players[i];
+      const curP = () => S.players[S.cur];
+      const humans = () => S.players.filter(p => !p.cpu).length;
+
+      function log(text, pid = -1) {
+        S.log.unshift({ text, c: pid >= 0 ? P(pid).color : '' });
+        if (S.log.length > 80) S.log.length = 80;
+      }
+
+      function newGame(players) {
+        const deck = [];
+        CC.forEach(c => { for (let i = 0; i < 12; i++) deck.push(c); });
+        for (let i = 0; i < 14; i++) deck.push('loco');
+        shuffle(deck);
+        S = {
+          v: 1,
+          players: players.map((p, i) => ({ name: p.name, cpu: p.cpu, level: p.level, color: PCOLORS[i], trains: 40, score: 0, hand: Object.fromEntries([...CC, 'loco'].map(c => [c, 0])), tickets: [], pending: [] })),
+          cur: 0, phase: 'tickets', setup: true, deck, discard: [], market: [],
+          tdeck: shuffle(TICKETS.map(t => t.id)), owner: {}, final: null, over: null, log: [], curtain: false, minKeep: 2, turns: 0
+        };
+        S.players.forEach(p => { for (let i = 0; i < 4; i++) p.hand[S.deck.pop()]++; });
+        refillMarket();
+        S.players.forEach(p => { p.pending = S.tdeck.splice(0, 3); });
+        S.curtain = !curP().cpu && humans() > 1;
+        log('New game. Everyone chooses their starting tickets.');
+      }
+
+      // ---------- Cards ----------
+      function drawFromDeck() {
+        if (!S.deck.length && S.discard.length) {
+          S.deck = shuffle(S.discard);
+          S.discard = [];
+          log('The discard pile is shuffled into a new deck.');
+        }
+        return S.deck.pop();
+      }
+
+      function refillMarket() {
+        for (let tries = 0; tries < 4; tries++) {
+          while (S.market.length < 5) {
+            const c = drawFromDeck();
+            if (!c) break;
+            S.market.push(c);
+          }
+          const locos = S.market.filter(c => c === 'loco').length;
+          const pool = S.deck.length + S.discard.length;
+          if (locos < 3 || pool < 5) return;
+          log('Three locomotives face up. The face-up cards are replaced.');
+          S.discard.push(...S.market);
+          S.market = [];
+        }
+      }
+
+      function canTakeMarket(k) {
+        const c = S.market[k];
+        if (!c) return false;
+        if (S.phase === 'turn') return true;
+        return S.phase === 'draw2' && c !== 'loco';
+      }
+
+      function takeCard(src) {
+        const p = curP();
+        if (S.phase !== 'turn' && S.phase !== 'draw2') return;
+        let card;
+        if (src === 'deck') {
+          card = drawFromDeck();
+          if (!card) return;
+          log(`${p.name} draws a card from the deck.`, S.cur);
+        } else {
+          if (!canTakeMarket(src)) return;
+          card = S.market.splice(src, 1)[0];
+          log(`${p.name} takes a face-up ${CARD[card].n.toLowerCase()} card.`, S.cur);
+          refillMarket();
+        }
+        p.hand[card]++;
+        p.lastDraw = card;
+        if (S.phase === 'turn' && !(src !== 'deck' && card === 'loco') && cardsAvailable()) S.phase = 'draw2';
+        else endTurn();
+      }
+
+      const cardsAvailable = () => S.deck.length + S.discard.length + S.market.filter(c => c !== 'loco').length > 0;
+
+      // ---------- Routes ----------
+      function claimReason(pid, r) {
+        const p = P(pid);
+        if (S.owner[r.id] !== undefined) return 'Already claimed.';
+        if (r.twin >= 0) {
+          const t = S.owner[r.twin];
+          if (t === pid) return 'You already own the other track of this double route.';
+          if (t !== undefined && S.players.length <= 3) return 'With 2–3 players only one track of a double route can be used.';
+        }
+        if (p.trains < r.len) return `You need ${r.len} trains but have ${p.trains}.`;
+        if (!payOptions(pid, r).length) return `You need ${r.len} ${r.c === 'gray' ? 'cards of one colour' : CARD[r.c].n.toLowerCase() + ' cards'} (locomotives are wild).`;
+        return '';
+      }
+
+      function payOptions(pid, r) {
+        const h = P(pid).hand;
+        const opts = [];
+        const colors = r.c === 'gray' ? CC : [r.c];
+        // Every legal split of coloured cards and locomotives; `main` marks the one using the most coloured cards.
+        colors.forEach(c => {
+          const most = Math.min(h[c], r.len);
+          for (let use = most; use >= 1 && h.loco >= r.len - use; use--) opts.push({ c, n: use, loco: r.len - use, main: use === most });
+        });
+        if (h.loco >= r.len) opts.push({ c: r.c === 'gray' ? 'loco' : r.c, n: 0, loco: r.len, main: !opts.length });
+        return opts;
+      }
+
+      function blockedFor(pid, r) {
+        if (S.owner[r.id] !== undefined) return true;
+        if (r.twin >= 0) {
+          const t = S.owner[r.twin];
+          if (t === pid) return true;
+          if (t !== undefined && S.players.length <= 3) return true;
+        }
+        return false;
+      }
+
+      function claim(rid, opt) {
+        const r = ROUTES[rid];
+        const pid = S.cur;
+        const p = curP();
+        if (S.phase !== 'turn' || claimReason(pid, r)) return false;
+        const valid = payOptions(pid, r).find(o => o.c === opt.c && o.n === opt.n && o.loco === opt.loco);
+        if (!valid) return false;
+        if (valid.n) { p.hand[valid.c] -= valid.n; for (let i = 0; i < valid.n; i++) S.discard.push(valid.c); }
+        if (valid.loco) { p.hand.loco -= valid.loco; for (let i = 0; i < valid.loco; i++) S.discard.push('loco'); }
+        S.owner[rid] = pid;
+        p.trains -= r.len;
+        p.score += POINTS[r.len];
+        log(`${p.name} claims ${rname(r)} (${r.len}) for ${POINTS[r.len]} point${POINTS[r.len] > 1 ? 's' : ''}.`, pid);
+        if (sel === rid) sel = -1;
+        endTurn();
+        return true;
+      }
+
+      // ---------- Tickets ----------
+      function connected(pid, a, b) {
+        const seen = new Set([a]);
+        const stack = [a];
+        while (stack.length) {
+          const u = stack.pop();
+          if (u === b) return true;
+          ADJ[u].forEach(r => {
+            if (S.owner[r.id] !== pid) return;
+            const v = other(r, u);
+            if (!seen.has(v)) { seen.add(v); stack.push(v); }
+          });
+        }
+        return false;
+      }
+
+      const ticketDone = (pid, t) => connected(pid, TICKETS[t].a, TICKETS[t].b);
+
+      function drawTickets() {
+        if (S.phase !== 'turn' || !S.tdeck.length) return;
+        const p = curP();
+        p.pending = S.tdeck.splice(0, 3);
+        S.minKeep = 1;
+        S.phase = 'tickets';
+        log(`${p.name} draws destination tickets.`, S.cur);
+      }
+
+      function keepTickets(ids) {
+        const p = curP();
+        if (S.phase !== 'tickets') return false;
+        const keep = ids.filter(id => p.pending.includes(id));
+        if (keep.length < Math.min(S.minKeep, p.pending.length)) return false;
+        p.tickets.push(...keep);
+        const back = p.pending.filter(id => !keep.includes(id));
+        S.tdeck.push(...back);
+        p.pending = [];
+        log(`${p.name} keeps ${keep.length} ticket${keep.length > 1 ? 's' : ''}.`, S.cur);
+        if (S.setup) {
+          const next = S.players.findIndex(q => q.pending.length);
+          if (next >= 0) {
+            S.cur = next;
+            S.minKeep = 2;
+            S.curtain = !curP().cpu && humans() > 1;
+            return true;
+          }
+          S.setup = false;
+          S.cur = 0;
+          S.phase = 'turn';
+          S.curtain = !curP().cpu && humans() > 1;
+          log(`${curP().name} takes the first turn.`, 0);
+          return true;
+        }
+        endTurn();
+        return true;
+      }
+
+      // ---------- Turn flow ----------
+      function endTurn() {
+        const n = S.players.length;
+        S.turns++;
+        if (S.final) {
+          S.final.left--;
+          if (S.final.left <= 0) { gameOver(); return; }
+        } else if (curP().trains <= 2) {
+          S.final = { by: S.cur, left: n };
+          log(`${curP().name} has ${curP().trains} train${curP().trains === 1 ? '' : 's'} left. Everyone gets one final turn!`, S.cur);
+        }
+        S.cur = (S.cur + 1) % n;
+        S.phase = 'turn';
+        sel = -1;
+        S.curtain = !curP().cpu && humans() > 1;
+        // A player with no possible move passes.
+        if (!canAct(S.cur)) {
+          log(`${curP().name} has no legal move and passes.`, S.cur);
+          if (S.turns < 2000) endTurn();
+        }
+      }
+
+      function canAct(pid) {
+        if (cardsAvailable() || S.market.length) return true;
+        if (S.tdeck.length) return true;
+        return ROUTES.some(r => !claimReason(pid, r));
+      }
+
+      function longestPath(pid) {
+        const edges = ROUTES.filter(r => S.owner[r.id] === pid);
+        const adj = {};
+        edges.forEach((r, i) => { (adj[r.a] = adj[r.a] || []).push(i); (adj[r.b] = adj[r.b] || []).push(i); });
+        const used = new Array(edges.length).fill(false);
+        let best = 0;
+        function dfs(city, len) {
+          if (len > best) best = len;
+          (adj[city] || []).forEach(i => {
+            if (used[i]) return;
+            used[i] = true;
+            dfs(other(edges[i], city), len + edges[i].len);
+            used[i] = false;
+          });
+        }
+        Object.keys(adj).forEach(c => dfs(c, 0));
+        return best;
+      }
+
+      function gameOver() {
+        const rows = S.players.map((p, i) => {
+          const done = p.tickets.filter(t => ticketDone(i, t));
+          const lost = p.tickets.filter(t => !ticketDone(i, t));
+          const plus = done.reduce((s, t) => s + TICKETS[t].pts, 0);
+          const minus = lost.reduce((s, t) => s + TICKETS[t].pts, 0);
+          return { i, routes: p.score, plus, minus, done: done.length, longest: longestPath(i), bonus: 0 };
+        });
+        const maxLen = Math.max(...rows.map(r => r.longest));
+        rows.forEach(r => { if (maxLen > 0 && r.longest === maxLen) r.bonus = 12; r.total = r.routes + r.plus - r.minus + r.bonus; });
+        rows.sort((x, y) => (y.total - x.total) || (y.done - x.done) || (y.longest - x.longest));
+        S.over = { rows };
+        S.phase = 'over';
+        S.curtain = false;
+        log(`Game over! ${P(rows[0].i).name} wins with ${rows[0].total} points.`, rows[0].i);
+      }
+
+      // ---------- Computer players ----------
+      function costFn(pid) {
+        return r => {
+          if (S.owner[r.id] === pid) return 0;
+          if (blockedFor(pid, r)) return Infinity;
+          return r.len;
+        };
+      }
+
+      function plan(pid) {
+        const p = P(pid);
+        const need = new Map();
+        let open = 0;
+        p.tickets.forEach(t => {
+          const T = TICKETS[t];
+          if (connected(pid, T.a, T.b)) return;
+          const path = shortest(T.a, T.b, costFn(pid));
+          if (path.cost === Infinity || path.cost > p.trains + 4) return;
+          open++;
+          path.routes.forEach(r => {
+            if (S.owner[r.id] === pid) return;
+            need.set(r.id, (need.get(r.id) || 0) + T.pts / Math.max(1, path.cost));
+          });
+        });
+        return { need, open };
+      }
+
+      function deficits(pid, needIds) {
+        const h = P(pid).hand;
+        const want = Object.fromEntries(CC.map(c => [c, 0]));
+        let gray = 0;
+        needIds.forEach(id => {
+          const r = ROUTES[id];
+          if (r.c === 'gray') gray = Math.max(gray, r.len);
+          else want[r.c] += r.len;
+        });
+        const def = {};
+        CC.forEach(c => { def[c] = Math.max(0, want[c] - h[c]); });
+        if (gray) {
+          const spare = CC.filter(c => want[c] === 0).sort((a, b) => h[b] - h[a])[0];
+          if (spare && h[spare] < gray) def[spare] += (gray - h[spare]) * 0.6;
+        }
+        return def;
+      }
+
+      function bestPay(pid, r, needIds) {
+        const opts = payOptions(pid, r);
+        const want = {};
+        needIds.forEach(id => { const q = ROUTES[id]; if (id !== r.id && q.c !== 'gray') want[q.c] = (want[q.c] || 0) + q.len; });
+        const h = P(pid).hand;
+        opts.sort((x, y) => (x.loco - y.loco) || ((want[x.c] || 0) - (want[y.c] || 0)) || (h[y.c] || 0) - (h[x.c] || 0));
+        return opts[0];
+      }
+
+      function cpuChooseTickets(pid) {
+        const p = P(pid);
+        const lvl = p.level;
+        const min = Math.min(S.minKeep, p.pending.length);
+        const fn = costFn(pid);
+        let budget = p.trains - p.tickets.reduce((s, t) => s + (ticketDone(pid, t) ? 0 : shortest(TICKETS[t].a, TICKETS[t].b, fn).cost || 0), 0);
+        const scored = p.pending.map(id => {
+          const T = TICKETS[id];
+          const c = shortest(T.a, T.b, fn).cost;
+          return { id, c, value: c === Infinity ? -99 : T.pts / Math.max(1, c) - c / 40 };
+        }).sort((a, b) => b.value - a.value);
+        if (lvl === 'easy') return shuffle(scored.map(s => s.id)).slice(0, min);
+        const keep = [];
+        scored.forEach(s => {
+          const limit = lvl === 'hard' ? 0.95 : 0.85;
+          if (s.c === 0 || (s.c !== Infinity && s.c <= budget * limit)) { keep.push(s.id); budget -= s.c; }
+        });
+        scored.forEach(s => { if (keep.length < min && !keep.includes(s.id)) keep.push(s.id); });
+        return keep;
+      }
+
+      function cpuDraw(pid, second) {
+        const p = P(pid);
+        const lvl = p.level;
+        const { need } = plan(pid);
+        const def = deficits(pid, [...need.keys()]);
+        const totalDef = CC.reduce((s, c) => s + def[c], 0);
+        if (lvl === 'easy') {
+          const k = S.market.findIndex((c, i) => canTakeMarket(i) && c !== 'loco' && Math.random() < 0.4);
+          takeCard(k >= 0 ? k : (S.deck.length || S.discard.length ? 'deck' : S.market.findIndex((c, i) => canTakeMarket(i))));
+          return;
+        }
+        const matching = S.market.some((c, i) => c !== 'loco' && canTakeMarket(i) && def[c] > 0.5);
+        if (!second && lvl === 'hard' && totalDef >= 6 && !matching) {
+          const lk = S.market.indexOf('loco');
+          if (lk >= 0) { takeCard(lk); return; }
+        }
+        let best = -1;
+        let bestScore = 0.5;
+        S.market.forEach((c, i) => {
+          if (!canTakeMarket(i) || c === 'loco') return;
+          if (def[c] > bestScore) { bestScore = def[c]; best = i; }
+        });
+        if (best >= 0) takeCard(best);
+        else if (S.deck.length || S.discard.length) takeCard('deck');
+        else {
+          const any = S.market.findIndex((c, i) => canTakeMarket(i));
+          if (any >= 0) takeCard(any); else endTurn();
+        }
+      }
+
+      function cpuTurn(pid) {
+        const p = P(pid);
+        const lvl = p.level;
+        const { need, open } = plan(pid);
+        const needIds = [...need.keys()];
+        const claimable = ids => ids.map(id => ROUTES[id]).filter(r => !claimReason(pid, r));
+        const endgame = S.final || S.players.some((q, i) => i !== pid && q.trains <= (lvl === 'hard' ? 8 : 5)) || p.trains <= 6;
+
+        // 1. Claim routes on the planned network, longest/most valuable first.
+        let opts = claimable(needIds).sort((a, b) => (need.get(b.id) * 2 + b.len) - (need.get(a.id) * 2 + a.len));
+        if (lvl === 'easy' && Math.random() < 0.3) opts = [];
+        if (opts.length) {
+          // Hold off on short routes if a contested long one needs saving for — except in the endgame.
+          claim(opts[0].id, bestPay(pid, opts[0], needIds));
+          return;
+        }
+        const anyRoutes = () => ROUTES.filter(r => !claimReason(pid, r)).sort((a, b) => b.len - a.len);
+        // 2. Endgame: spend trains on the biggest route we can afford.
+        if (endgame) {
+          const any = anyRoutes().filter(r => r.len <= p.trains);
+          if (any.length && (open === 0 || S.final || p.trains <= 6)) { claim(any[0].id, bestPay(pid, any[0], needIds)); return; }
+        }
+        // 3. All tickets done: take more tickets or score long routes.
+        if (open === 0) {
+          const wantsTickets = lvl === 'easy' ? Math.random() < 0.25 : p.trains >= (lvl === 'hard' ? 12 : 16) && !endgame;
+          if (wantsTickets && S.tdeck.length) { drawTickets(); return; }
+          const any = anyRoutes().filter(r => r.len >= Math.min(4, p.trains));
+          if (any.length) { claim(any[0].id, bestPay(pid, any[0], needIds)); return; }
+        }
+        if (!cardsAvailable() && !S.market.length) {
+          const any = anyRoutes();
+          if (any.length) { claim(any[0].id, bestPay(pid, any[0], needIds)); return; }
+          if (S.tdeck.length) { drawTickets(); return; }
+          endTurn();
+          return;
+        }
+        cpuDraw(pid, false);
+      }
+
+      function cpuStep() {
+        timer = null;
+        if (!S || S.over || setupOpen()) return;
+        const pid = S.cur;
+        if (!curP().cpu) return;
+        const sig = () => `${S.cur}|${S.phase}|${S.turns}|${S.deck.length}|${S.market.join()}|${S.tdeck.length}`;
+        const before = sig();
+        if (S.phase === 'tickets') keepTickets(cpuChooseTickets(pid));
+        else if (S.phase === 'draw2') cpuDraw(pid, true);
+        else if (S.phase === 'turn') cpuTurn(pid);
+        // Never let a computer stall on a move that changed nothing.
+        if (!S.over && sig() === before) {
+          log(`${curP().name} passes.`, S.cur);
+          endTurn();
+        }
+        finish();
+      }
+
+      function tick() {
+        clearTimeout(timer);
+        timer = null;
+        if (!S || S.over || setupOpen() || !curP().cpu) return;
+        timer = setTimeout(cpuStep, SPEEDS[prefs.speed] || 650);
+      }
+
+      function finish() {
+        store.set(STORE, S);
+        render();
+        tick();
+      }
+
+      // ---------- Map rendering ----------
+      const svg = $('#map');
+      const NS = 'http://www.w3.org/2000/svg';
+      const routeEls = [];
+      const cityEls = {};
+
+      const LAND = [[-131, 53], [-55, 53], [-55, 47], [-60, 46.5], [-64, 45.5], [-66.5, 44.8], [-70, 43.6], [-70.6, 42.6], [-70, 41.8], [-71.5, 41.4], [-74, 40.6], [-74.2, 39.6], [-75.5, 38.6], [-76, 37], [-75.6, 35.3], [-77, 34.6], [-78.5, 33.8], [-80, 32.6], [-81.4, 30.8], [-81.2, 29.6], [-80.3, 28.2], [-79.9, 26.5], [-80.1, 25.2], [-81.2, 25.3], [-81.8, 26.2], [-82.7, 27.8], [-82.8, 29], [-84, 30], [-85.5, 29.7], [-86.5, 30.4], [-88, 30.4], [-89.3, 30.2], [-89.4, 29.2], [-90.5, 29.1], [-92, 29.6], [-94, 29.6], [-95, 29.2], [-96.5, 28.3], [-97.3, 27.4], [-97.4, 25.8], [-97.7, 24], [-97.9, 19], [-112, 19], [-112, 24.5], [-114.2, 28], [-115.8, 30.3], [-117.1, 32.5], [-117.6, 33.4], [-118.5, 34], [-120.6, 34.6], [-121.9, 36.6], [-122.6, 37.6], [-123, 38.3], [-123.8, 39.6], [-124.3, 40.4], [-124.2, 42], [-124, 44], [-124, 46.2], [-124.7, 48.4], [-123.3, 48.4], [-122.8, 49], [-124, 49.8], [-125.5, 50.5], [-127.5, 51], [-131, 53]];
+      const LAKES = [
+        [[-92.1, 46.7], [-90, 46.6], [-87.5, 46.5], [-84.6, 46.5], [-84.8, 47.5], [-86, 48.7], [-88.5, 48.4], [-90, 47.8], [-91.5, 47.2]],
+        [[-87.8, 42.2], [-86.8, 41.7], [-86.2, 42.5], [-86.4, 44], [-85.6, 45.3], [-84.9, 45.8], [-86.5, 45.9], [-87.5, 45.2], [-87.9, 44]],
+        [[-84.5, 45.9], [-83.5, 45.4], [-82.5, 44.5], [-82.4, 43], [-81.7, 43.6], [-81.7, 44.8], [-80.2, 45], [-80.6, 45.9], [-82.5, 46.1]],
+        [[-83.4, 41.8], [-81.5, 41.6], [-79, 42.4], [-79.2, 42.9], [-81, 42.6], [-83, 42.1]],
+        [[-79.8, 43.3], [-78, 43.3], [-76.3, 43.5], [-76.3, 44.1], [-77.5, 44], [-79.4, 43.75]]
+      ];
+      const BORDERS = [
+        [[-123.3, 49], [-95.2, 49], [-95.2, 49.4], [-89.5, 48], [-84.6, 46.5], [-82.4, 45.4], [-82.5, 43], [-83.1, 42], [-79, 42.6], [-79, 43.3], [-76.5, 44.2], [-74.7, 45], [-71.5, 45], [-70, 46.5], [-69, 47.4], [-67.8, 47.1], [-67.8, 45.6], [-67, 44.8]],
+        [[-117.1, 32.5], [-114.7, 32.7], [-111, 31.3], [-108.2, 31.3], [-106.5, 31.8], [-104.5, 29.6], [-103, 29], [-101.4, 29.8], [-99.5, 27.5], [-97.2, 25.9]]
+      ];
+      const pts = list => list.map(([lon, lat]) => proj(lon, lat).join(',')).join(' ');
+
+      function el(tag, attrs, parent) {
+        const e = document.createElementNS(NS, tag);
+        Object.entries(attrs || {}).forEach(([k, v]) => e.setAttribute(k, v));
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      function routeGeom(r) {
+        const A = CITIES[r.a];
+        const B = CITIES[r.b];
+        const dx = B.x - A.x;
+        const dy = B.y - A.y;
+        const L = Math.hypot(dx, dy);
+        const ux = dx / L;
+        const uy = dy / L;
+        const off = r.side * 5.5;
+        const ox = -uy * off;
+        const oy = ux * off;
+        const trim = 9;
+        const gap = 2.2;
+        const avail = L - trim * 2;
+        const car = (avail - gap * (r.len - 1)) / r.len;
+        let d = '';
+        for (let i = 0; i < r.len; i++) {
+          const s = trim + i * (car + gap);
+          const x1 = A.x + ox + ux * s;
+          const y1 = A.y + oy + uy * s;
+          d += `M${x1.toFixed(1)} ${y1.toFixed(1)}L${(x1 + ux * car).toFixed(1)} ${(y1 + uy * car).toFixed(1)}`;
+        }
+        const line = `M${(A.x + ox).toFixed(1)} ${(A.y + oy).toFixed(1)}L${(B.x + ox).toFixed(1)} ${(B.y + oy).toFixed(1)}`;
+        return { d, line };
+      }
+
+      function buildMap() {
+        const g0 = el('g', { 'aria-hidden': 'true' }, svg);
+        el('rect', { x: -300, y: -300, width: 1500, height: 1200, fill: '#a9c9d4' }, g0);
+        for (let lon = -125; lon <= -65; lon += 5) { const [x] = proj(lon, 0); el('line', { class: 'grat', x1: x, y1: -100, x2: x, y2: 700 }, g0); }
+        for (let lat = 25; lat <= 50; lat += 5) { const [, y] = proj(0, lat); el('line', { class: 'grat', x1: -100, y1: y, x2: 1000, y2: y }, g0); }
+        el('polygon', { class: 'land', points: pts(LAND) }, g0);
+        LAKES.forEach(l => el('polygon', { class: 'lake', points: pts(l) }, g0));
+        BORDERS.forEach(b => el('polyline', { class: 'border', points: pts(b) }, g0));
+        const gr = el('g', {}, svg);
+        ROUTES.forEach(r => {
+          const g = el('g', { class: 'route', 'data-r': r.id }, gr);
+          const { d, line } = routeGeom(r);
+          el('path', { class: 'out', d }, g);
+          el('path', { class: 'car', d, stroke: CARD[r.c].c }, g);
+          const hit = el('path', { class: 'hit', d: line, role: 'button', tabindex: -1, 'aria-label': `${rname(r)}, ${r.len} ${r.c === 'gray' ? 'grey' : r.c}` }, g);
+          hit.dataset.r = r.id;
+          routeEls[r.id] = g;
+        });
+        const gc = el('g', {}, svg);
+        Object.entries(CITIES).forEach(([k, c]) => {
+          const g = el('g', { class: 'city' }, gc);
+          el('circle', { cx: c.x, cy: c.y, r: 6 }, g);
+          const side = c[3];
+          const t = el('text', {
+            x: c.x + (side === 'l' ? -10 : side === 'r' ? 10 : 0),
+            y: c.y + (side === 't' ? -11 : side === 'b' ? 19 : 4),
+            'text-anchor': side === 'l' ? 'end' : side === 'r' ? 'start' : 'middle'
+          }, g);
+          t.textContent = c[0];
+          cityEls[k] = g;
+        });
+      }
+
+      function renderMap() {
+        ROUTES.forEach(r => {
+          const g = routeEls[r.id];
+          const o = S.owner[r.id];
+          g.classList.toggle('claimed', o !== undefined);
+          g.querySelector('.car').setAttribute('stroke', o !== undefined ? P(o).color : CARD[r.c].c);
+          const twinLocked = o === undefined && r.twin >= 0 && S.owner[r.twin] !== undefined && S.players.length <= 3;
+          g.classList.toggle('blocked', twinLocked);
+          g.classList.toggle('sel', sel === r.id);
+        });
+        const view = viewer();
+        const hiCities = new Set();
+        const doneCities = new Set();
+        if (hiTicket >= 0) { hiCities.add(TICKETS[hiTicket].a); hiCities.add(TICKETS[hiTicket].b); }
+        if (S.phase === 'tickets' && view >= 0 && view === S.cur) P(view).pending.forEach(t => { hiCities.add(TICKETS[t].a); hiCities.add(TICKETS[t].b); });
+        if (hiTicket >= 0 && view >= 0 && ticketDone(view, hiTicket)) { doneCities.add(TICKETS[hiTicket].a); doneCities.add(TICKETS[hiTicket].b); }
+        Object.keys(CITIES).forEach(k => {
+          cityEls[k].classList.toggle('hi', hiCities.has(k));
+          cityEls[k].classList.toggle('done', doneCities.has(k));
+        });
+        $('#finalBanner').hidden = !S.final || !!S.over;
+      }
+
+      // ---------- Pan and zoom ----------
+      const FULL = { x: -52, y: -14, w: 944, h: 618 };
+      let view = Object.assign({}, FULL);
+      function applyView() {
+        view.w = Math.max(FULL.w / 6, Math.min(FULL.w, view.w));
+        view.h = view.w * FULL.h / FULL.w;
+        view.x = Math.max(FULL.x - view.w * 0.25, Math.min(FULL.x + FULL.w - view.w * 0.75, view.x));
+        view.y = Math.max(FULL.y - view.h * 0.25, Math.min(FULL.y + FULL.h - view.h * 0.75, view.y));
+        if (view.w >= FULL.w) { view.x = FULL.x; view.y = FULL.y; }
+        svg.setAttribute('viewBox', `${view.x.toFixed(1)} ${view.y.toFixed(1)} ${view.w.toFixed(1)} ${view.h.toFixed(1)}`);
+      }
+      function toSvg(cx, cy) {
+        const m = svg.getScreenCTM();
+        if (!m) return { x: view.x + view.w / 2, y: view.y + view.h / 2 };
+        const pt = svg.createSVGPoint();
+        pt.x = cx;
+        pt.y = cy;
+        return pt.matrixTransform(m.inverse());
+      }
+      function zoomAt(cx, cy, f) {
+        const p = toSvg(cx, cy);
+        const nw = Math.max(FULL.w / 6, Math.min(FULL.w, view.w * f));
+        const k = nw / view.w;
+        view.x = p.x - (p.x - view.x) * k;
+        view.y = p.y - (p.y - view.y) * k;
+        view.w = nw;
+        applyView();
+      }
+      function zoomCenter(f) {
+        const b = svg.getBoundingClientRect();
+        zoomAt(b.left + b.width / 2, b.top + b.height / 2, f);
+      }
+      const pointers = new Map();
+      let gesture = null;
+      let dragged = false;
+      svg.addEventListener('pointerdown', e => {
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (pointers.size === 1) dragged = false;
+        startGesture();
+      });
+      function startGesture() {
+        const list = [...pointers.values()];
+        if (list.length === 1) gesture = { kind: 'pan', sx: list[0].x, sy: list[0].y, view: Object.assign({}, view) };
+        else if (list.length === 2) {
+          const [a, b] = list;
+          gesture = { kind: 'pinch', d: Math.hypot(a.x - b.x, a.y - b.y), w: view.w, mid: toSvg((a.x + b.x) / 2, (a.y + b.y) / 2) };
+          dragged = true;
+        }
+      }
+      window.addEventListener('pointermove', e => {
+        if (!pointers.has(e.pointerId) || !gesture) return;
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        const list = [...pointers.values()];
+        const rect = svg.getBoundingClientRect();
+        const scale = Math.max(view.w / rect.width, view.h / rect.height);
+        if (gesture.kind === 'pan' && list.length === 1) {
+          const dx = list[0].x - gesture.sx;
+          const dy = list[0].y - gesture.sy;
+          if (!dragged && Math.hypot(dx, dy) < 7) return;
+          dragged = true;
+          view.x = gesture.view.x - dx * scale;
+          view.y = gesture.view.y - dy * scale;
+          applyView();
+        } else if (gesture.kind === 'pinch' && list.length === 2) {
+          const [a, b] = list;
+          const d = Math.hypot(a.x - b.x, a.y - b.y);
+          if (!d || !gesture.d) return;
+          const nw = Math.max(FULL.w / 6, Math.min(FULL.w, gesture.w * gesture.d / d));
+          const mid = toSvg((a.x + b.x) / 2, (a.y + b.y) / 2);
+          const k = nw / view.w;
+          view.x = gesture.mid.x - (mid.x - view.x) * k;
+          view.y = gesture.mid.y - (mid.y - view.y) * k;
+          view.w = nw;
+          applyView();
+        }
+      });
+      const endPointer = e => {
+        if (!pointers.delete(e.pointerId)) return;
+        if (pointers.size) startGesture(); else gesture = null;
+      };
+      window.addEventListener('pointerup', endPointer);
+      window.addEventListener('pointercancel', endPointer);
+      svg.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.clientX, e.clientY, e.deltaY > 0 ? 1.15 : 1 / 1.15); }, { passive: false });
+      $('#zIn').addEventListener('click', () => zoomCenter(1 / 1.4));
+      $('#zOut').addEventListener('click', () => zoomCenter(1.4));
+      $('#zFit').addEventListener('click', () => { view = Object.assign({}, FULL); applyView(); });
+
+      svg.addEventListener('click', e => {
+        if (dragged) { dragged = false; return; }
+        const hit = e.target.closest('[data-r]');
+        if (!hit || !S) { if (sel >= 0) { sel = -1; render(); } return; }
+        const id = +hit.dataset.r;
+        sel = sel === id ? -1 : id;
+        render();
+      });
+
+      // ---------- Panel rendering ----------
+      // Whose private hand is shown: the only human, or the current human once the curtain is lifted.
+      function viewer() {
+        if (!S) return -1;
+        if (S.over) return -1;
+        const hs = S.players.map((p, i) => i).filter(i => !P(i).cpu);
+        if (hs.length === 1) return hs[0];
+        if (!curP().cpu && !S.curtain) return S.cur;
+        return -1;
+      }
+
+      const myTurn = () => S && !S.over && !curP().cpu && !S.curtain && viewer() === S.cur;
+
+      function cardHTML(c, attrs = '', extra = '') {
+        const k = CARD[c];
+        return `<button class="tcard${c === 'loco' ? ' loco' : ''}" type="button" style="--cc:${k.c};--ct:${k.t}" ${attrs}><span class="sym" aria-hidden="true">${k.s}</span>${k.n}${extra}</button>`;
+      }
+
+      function payLabel(o) {
+        const parts = [];
+        if (o.n) parts.push(`<span class="pip" style="--cc:${CARD[o.c].c}"></span>${o.n} ${CARD[o.c].n.toLowerCase()}`);
+        if (o.loco) parts.push(`<span class="pip loco"></span>${o.loco} loco`);
+        return parts.join(' + ');
+      }
+
+      function renderPanel() {
+        const p = curP();
+        const v = viewer();
+        $('#subInfo').textContent = S.over ? 'Game over' : S.setup ? 'Choosing tickets' : `Turn ${Math.floor(S.turns / S.players.length) + 1}`;
+        $('#now').innerHTML = `<span class="badge" style="--pc:${p.color}" aria-hidden="true"></span>
+          <div class="who"><b>${esc(p.name)}${p.cpu ? ' <span class="tag">CPU</span>' : ''}</b><small>${p.trains} trains · ${Object.values(p.hand).reduce((a, b) => a + b, 0)} cards · ${p.tickets.length} tickets</small></div>
+          <div class="score">${p.score}<small>points</small></div>`;
+
+        let instr = '';
+        let acts = '';
+        const mine = myTurn();
+        if (S.over) {
+          instr = `<strong>${esc(P(S.over.rows[0].i).name)}</strong> wins with ${S.over.rows[0].total} points.`;
+          acts = '<div class="row"><button class="btn primary grow" type="button" data-act="newgame">New game</button><button class="btn grow" type="button" data-act="results">Final scores</button></div>';
+        } else if (p.cpu) {
+          instr = `<span class="thinking" aria-hidden="true"></span>${esc(p.name)} is ${S.phase === 'tickets' ? 'choosing tickets' : 'playing'}…`;
+          acts = speedHTML();
+        } else if (S.curtain) {
+          instr = `Waiting for ${esc(p.name)}.`;
+          acts = `<button class="btn primary" type="button" data-act="curtain">I'm ${esc(p.name)}: show my hand</button>`;
+        } else if (S.phase === 'tickets') {
+          instr = `Choose which destination tickets to keep (at least ${Math.min(S.minKeep, p.pending.length)}).`;
+          acts = '<button class="btn primary" type="button" data-act="tickets">Choose tickets</button>';
+        } else if (S.phase === 'draw2') {
+          instr = 'Take one more train card. A face-up locomotive can’t be your second card.';
+        } else {
+          instr = 'Draw 2 train cards, claim a route by tapping it on the map, or draw destination tickets.';
+        }
+
+        // Market
+        if (!S.over && !S.setup) {
+          const can = mine && (S.phase === 'turn' || S.phase === 'draw2');
+          let m = '<div class="market" role="group" aria-label="Face-up train cards and deck">';
+          for (let k = 0; k < 5; k++) {
+            const c = S.market[k];
+            m += c ? cardHTML(c, `data-act="take" data-k="${k}" ${can && canTakeMarket(k) ? '' : 'disabled'} aria-label="Take face-up ${CARD[c].n} card (${k + 1})"`) : '<button class="tcard empty" type="button" disabled>Empty</button>';
+          }
+          m += `<button class="tcard deck" type="button" data-act="take" data-k="deck" ${can && (S.deck.length || S.discard.length) ? '' : 'disabled'} aria-label="Draw from the deck"><span class="sym" aria-hidden="true">▤</span>Deck<span class="n">${S.deck.length}</span></button></div>`;
+          if (mine && S.phase === 'turn') m += `<div class="row" style="margin-top:8px"><button class="btn grow" type="button" data-act="drawtickets" ${S.tdeck.length ? '' : 'disabled'}>Draw destination tickets (${S.tdeck.length} left)</button></div>`;
+          acts = m + acts;
+        }
+        $('#instruction').innerHTML = instr;
+        $('#actions').innerHTML = acts;
+
+        // Selected route
+        let box = '';
+        if (sel >= 0 && !S.over) {
+          const r = ROUTES[sel];
+          const o = S.owner[r.id];
+          const col = r.c === 'gray' ? 'Grey (any one colour)' : CARD[r.c].n;
+          box = `<div class="claim-box"><h3>${esc(rname(r))}</h3><p>${r.len} space${r.len > 1 ? 's' : ''} · ${col} · worth ${POINTS[r.len]} point${POINTS[r.len] > 1 ? 's' : ''}${r.twin >= 0 ? ' · double route' : ''}${o !== undefined ? ` · claimed by ${esc(P(o).name)}` : ''}</p>`;
+          if (o === undefined && mine && S.phase === 'turn') {
+            const why = claimReason(S.cur, r);
+            if (why) box += `<p>${esc(why)}</p>`;
+            else {
+              const opts = payOptions(S.cur, r);
+              const btn = (op, i, cls) => `<button class="btn ${cls} pay-btn grow" type="button" data-act="claim" data-o="${i}">Claim: ${payLabel(op)}</button>`;
+              const extra = opts.map((op, i) => (op.main ? '' : btn(op, i, ''))).join('');
+              box += `<div class="row">${opts.map((op, i) => (op.main ? btn(op, i, 'primary') : '')).join('')}</div>`;
+              if (extra) box += `<details class="more"><summary>More ways to pay</summary><div class="row">${extra}</div></details>`;
+            }
+          }
+          box += '<div class="row" style="margin-top:8px"><button class="btn grow" type="button" data-act="unsel">Clear selection</button></div></div>';
+        }
+        $('#claimBox').innerHTML = box;
+
+        // Hand and tickets
+        let hand = '';
+        if (v >= 0) {
+          const me = P(v);
+          hand += `<p class="section-title">${v === S.cur ? 'Your hand' : esc(me.name) + '’s hand'}</p><div class="hand">${[...CC, 'loco'].map(c => {
+            const k = CARD[c];
+            return `<div class="tcard${c === 'loco' ? ' loco' : ''}${me.hand[c] ? '' : ' zero'}" style="--cc:${k.c};--ct:${k.t}" role="img" aria-label="${me.hand[c]} ${k.n}"><span class="sym" aria-hidden="true">${k.s}</span><b>${me.hand[c]}</b></div>`;
+          }).join('')}</div>`;
+          hand += `<p class="section-title">${v === S.cur ? 'Your tickets' : esc(me.name) + '’s tickets'} · tap to highlight</p><div class="tickets">${me.tickets.length ? me.tickets.map(t => {
+            const T = TICKETS[t];
+            const done = ticketDone(v, t);
+            return `<button class="ticket${done ? ' done' : ''}${hiTicket === t ? ' sel' : ''}" type="button" data-act="hiticket" data-t="${t}"><span><b>${esc(cname(T.a))} → ${esc(cname(T.b))}</b><small>${done ? 'Complete ✓' : 'Not connected yet'}</small></span><span class="pts">${T.pts}</span></button>`;
+          }).join('') : '<p class="instruction" style="font-size:13px;color:var(--muted)">No tickets yet.</p>'}</div>`;
+          if (v === S.cur && mine && S.phase === 'turn') {
+            const can = ROUTES.filter(r => !claimReason(v, r)).sort((a, b) => b.len - a.len);
+            hand += `<details class="more"${can.length ? '' : ' hidden'}><summary>Routes you can claim (${can.length})</summary><div class="rlist">${can.map(r => `<button class="rrow" type="button" data-act="selroute" data-r="${r.id}"><span class="pip" style="--cc:${CARD[r.c].c}"></span>${esc(rname(r))}<span class="len">${r.len} · ${POINTS[r.len]} pts</span></button>`).join('')}</div></details>`;
+          }
+        }
+        $('#handWrap').innerHTML = hand;
+
+        $('#plist').innerHTML = S.players.map((q, k) => {
+          const cards = Object.values(q.hand).reduce((a, b) => a + b, 0);
+          return `<div class="pl${k === S.cur && !S.over ? ' cur' : ''}" style="--pc:${q.color}"><span class="sw" aria-hidden="true"></span>
+            <span style="min-width:0"><span class="nm">${esc(q.name)}${q.cpu ? ` <span class="tag">${LEVELS[q.level].toUpperCase()}</span>` : ''}</span><span class="sub">${q.trains} trains · ${cards} cards · ${q.tickets.length} tickets</span></span>
+            <span class="pts">${q.score}</span></div>`;
+        }).join('');
+        $('#log').innerHTML = S.log.slice(0, 40).map(l => `<li style="--lc:${l.c || 'var(--line-strong)'}">${esc(l.text)}</li>`).join('');
+      }
+
+      function speedHTML() {
+        return `<div class="speed" role="group" aria-label="Computer speed">${Object.keys(SPEEDS).map(k => `<button type="button" data-act="speed" data-v="${k}" aria-pressed="${prefs.speed === k}">${k}</button>`).join('')}</div>`;
+      }
+
+      let overShown = false;
+      let peeking = false;
+
+      function render() {
+        if (!S) return;
+        renderMap();
+        renderPanel();
+        const cur = $('#curtain');
+        if (S.curtain && !S.over) {
+          $('#curtainTitle').textContent = `${curP().name}'s turn`;
+          $('#curtainCard').style.setProperty('--pc', curP().color);
+          $('#curtainText').textContent = S.setup ? 'Choose your starting destination tickets. Keep them secret!' : (S.final ? 'This is your final turn. ' : '') + 'Your cards and tickets are hidden until you’re ready.';
+          openSheet(cur);
+        } else closeSheet(cur);
+        const ts = $('#ticketSheet');
+        if (S.phase === 'tickets' && myTurn() && !peeking) { renderTicketChoice(); openSheet(ts); }
+        else closeSheet(ts);
+        if (S.over && !overShown) { overShown = true; renderOver(); openSheet($('#overSheet')); }
+      }
+
+      let picks = new Set();
+      let pickFor = '';
+      function renderTicketChoice() {
+        const p = curP();
+        const key = p.pending.join(',');
+        if (pickFor !== key) { pickFor = key; picks = new Set(p.pending); }
+        const min = Math.min(S.minKeep, p.pending.length);
+        $('#ticketLead').textContent = `${p.name}: keep at least ${min}. Unfinished tickets cost their value at the end, so choose carefully.`;
+        $('#ticketChoices').innerHTML = p.pending.map(t => {
+          const T = TICKETS[t];
+          return `<label class="ticket pick"><input type="checkbox" value="${t}" ${picks.has(t) ? 'checked' : ''}><span><b>${esc(cname(T.a))} → ${esc(cname(T.b))}</b><small>${T.pts >= 20 ? 'Long route' : 'Destination'}</small></span><span class="pts">${T.pts}</span></label>`;
+        }).join('');
+        $('#ticketKeep').disabled = picks.size < min;
+        $('#ticketKeep').textContent = `Keep ${picks.size} ticket${picks.size === 1 ? '' : 's'}`;
+      }
+      $('#ticketChoices').addEventListener('change', e => {
+        const t = +e.target.value;
+        if (e.target.checked) picks.add(t); else picks.delete(t);
+        renderTicketChoice();
+      });
+      $('#ticketKeep').addEventListener('click', () => {
+        if (!myTurn() || S.phase !== 'tickets') return;
+        if (keepTickets([...picks])) { pickFor = ''; finish(); }
+      });
+      $('#ticketPeek').addEventListener('click', () => {
+        peeking = true;
+        closeSheet($('#ticketSheet'));
+        toast('Ticket cities are highlighted. Tap “Choose tickets” when ready.');
+      });
+
+      function renderOver() {
+        const rows = S.over.rows;
+        $('#overTitle').textContent = `${P(rows[0].i).name} wins!`;
+        $('#overLead').textContent = `Final scores. The longest line ran ${Math.max(...rows.map(r => r.longest))} trains.`;
+        $('#overTable').innerHTML = `<thead><tr><th>Player</th><th>Routes</th><th>Tickets</th><th>Longest</th><th>Total</th></tr></thead><tbody>${rows.map(r => `<tr><td><span class="sw" style="--pc:${P(r.i).color}"></span>${esc(P(r.i).name)}</td><td>${r.routes}</td><td>+${r.plus} / −${r.minus}</td><td>${r.longest}${r.bonus ? ' +10' : ''}</td><td>${r.total}</td></tr>`).join('')}</tbody>`;
+        $('#overTickets').innerHTML = rows.map(r => {
+          const p = P(r.i);
+          return `<p class="section-title" style="margin:10px 0 6px">${esc(p.name)}</p><div class="tickets">${p.tickets.map(t => {
+            const T = TICKETS[t];
+            const ok = ticketDone(r.i, t);
+            return `<div class="ticket ${ok ? 'done' : 'lost'}"><span><b>${esc(cname(T.a))} → ${esc(cname(T.b))}</b><small>${ok ? 'Complete' : 'Missed'}</small></span><span class="pts">${ok ? '+' : '−'}${T.pts}</span></div>`;
+          }).join('') || '<p class="instruction">No tickets.</p>'}</div>`;
+        }).join('');
+      }
+
+      // ---------- Sheets ----------
+      let lastFocus = null;
+      function openSheet(o) {
+        if (!o.hidden) return;
+        lastFocus = document.activeElement;
+        o.hidden = false;
+        const f = o.querySelector('button:not([disabled]), input, select');
+        if (f) f.focus({ preventScroll: true });
+      }
+      function closeSheet(o) {
+        if (o.hidden) return;
+        o.hidden = true;
+        if (lastFocus && document.contains(lastFocus) && typeof lastFocus.focus === 'function') lastFocus.focus({ preventScroll: true });
+      }
+      const setupOpen = () => !$('#setup').hidden;
+
+      let toastTimer = null;
+      function toast(text) {
+        const t = $('#toast');
+        t.textContent = text;
+        t.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { t.hidden = true; }, 2800);
+      }
+
+      // ---------- Setup ----------
+      let seats = store.get(SEAT_KEY) || DEFAULT_NAMES.map((n, i) => ({ name: n, cpu: i > 0, level: 'normal' }));
+      let seatCount = Math.min(5, Math.max(2, prefs.count || 3));
+
+      function renderSeats() {
+        $('#pCount').textContent = seatCount;
+        $('#seats').innerHTML = range(seatCount).map(i => {
+          const s = seats[i];
+          return `<div class="seat"><span class="sw" style="--pc:${PCOLORS[i]}" aria-hidden="true"></span>
+            <input type="text" maxlength="14" value="${esc(s.name)}" data-seat="${i}" aria-label="Player ${i + 1} name" autocomplete="off">
+            <button class="kind" type="button" data-kind="${i}" aria-pressed="${s.cpu}">${s.cpu ? 'CPU' : 'Human'}</button>
+            ${s.cpu ? `<select data-level="${i}" aria-label="Player ${i + 1} difficulty">${Object.keys(LEVELS).map(l => `<option value="${l}" ${s.level === l ? 'selected' : ''}>${LEVELS[l]}</option>`).join('')}</select>` : ''}</div>`;
+        }).join('');
+      }
+      function openSetup() {
+        clearTimeout(timer);
+        renderSeats();
+        $('#setupCancel').hidden = !S || !!S.over;
+        ['#curtain', '#ticketSheet', '#overSheet'].forEach(s => { $(s).hidden = true; });
+        openSheet($('#setup'));
+      }
+      $('#seats').addEventListener('input', e => { const i = e.target.dataset.seat; if (i !== undefined) seats[i].name = e.target.value; });
+      $('#seats').addEventListener('change', e => { const i = e.target.dataset.level; if (i !== undefined) seats[i].level = e.target.value; });
+      $('#seats').addEventListener('click', e => {
+        const b = e.target.closest('[data-kind]');
+        if (!b) return;
+        const k = +b.dataset.kind;
+        const s = seats[k];
+        s.cpu = !s.cpu;
+        if (!s.cpu && CPU_NAMES.includes(s.name)) s.name = `Player ${k + 1}`;
+        if (s.cpu && /^Player \d$/.test(s.name)) s.name = CPU_NAMES[k];
+        renderSeats();
+        const again = document.querySelector(`[data-kind="${k}"]`);
+        if (again) again.focus();
+      });
+      $('#pMinus').addEventListener('click', () => { seatCount = Math.max(2, seatCount - 1); renderSeats(); });
+      $('#pPlus').addEventListener('click', () => { seatCount = Math.min(5, seatCount + 1); renderSeats(); });
+      $('#setupCancel').addEventListener('click', () => { closeSheet($('#setup')); render(); tick(); });
+      $('#setupForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const players = range(seatCount).map(i => ({
+          name: (seats[i].name || '').trim() || (seats[i].cpu ? CPU_NAMES[i] : `Player ${i + 1}`),
+          cpu: seats[i].cpu,
+          level: seats[i].level || 'normal'
+        }));
+        store.set(SEAT_KEY, seats);
+        prefs.count = seatCount;
+        store.set(PREFS, prefs);
+        newGame(players);
+        sel = -1;
+        hiTicket = -1;
+        overShown = false;
+        peeking = false;
+        pickFor = '';
+        view = Object.assign({}, FULL);
+        applyView();
+        closeSheet($('#setup'));
+        finish();
+      });
+
+      // ---------- Events ----------
+      function act(fn) { fn(); finish(); }
+
+      document.addEventListener('click', e => {
+        const closer = e.target.closest('[data-close]');
+        if (closer) { closeSheet(closer.closest('.overlay')); return; }
+        if (e.target.classList.contains('overlay') && e.target.classList.contains('soft')) { closeSheet(e.target); return; }
+        const b = e.target.closest('[data-act]');
+        if (!b || !S) return;
+        const mine = myTurn();
+        switch (b.dataset.act) {
+          case 'take': if (mine) act(() => takeCard(b.dataset.k === 'deck' ? 'deck' : +b.dataset.k)); break;
+          case 'drawtickets': if (mine) { peeking = false; act(drawTickets); } break;
+          case 'tickets': peeking = false; render(); break;
+          case 'claim':
+            if (mine && sel >= 0) {
+              const opt = payOptions(S.cur, ROUTES[sel])[+b.dataset.o];
+              if (opt) act(() => claim(sel, opt));
+            }
+            break;
+          case 'unsel': sel = -1; render(); break;
+          case 'selroute': sel = +b.dataset.r; render(); break;
+          case 'hiticket': hiTicket = hiTicket === +b.dataset.t ? -1 : +b.dataset.t; render(); break;
+          case 'curtain': S.curtain = false; peeking = false; finish(); break;
+          case 'speed': prefs.speed = b.dataset.v; store.set(PREFS, prefs); render(); tick(); break;
+          case 'newgame': openSetup(); break;
+          case 'results': renderOver(); openSheet($('#overSheet')); break;
+          default:
+        }
+      });
+      $('#curtainGo').addEventListener('click', () => { if (S) { S.curtain = false; peeking = false; finish(); } });
+      $('#btnHelp').addEventListener('click', () => openSheet($('#helpSheet')));
+      $('#btnNew').addEventListener('click', openSetup);
+      $('#overNew').addEventListener('click', () => { closeSheet($('#overSheet')); openSetup(); });
+      $('#overView').addEventListener('click', () => closeSheet($('#overSheet')));
+
+      document.addEventListener('keydown', e => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        if (e.key === 'Escape') {
+          const open = [...document.querySelectorAll('.overlay.soft:not([hidden])')].pop();
+          if (open) { closeSheet(open); return; }
+          if (!$('#overSheet').hidden) { closeSheet($('#overSheet')); return; }
+          if (setupOpen() && S && !S.over) { closeSheet($('#setup')); render(); tick(); return; }
+          if (sel >= 0 || hiTicket >= 0) { sel = -1; hiTicket = -1; render(); }
+          return;
+        }
+        if (!S || /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+        if (document.querySelector('.overlay:not([hidden])')) return;
+        const k = e.key.toLowerCase();
+        if (!myTurn()) return;
+        if (k === 'd') act(() => takeCard('deck'));
+        else if (/^[1-5]$/.test(k)) act(() => takeCard(+k - 1));
+        else if (k === 't') act(() => { peeking = false; drawTickets(); });
+        else if (k === '+' || k === '=') zoomCenter(1 / 1.4);
+        else if (k === '-') zoomCenter(1.4);
+      });
+
+      // ---------- Layout ----------
+      const main = $('#main');
+      function layout() {
+        const w = main.clientWidth;
+        const h = main.clientHeight;
+        const wide = (w >= 760 && w >= h * 1.05) || (w >= 600 && w >= h * 1.4);
+        main.classList.toggle('wide', wide);
+        if (!wide) {
+          const mapH = Math.min((w - 16) * FULL.h / FULL.w * 1.08, h * 0.6);
+          main.style.setProperty('--mh', Math.max(220, Math.round(mapH)) + 'px');
+        }
+      }
+      window.addEventListener('resize', layout);
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', layout);
+
+      // ---------- Boot ----------
+      buildMap();
+      layout();
+      applyView();
+      const saved = store.get(STORE);
+      if (saved && saved.v === 1 && saved.players && !saved.over) {
+        S = saved;
+        if (!curP().cpu && humans() > 1) S.curtain = true;
+        finish();
+      } else {
+        openSetup();
+      }
+      console.info('Iron Routes — Railway Empire | Prompt: Suggest another 2 games in the current collection. How about a property-trading game? Or a railway route-building game? (paraphrased to remove third-party brand names) | Date: 2 October 2026 | v2 prompt: Make all the changes to derisk as much as possible (original rail network, colours, tickets and scoring) | v2 date: 2 October 2026 | Built with Claude Code');
+    })();
+  </script>
+</body>
+</html>

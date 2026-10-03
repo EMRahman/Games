@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#061c2b">
+  <title>Northstar — Sea Battle</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --navy: #061c2b;
+      --deep: #03121c;
+      --panel: rgba(9, 38, 54, .82);
+      --panel-2: rgba(13, 49, 66, .68);
+      --line: rgba(131, 204, 218, .18);
+      --line-strong: rgba(142, 224, 232, .38);
+      --ink: #eaf8f7;
+      --muted: #86aeb4;
+      --aqua: #64e8df;
+      --cyan: #5bbde0;
+      --gold: #f1bd62;
+      --danger: #ff725e;
+      --cell: clamp(25px, 3.25vw, 43px);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { min-height: 100%; background: var(--deep); }
+    body {
+      min-height: 100vh; min-height: 100dvh; margin: 0; color: var(--ink); overflow-x: hidden;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 12% 12%, rgba(38, 120, 139, .22), transparent 28rem),
+        radial-gradient(circle at 88% 88%, rgba(15, 71, 91, .27), transparent 34rem),
+        linear-gradient(135deg, #082637 0%, #03121c 58%, #061c29 100%);
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .23;
+      background-image:
+        linear-gradient(rgba(122, 202, 214, .07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(122, 202, 214, .07) 1px, transparent 1px);
+      background-size: 38px 38px; -webkit-mask-image: linear-gradient(to bottom, black, transparent 92%); mask-image: linear-gradient(to bottom, black, transparent 92%);
+    }
+    button { font: inherit; touch-action: manipulation; }
+    button:focus-visible { outline: 2px solid var(--aqua); outline-offset: 3px; }
+
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 22px 0 28px; position: relative; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark {
+      width: 42px; aspect-ratio: 1; position: relative; display: grid; place-items: center;
+      border: 1px solid var(--line-strong); border-radius: 50%; color: var(--aqua);
+      box-shadow: inset 0 0 18px rgba(100, 232, 223, .1), 0 0 24px rgba(100, 232, 223, .08);
+    }
+    .brand-mark::before { content: "✦"; font-size: 20px; transform: rotate(13deg); }
+    .brand-mark::after { content: ""; position: absolute; inset: 5px; border: 1px dashed rgba(100, 232, 223, .35); border-radius: 50%; }
+    h1 { margin: 0; font-size: 17px; line-height: 1; letter-spacing: .22em; font-weight: 850; }
+    .brand p { margin: 6px 0 0; color: var(--muted); font: 650 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .2em; }
+    .top-actions { display: flex; gap: 8px; }
+    .icon-button, .secondary, .primary {
+      appearance: none; border: 1px solid var(--line-strong); color: var(--ink); cursor: pointer;
+      background: rgba(9, 39, 55, .72); transition: transform .15s, border-color .15s, background .15s;
+    }
+    .icon-button:hover, .secondary:hover, .primary:hover { transform: translateY(-1px); border-color: var(--aqua); }
+    .icon-button { width: 40px; height: 40px; border-radius: 10px; font-size: 16px; }
+
+    .mission {
+      margin: 19px 0 17px; min-height: 69px; padding: 14px 18px; display: flex; align-items: center;
+      justify-content: space-between; gap: 20px; border: 1px solid var(--line); border-radius: 15px;
+      background: linear-gradient(90deg, rgba(14, 53, 69, .83), rgba(5, 27, 40, .74));
+      box-shadow: 0 15px 45px rgba(0, 0, 0, .16); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    }
+    .mission-copy { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .pulse { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; background: var(--aqua); box-shadow: 0 0 0 5px rgba(100, 232, 223, .08), 0 0 15px var(--aqua); }
+    .mission.turn-p1 .pulse { background: #6fb2ff; box-shadow: 0 0 0 5px rgba(111, 178, 255, .1), 0 0 15px #6fb2ff; }
+    .mission.turn-p1 #phase { color: #6fb2ff; }
+    .mission.turn-p2 .pulse { background: #ff8a78; box-shadow: 0 0 0 5px rgba(255, 138, 120, .1), 0 0 15px #ff8a78; }
+    .mission.turn-p2 #phase { color: #ff8a78; }
+    .mission.critical .pulse { background: var(--danger); box-shadow: 0 0 0 5px rgba(255, 114, 94, .08), 0 0 15px var(--danger); }
+    #phase { margin: 0 0 4px; color: var(--aqua); font-size: 10px; font-weight: 850; letter-spacing: .18em; text-transform: uppercase; }
+    #message { margin: 0; color: #cce1e1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .turn-counter { flex: 0 0 auto; text-align: right; }
+    .turn-counter span { display: block; color: var(--muted); font: 700 9px/1 ui-monospace, monospace; letter-spacing: .12em; }
+    .turn-counter strong { display: block; margin-top: 5px; font: 800 18px/1 ui-monospace, monospace; color: var(--gold); }
+
+    .game-area { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+    /* Each fleet's waters carry the owner's colour: Player 1 / you are blue, Player 2 / the enemy is red. */
+    .board-card.player {
+      --accent: #6fb2ff; --board-bg: rgba(18, 64, 132, .46); --board-edge: rgba(111, 170, 245, .5); --grid-line: rgba(111, 170, 245, .19);
+      --board-glow: rgba(52, 118, 222, .2); --ship-a: rgba(66, 122, 204, .86); --ship-b: rgba(36, 80, 156, .9); --card-tint: rgba(28, 72, 140, .3);
+    }
+    .board-card.enemy {
+      --accent: #ff8a78; --board-bg: rgba(116, 30, 40, .4); --board-edge: rgba(255, 128, 114, .46); --grid-line: rgba(255, 138, 124, .17);
+      --board-glow: rgba(214, 62, 62, .18); --ship-a: rgba(178, 72, 72, .86); --ship-b: rgba(124, 40, 48, .9); --card-tint: rgba(128, 32, 40, .28);
+    }
+    .board-card {
+      min-width: 0; border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+      background: linear-gradient(145deg, var(--card-tint), transparent 70%), linear-gradient(145deg, rgba(11, 45, 61, .84), rgba(5, 25, 37, .88));
+      box-shadow: 0 22px 55px rgba(0, 0, 0, .2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    }
+    .board-head { min-height: 68px; padding: 14px 16px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); }
+    .board-name { display: flex; align-items: center; gap: 10px; }
+    .avatar {
+      width: 33px; height: 33px; display: grid; place-items: center; border-radius: 9px;
+      background: var(--grid-line); border: 1px solid var(--board-edge); color: var(--accent); font-size: 15px;
+    }
+    .board-name h2 { margin: 0; font-size: 12px; letter-spacing: .14em; }
+    .board-name p { margin: 4px 0 0; color: var(--muted); font: 600 9px/1 ui-monospace, monospace; letter-spacing: .08em; }
+    .fleet-count { text-align: right; }
+    .fleet-count span { display: block; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .14em; }
+    .fleet-count strong { color: var(--accent); font: 800 18px/1.2 ui-monospace, monospace; }
+    .board-wrap { padding: 19px 14px 15px; display: grid; place-items: center; position: relative; }
+    .axis-board { display: grid; grid-template-columns: 17px auto; grid-template-rows: 17px auto; user-select: none; -webkit-user-select: none; }
+    .letters { grid-column: 2; display: grid; grid-template-columns: repeat(10, var(--cell)); color: var(--muted); }
+    .numbers { grid-row: 2; display: grid; grid-template-rows: repeat(10, var(--cell)); color: var(--muted); }
+    .letters span, .numbers span { display: grid; place-items: center; font: 700 8px/1 ui-monospace, monospace; }
+    .board {
+      grid-column: 2; grid-row: 2; width: calc(var(--cell) * 10); height: calc(var(--cell) * 10);
+      display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr);
+      border: 1px solid var(--board-edge); background: var(--board-bg); position: relative;
+      box-shadow: inset 0 0 40px var(--board-glow); touch-action: manipulation; transition: box-shadow .2s;
+    }
+    .board.active { box-shadow: inset 0 0 40px var(--board-glow), 0 0 0 2px var(--accent), 0 0 26px var(--board-glow); }
+    .cell {
+      appearance: none; width: 100%; height: 100%; padding: 0; border: 0; border-right: 1px solid var(--grid-line);
+      border-bottom: 1px solid var(--grid-line); background: transparent; color: inherit; position: relative;
+    }
+    .cell:nth-child(10n) { border-right: 0; }
+    .cell:nth-child(n+91) { border-bottom: 0; }
+    .board.active .cell:not(.shot) { cursor: crosshair; }
+    .board.active .cell:not(.shot):hover { background: rgba(100, 232, 223, .12); box-shadow: inset 0 0 0 1px var(--aqua); z-index: 3; }
+    .board.active .cell:not(.shot):hover::before,
+    .board.active .cell:not(.shot):hover::after { content: ""; position: absolute; background: rgba(100, 232, 223, .35); pointer-events: none; }
+    .board.active .cell:not(.shot):hover::before { width: 1px; height: 9px; left: 50%; top: calc(50% - 4px); }
+    .board.active .cell:not(.shot):hover::after { height: 1px; width: 9px; top: 50%; left: calc(50% - 4px); }
+    .cell.ship { background: linear-gradient(135deg, var(--ship-a), var(--ship-b)); box-shadow: inset 0 0 0 2px rgba(164, 219, 224, .2); z-index: 1; }
+    .cell.ship::before { content: ""; position: absolute; inset: 21%; border-radius: 50%; border: 1px solid rgba(213, 246, 244, .27); }
+    .cell.ship.bow-h { border-radius: 50% 0 0 50%; }
+    .cell.ship.stern-h { border-radius: 0 50% 50% 0; }
+    .cell.ship.bow-v { border-radius: 50% 50% 0 0; }
+    .cell.ship.stern-v { border-radius: 0 0 50% 50%; }
+    .cell.shot::after { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; transform: translate(-50%, -50%); border-radius: 50%; background: #b8e0e4; box-shadow: 0 0 9px rgba(184, 224, 228, .65); animation: mark .28s ease-out; }
+    .cell.hit { background: rgba(130, 44, 37, .32); }
+    .cell.hit::after { width: 9px; height: 9px; background: var(--danger); box-shadow: 0 0 6px #ff9d73, 0 0 17px rgba(255, 88, 56, .9); }
+    .cell.hit::before { content: "×"; position: absolute; inset: 0; display: grid; place-items: center; color: #ffd1c2; font: 900 calc(var(--cell) * .7)/1 ui-monospace, monospace; z-index: 2; animation: mark .28s ease-out; }
+    .cell.sunk { background: rgba(98, 28, 27, .58); }
+    .cell.reveal { background: rgba(255, 114, 94, .11); box-shadow: inset 0 0 0 1px rgba(255, 114, 94, .45); }
+    .sunk-layer {
+      grid-column: 2; grid-row: 2; width: calc(var(--cell) * 10); height: calc(var(--cell) * 10);
+      border: 1px solid transparent; position: relative; z-index: 4; pointer-events: none;
+    }
+    .sunk-outline {
+      position: absolute; border: 2px solid var(--accent); border-radius: calc(var(--cell) * .5);
+      background: rgba(3, 14, 22, .18); box-shadow: 0 0 0 1px rgba(2, 12, 18, .55), 0 0 12px var(--accent), inset 0 0 10px var(--board-glow);
+      animation: outline-in .35s ease-out;
+    }
+    @keyframes outline-in { from { opacity: 0; transform: scale(1.12); } }
+    @keyframes mark { from { transform: translate(-50%, -50%) scale(2.1); opacity: 0; } }
+
+    .fleet-strip { padding: 12px 15px 14px; border-top: 1px solid var(--line); background: rgba(3, 21, 32, .46); }
+    .fleet-label { margin-bottom: 9px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .16em; }
+    .ships { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ship-chip { min-width: 70px; flex: 1 1 70px; color: var(--muted); }
+    .ship-chip-top { display: flex; justify-content: space-between; gap: 6px; font: 700 8px/1 ui-monospace, monospace; text-transform: uppercase; }
+    .ship-dots { display: flex; gap: 2px; margin-top: 6px; }
+    .ship-dots i { height: 4px; flex: 1; max-width: 14px; border-radius: 2px; background: var(--accent); opacity: .74; }
+    .ship-chip.sunk { opacity: .31; text-decoration: line-through; }
+    .ship-chip.sunk .ship-dots i { background: var(--muted); }
+    .fleet-concealed { width: 100%; min-height: 31px; display: flex; align-items: center; gap: 10px; color: var(--muted); }
+    .concealed-lock { width: 28px; height: 28px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 8px; background: rgba(3, 18, 28, .55); color: var(--gold); font-size: 12px; }
+    .concealed-copy { min-width: 0; }
+    .concealed-copy b { display: block; color: #b8cbcd; font: 800 8px/1.2 ui-monospace, monospace; letter-spacing: .13em; }
+    .concealed-copy span { display: block; margin-top: 4px; color: #678d93; font: 650 8px/1 ui-monospace, monospace; letter-spacing: .06em; }
+    .board.concealed { box-shadow: inset 0 0 45px rgba(3, 14, 23, .26), 0 0 0 1px rgba(241, 189, 98, .07); }
+
+    .command-bar {
+      margin-top: 16px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 14px;
+      border: 1px solid var(--line); border-radius: 14px; background: var(--panel); box-shadow: 0 14px 35px rgba(0,0,0,.15);
+    }
+    .command-main { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .mode-switch { display: flex; flex: 0 0 auto; padding: 3px; border: 1px solid var(--line); border-radius: 9px; background: rgba(2, 18, 28, .62); }
+    .mode-switch[hidden] { display: none; }
+    .mode-button { appearance: none; border: 0; border-radius: 6px; padding: 7px 9px; background: transparent; color: var(--muted); cursor: pointer; font-size: 9px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+    .mode-button.active { background: rgba(100, 232, 223, .14); color: var(--aqua); box-shadow: inset 0 0 0 1px rgba(100, 232, 223, .2); }
+    .command-tip { color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .command-tip b { color: var(--gold); font-weight: 750; }
+    .buttons { display: flex; gap: 8px; flex: 0 0 auto; }
+    .secondary, .primary { padding: 10px 14px; border-radius: 9px; font-size: 10px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+    .primary { color: #032128; background: linear-gradient(135deg, #82f4e7, #55bfd6); border-color: transparent; box-shadow: 0 6px 20px rgba(83, 214, 207, .22); }
+    .primary:hover { background: linear-gradient(135deg, #a1fff5, #6bd2e8); }
+    .secondary[hidden], .primary[hidden] { display: none; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 20; display: grid; place-items: center;
+      padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+      background: rgba(1, 10, 16, .72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); opacity: 1; transition: opacity .22s;
+    }
+    .modal-backdrop.hidden { opacity: 0; pointer-events: none; }
+    .modal {
+      width: min(430px, 100%); padding: 30px; text-align: center; border-radius: 21px; border: 1px solid var(--line-strong);
+      background: linear-gradient(145deg, rgba(16, 58, 73, .97), rgba(4, 23, 35, .98));
+      box-shadow: 0 28px 90px rgba(0,0,0,.48); transform: translateY(0); transition: transform .22s;
+    }
+    .hidden .modal { transform: translateY(10px) scale(.98); }
+    .modal-symbol { width: 62px; height: 62px; margin: 0 auto 18px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line-strong); color: var(--gold); font-size: 27px; }
+    .modal .eyebrow { margin: 0 0 8px; color: var(--aqua); font-size: 9px; font-weight: 850; letter-spacing: .2em; }
+    .modal h2 { margin: 0; font-size: clamp(28px, 7vw, 41px); line-height: 1; letter-spacing: -.04em; }
+    .modal p { max-width: 340px; margin: 14px auto 22px; color: #a9c3c6; font-size: 13px; line-height: 1.6; }
+    .modal .primary { min-width: 170px; }
+
+    .toast { position: fixed; z-index: 15; left: 50%; bottom: max(25px, env(safe-area-inset-bottom)); transform: translate(-50%, 15px); padding: 9px 14px; border: 1px solid var(--line-strong); border-radius: 8px; background: #0b3443; color: var(--ink); font-size: 11px; opacity: 0; pointer-events: none; transition: .2s; box-shadow: 0 10px 35px rgba(0,0,0,.35); }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 830px) {
+      :root { --cell: clamp(26px, 7.75vw, 42px); }
+      .shell { width: min(600px, calc(100% - 22px)); padding-top: 13px; }
+      .game-area { grid-template-columns: 1fr; }
+      .board-card { scroll-margin-top: 10px; }
+      .mission { margin: 13px 0; }
+      .command-bar { position: sticky; z-index: 10; bottom: 8px; }
+    }
+    @media (max-width: 470px) {
+      .brand-mark { width: 35px; }
+      h1 { font-size: 14px; }
+      .brand p { font-size: 7px; }
+      .top-actions .icon-button:first-child { display: none; }
+      .mission { padding: 12px 13px; min-height: 62px; }
+      #message { font-size: 11px; white-space: normal; }
+      .turn-counter { display: none; }
+      .board-head { min-height: 59px; padding: 11px 12px; }
+      .board-wrap { padding: 13px 7px 11px; }
+      .axis-board { grid-template-columns: 14px auto; grid-template-rows: 14px auto; }
+      .fleet-strip { padding: 10px 11px 12px; }
+      .ships { gap: 7px; }
+      .ship-chip { min-width: 58px; }
+      .command-bar { align-items: stretch; flex-direction: column; gap: 9px; }
+      .command-main { align-items: stretch; flex-direction: column; gap: 8px; }
+      .mode-switch { align-self: center; }
+      .command-tip { text-align: center; }
+      .buttons { width: 100%; }
+      .buttons button { flex: 1; }
+    }
+    @media (pointer: coarse) {
+      .icon-button { width: 44px; height: 44px; }
+      .secondary, .primary, .mode-button { min-height: 44px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div><h1>NORTHSTAR</h1><p>TACTICAL NAVAL COMMAND</p></div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-button" id="help" type="button" aria-label="How to play">?</button>
+        <button class="icon-button" id="sound" type="button" aria-label="Mute sound" aria-pressed="false">♪</button>
+      </div>
+    </header>
+
+    <section class="mission" id="mission" aria-live="polite">
+      <div class="mission-copy">
+        <span class="pulse" aria-hidden="true"></span>
+        <div><p id="phase">Deployment phase</p><p id="message">Your fleet is ready. Shuffle the formation or begin the operation.</p></div>
+      </div>
+      <div class="turn-counter"><span>ROUND</span><strong id="round">00</strong></div>
+    </section>
+
+    <section class="game-area">
+      <article class="board-card player" id="player-card">
+        <header class="board-head">
+          <div class="board-name"><span class="avatar">⌖</span><div><h2 id="player-title">YOUR WATERS</h2><p id="player-subtitle">SECTOR N-07</p></div></div>
+          <div class="fleet-count"><span>AFLOAT</span><strong id="player-count">5/5</strong></div>
+        </header>
+        <div class="board-wrap">
+          <div class="axis-board">
+            <div class="letters" aria-hidden="true"></div><div class="numbers" aria-hidden="true"></div>
+            <div class="board player-board" id="player-board" aria-label="Your ocean grid"></div>
+            <div class="sunk-layer" id="player-sunk" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="fleet-strip"><div class="fleet-label">FLEET READINESS</div><div class="ships" id="player-fleet"></div></div>
+      </article>
+
+      <article class="board-card enemy" id="enemy-card">
+        <header class="board-head">
+          <div class="board-name"><span class="avatar">◈</span><div><h2 id="enemy-title">ENEMY WATERS</h2><p id="enemy-subtitle">IDENTITY UNKNOWN</p></div></div>
+          <div class="fleet-count"><span>AFLOAT</span><strong id="enemy-count">5/5</strong></div>
+        </header>
+        <div class="board-wrap">
+          <div class="axis-board">
+            <div class="letters" aria-hidden="true"></div><div class="numbers" aria-hidden="true"></div>
+            <div class="board enemy-board" id="enemy-board" aria-label="Enemy ocean grid"></div>
+            <div class="sunk-layer" id="enemy-sunk" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="fleet-strip"><div class="fleet-label">ENEMY SIGNATURES</div><div class="ships" id="enemy-fleet"></div></div>
+      </article>
+    </section>
+
+    <section class="command-bar">
+      <div class="command-main">
+        <div class="mode-switch" id="mode-switch" aria-label="Game mode">
+          <button class="mode-button active" id="single-mode" type="button" aria-pressed="true">1 Player</button>
+          <button class="mode-button" id="two-mode" type="button" aria-pressed="false">2 Players</button>
+        </div>
+        <div class="command-tip" id="tip"><b>DEPLOYMENT:</b> Your ships are positioned automatically. Shuffle until the formation feels right.</div>
+      </div>
+      <div class="buttons">
+        <button class="secondary" id="shuffle" type="button">Shuffle fleet</button>
+        <button class="primary" id="action" type="button">Begin battle</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop hidden" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <section class="modal">
+      <div class="modal-symbol" id="modal-symbol">✦</div>
+      <p class="eyebrow" id="modal-eyebrow">OPERATION NORTHSTAR</p>
+      <h2 id="modal-title">HOW TO PLAY</h2>
+      <p id="modal-copy">Deploy your five ships, then fire on the enemy grid. Hits glow red; misses leave a white marker. Sink all five enemy ships before your fleet is destroyed.</p>
+      <button class="primary" id="modal-action" type="button">Understood</button>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const SIZE = 10;
+      const LETTERS = 'ABCDEFGHIJ';
+      const FLEET = [
+        { name: 'Carrier', size: 5 },
+        { name: 'Battleship', size: 4 },
+        { name: 'Cruiser', size: 3 },
+        { name: 'Submarine', size: 3 },
+        { name: 'Destroyer', size: 2 }
+      ];
+      const $ = selector => document.querySelector(selector);
+      const playerBoardEl = $('#player-board');
+      const enemyBoardEl = $('#enemy-board');
+      const playerSunkEl = $('#player-sunk');
+      const enemySunkEl = $('#enemy-sunk');
+      const phaseEl = $('#phase');
+      const messageEl = $('#message');
+      const missionEl = $('#mission');
+      const roundEl = $('#round');
+      const tipEl = $('#tip');
+      const shuffleBtn = $('#shuffle');
+      const actionBtn = $('#action');
+      const modeSwitch = $('#mode-switch');
+      const singleModeBtn = $('#single-mode');
+      const twoModeBtn = $('#two-mode');
+      const modalEl = $('#modal');
+      const modalTitle = $('#modal-title');
+      const modalEyebrow = $('#modal-eyebrow');
+      const modalCopy = $('#modal-copy');
+      const modalSymbol = $('#modal-symbol');
+      const modalAction = $('#modal-action');
+      const toastEl = $('#toast');
+
+      let player;
+      let enemy;
+      let gameMode = 'single';
+      let state = 'deployment';
+      let currentPlayer = 1;
+      let winner = null;
+      let round = 0;
+      let muted = false;
+      let audioContext = null;
+      let cpuTargets = [];
+      let modalCallback = null;
+      let cpuTimer = 0;
+
+      function createOcean() {
+        return {
+          ships: [],
+          shots: Array.from({ length: SIZE }, () => Array(SIZE).fill(null))
+        };
+      }
+
+      function randomFleet() {
+        const ocean = createOcean();
+        FLEET.forEach(template => {
+          let placed = false;
+          while (!placed) {
+            const horizontal = Math.random() < .5;
+            const row = Math.floor(Math.random() * (horizontal ? SIZE : SIZE - template.size + 1));
+            const col = Math.floor(Math.random() * (horizontal ? SIZE - template.size + 1 : SIZE));
+            const cells = Array.from({ length: template.size }, (_, i) => ({
+              row: row + (horizontal ? 0 : i), col: col + (horizontal ? i : 0)
+            }));
+            const clear = cells.every(cell => ocean.ships.every(ship => ship.cells.every(used => {
+              return Math.abs(used.row - cell.row) > 1 || Math.abs(used.col - cell.col) > 1;
+            })));
+            if (clear) {
+              ocean.ships.push({ ...template, horizontal, cells, hits: 0, sunk: false });
+              placed = true;
+            }
+          }
+        });
+        return ocean;
+      }
+
+      function buildAxes() {
+        document.querySelectorAll('.letters').forEach(el => {
+          el.innerHTML = [...LETTERS].map(letter => `<span>${letter}</span>`).join('');
+        });
+        document.querySelectorAll('.numbers').forEach(el => {
+          el.innerHTML = Array.from({ length: SIZE }, (_, i) => `<span>${i + 1}</span>`).join('');
+        });
+      }
+
+      function buildBoard(el, isEnemy) {
+        el.innerHTML = '';
+        for (let row = 0; row < SIZE; row++) {
+          for (let col = 0; col < SIZE; col++) {
+            const cell = document.createElement('button');
+            cell.className = 'cell';
+            cell.type = 'button';
+            cell.dataset.row = row;
+            cell.dataset.col = col;
+            cell.setAttribute('aria-label', `${isEnemy ? 'Target' : 'Your sector'} ${LETTERS[col]}${row + 1}`);
+            el.appendChild(cell);
+          }
+        }
+      }
+
+      function shipAt(ocean, row, col) {
+        return ocean.ships.find(ship => ship.cells.some(cell => cell.row === row && cell.col === col));
+      }
+
+      function cellElement(boardEl, row, col) {
+        return boardEl.children[row * SIZE + col];
+      }
+
+      function renderBoard(ocean, boardEl, revealShips, targetable = false) {
+        [...boardEl.children].forEach((el, index) => {
+          const row = Math.floor(index / SIZE);
+          const col = index % SIZE;
+          const shot = ocean.shots[row][col];
+          const ship = shipAt(ocean, row, col);
+          el.className = 'cell';
+          if (revealShips && ship) {
+            el.classList.add('ship');
+            const segment = ship.cells.findIndex(c => c.row === row && c.col === col);
+            if (segment === 0) el.classList.add(ship.horizontal ? 'bow-h' : 'bow-v');
+            if (segment === ship.size - 1) el.classList.add(ship.horizontal ? 'stern-h' : 'stern-v');
+          }
+          if (shot) el.classList.add('shot', shot);
+          if (shot === 'hit' && ship?.sunk) el.classList.add('sunk');
+          if (state === 'finished' && !shot && ship) el.classList.add('reveal');
+          el.disabled = !targetable || !!shot;
+          el.setAttribute('aria-label', `${boardEl === enemyBoardEl ? 'Target' : 'Your sector'} ${LETTERS[col]}${row + 1}${shot ? `, ${shot}${ship?.sunk ? `, ${ship.name.toLowerCase()} sunk` : ''}` : ''}`);
+        });
+        renderSunkOutlines(ocean, boardEl === enemyBoardEl ? enemySunkEl : playerSunkEl);
+      }
+
+      // Destroyed ships are outlined on every board, even while a fleet is concealed.
+      function renderSunkOutlines(ocean, layerEl) {
+        const sunk = ocean.ships.filter(ship => ship.sunk);
+        const key = sunk.map(ship => ship.name).join('|');
+        if (layerEl.dataset.key === key) return;
+        layerEl.dataset.key = key;
+        layerEl.innerHTML = sunk.map(ship => {
+          const { row, col } = ship.cells[0];
+          const width = ship.horizontal ? ship.size : 1;
+          const height = ship.horizontal ? 1 : ship.size;
+          return `<div class="sunk-outline" style="left:calc(${col * 10}% + 2px);top:calc(${row * 10}% + 2px);width:calc(${width * 10}% - 4px);height:calc(${height * 10}% - 4px)"></div>`;
+        }).join('');
+      }
+
+      function renderFleet(ocean, containerSelector, countSelector, enemySide = false, concealed = false) {
+        const container = $(containerSelector);
+        const afloat = ocean.ships.filter(ship => !ship.sunk).length;
+        if (concealed) {
+          container.innerHTML = `
+            <div class="fleet-concealed">
+              <span class="concealed-lock" aria-hidden="true">◆</span>
+              <div class="concealed-copy"><b>FLEET POSITIONS CONCEALED</b><span>${afloat} vessel signatures remain</span></div>
+            </div>`;
+        } else {
+          container.innerHTML = ocean.ships.map(ship => `
+            <div class="ship-chip ${ship.sunk ? 'sunk' : ''}">
+              <div class="ship-chip-top"><span>${ship.name}</span><span>${ship.sunk ? 'LOST' : ship.size}</span></div>
+              <div class="ship-dots">${Array.from({ length: ship.size }, () => '<i></i>').join('')}</div>
+            </div>`).join('');
+        }
+        $(countSelector).textContent = `${afloat}/5`;
+        if (enemySide && afloat === 0) $(countSelector).textContent = '0/5';
+      }
+
+      function render() {
+        const p1Turn = state === 'p1-turn';
+        const p2Turn = state === 'p2-turn';
+        let revealPlayer = gameMode === 'single';
+        let revealEnemy = false;
+
+        if (gameMode === 'two') {
+          // Each fleet is visible only to its owner during private deployment.
+          // Once battle begins, both formations remain hidden on the shared screen.
+          revealPlayer = state === 'deployment-p1';
+          revealEnemy = state === 'deployment-p2';
+        }
+        if (state === 'finished') revealPlayer = revealEnemy = true;
+
+        const concealPlayer = gameMode === 'two' && state !== 'finished' && !revealPlayer;
+        const concealEnemy = gameMode === 'two' && state !== 'finished' && !revealEnemy;
+        renderBoard(player, playerBoardEl, revealPlayer, gameMode === 'two' && p2Turn);
+        renderBoard(enemy, enemyBoardEl, revealEnemy, p1Turn);
+        renderFleet(player, '#player-fleet', '#player-count', false, concealPlayer);
+        renderFleet(enemy, '#enemy-fleet', '#enemy-count', true, concealEnemy);
+        playerBoardEl.classList.toggle('active', gameMode === 'two' && p2Turn);
+        enemyBoardEl.classList.toggle('active', p1Turn);
+        playerBoardEl.classList.toggle('concealed', concealPlayer);
+        enemyBoardEl.classList.toggle('concealed', concealEnemy);
+        missionEl.classList.toggle('turn-p1', gameMode === 'two' && ['p1-turn', 'resolving-p1', 'deployment-p1'].includes(state));
+        missionEl.classList.toggle('turn-p2', gameMode === 'two' && ['p2-turn', 'resolving-p2', 'deployment-p2'].includes(state));
+        $('#player-title').textContent = gameMode === 'two' ? 'PLAYER 1 WATERS' : 'YOUR WATERS';
+        $('#player-subtitle').textContent = gameMode === 'two' ? 'BLUE FLEET' : 'SECTOR N-07';
+        $('#enemy-title').textContent = gameMode === 'two' ? 'PLAYER 2 WATERS' : 'ENEMY WATERS';
+        $('#enemy-subtitle').textContent = gameMode === 'two' ? 'RED FLEET' : 'IDENTITY UNKNOWN';
+        roundEl.textContent = String(round).padStart(2, '0');
+      }
+
+      function setStatus(phase, message, critical = false) {
+        phaseEl.textContent = phase;
+        messageEl.textContent = message;
+        missionEl.classList.toggle('critical', critical);
+      }
+
+      function deploy() {
+        clearTimeout(cpuTimer);
+        player = randomFleet();
+        enemy = randomFleet();
+        state = gameMode === 'single' ? 'deployment' : 'deployment-p1';
+        currentPlayer = 1;
+        winner = null;
+        round = 0;
+        cpuTargets = [];
+        modeSwitch.hidden = false;
+        shuffleBtn.hidden = false;
+        actionBtn.hidden = false;
+        actionBtn.textContent = gameMode === 'single' ? 'Begin battle' : 'Lock Player 1 fleet';
+        setStatus(gameMode === 'single' ? 'Deployment phase' : 'Player 1 deployment', gameMode === 'single'
+          ? 'Your fleet is ready. Shuffle the formation or begin the operation.'
+          : 'Player 1: arrange your private fleet, then lock it in.');
+        tipEl.innerHTML = gameMode === 'single'
+          ? '<b>DEPLOYMENT:</b> Your ships are positioned automatically. Shuffle until the formation feels right.'
+          : '<b>PRIVATE SETUP:</b> Only Player 1 should look at the screen. Shuffle until ready.';
+        render();
+      }
+
+      function startBattle() {
+        if (gameMode === 'single' && state !== 'deployment') return;
+        state = 'p1-turn';
+        currentPlayer = 1;
+        round = 1;
+        modeSwitch.hidden = true;
+        shuffleBtn.hidden = true;
+        actionBtn.hidden = true;
+        setStatus(gameMode === 'single' ? 'Your turn' : 'Player 1 turn', gameMode === 'single'
+          ? 'Select a coordinate in enemy waters to fire.'
+          : 'Player 1: select a coordinate in Player 2 waters.');
+        tipEl.innerHTML = '<b>FIRE CONTROL:</b> Pick an unmarked coordinate. A hit earns another shot; a miss ends the turn.';
+        render();
+        enemyBoardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      function lockPlayerOneFleet() {
+        if (state !== 'deployment-p1') return;
+        toast('Player 1 fleet locked');
+        beginPlayerTwoDeployment();
+      }
+
+      function beginPlayerTwoDeployment() {
+        state = 'deployment-p2';
+        currentPlayer = 2;
+        actionBtn.textContent = 'Lock Player 2 fleet';
+        setStatus('Player 2 deployment', 'Player 2: arrange your private fleet, then lock it in.');
+        tipEl.innerHTML = '<b>PRIVATE SETUP:</b> Only Player 2 should look at the screen. Shuffle until ready.';
+        render();
+        enemyBoardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      function lockPlayerTwoFleet() {
+        if (state !== 'deployment-p2') return;
+        toast('Both fleets locked — Player 1 starts');
+        startBattle();
+      }
+
+      function fire(ocean, row, col) {
+        if (ocean.shots[row][col]) return null;
+        const ship = shipAt(ocean, row, col);
+        ocean.shots[row][col] = ship ? 'hit' : 'miss';
+        if (ship) {
+          ship.hits++;
+          if (ship.hits === ship.size) ship.sunk = true;
+        }
+        return { hit: !!ship, ship, sunk: !!ship?.sunk };
+      }
+
+      function coordinate(row, col) { return `${LETTERS[col]}${row + 1}`; }
+
+      function allSunk(ocean) { return ocean.ships.every(ship => ship.sunk); }
+
+      function humanFire(boardEl, row, col) {
+        const isPlayerOneTurn = state === 'p1-turn' && boardEl === enemyBoardEl;
+        const isPlayerTwoTurn = gameMode === 'two' && state === 'p2-turn' && boardEl === playerBoardEl;
+        if (!isPlayerOneTurn && !isPlayerTwoTurn) return;
+        const attacker = isPlayerOneTurn ? 1 : 2;
+        const targetOcean = isPlayerOneTurn ? enemy : player;
+        const defenderName = gameMode === 'single' ? 'Enemy' : `Player ${attacker === 1 ? 2 : 1}`;
+        const result = fire(targetOcean, row, col);
+        if (!result) return;
+        tone(result.hit ? 'hit' : 'miss');
+        if (result.hit) {
+          toast(result.sunk ? `${result.ship.name} destroyed` : 'Direct hit');
+          setStatus(result.sunk ? `${defenderName} vessel sunk` : 'Direct hit', result.sunk
+            ? `${defenderName} ${result.ship.name.toLowerCase()} destroyed at ${coordinate(row, col)}. ${gameMode === 'single' ? 'Fire again.' : `Player ${attacker} fires again.`}`
+            : `Impact confirmed at ${coordinate(row, col)}. ${gameMode === 'single' ? 'Fire again.' : `Player ${attacker} fires again.`}`, true);
+        } else {
+          setStatus('Shot missed', `No contact at ${coordinate(row, col)}.`);
+        }
+        render();
+        if (allSunk(targetOcean)) {
+          return gameMode === 'single' ? finishSingle(true) : finishTwoPlayer(attacker);
+        }
+
+        // A hit, including a sunk vessel, earns another shot. The handoff (or
+        // computer response) happens only after a miss.
+        if (result.hit) {
+          tipEl.innerHTML = gameMode === 'single'
+            ? '<b>DIRECT HIT:</b> Keep firing on an unmarked coordinate.'
+            : `<b>PLAYER ${attacker} CONTINUES:</b> Both fleet positions remain concealed. Fire again.`;
+          render();
+          return;
+        }
+
+        if (gameMode === 'two') {
+          state = `resolving-p${attacker}`;
+          render();
+          cpuTimer = window.setTimeout(() => handOffTurn(attacker === 1 ? 2 : 1, `Player ${attacker} missed at ${coordinate(row, col)}.`), 700);
+          return;
+        }
+
+        state = 'cpu-turn';
+        render();
+        cpuTimer = window.setTimeout(cpuFire, 760);
+      }
+
+      // Both fleets stay concealed during battle, so play passes straight to the
+      // next player without an interstitial handoff dialog.
+      function handOffTurn(nextPlayer, note = '') {
+        if (!state.startsWith('resolving-')) return;
+        toast(`Player ${nextPlayer}’s turn`);
+        beginHumanTurn(nextPlayer, note);
+      }
+
+      function beginHumanTurn(playerNumber, note = '') {
+        currentPlayer = playerNumber;
+        state = `p${playerNumber}-turn`;
+        if (playerNumber === 1) round++;
+        setStatus(`Player ${playerNumber} turn`, `${note ? `${note} ` : ''}Player ${playerNumber}: select a coordinate in Player ${playerNumber === 1 ? 2 : 1} waters.`);
+        tipEl.innerHTML = `<b>PLAYER ${playerNumber}:</b> Fire on an unmarked coordinate. Both fleet positions remain concealed.`;
+        render();
+        (playerNumber === 1 ? enemyBoardEl : playerBoardEl).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      function chooseCpuTarget() {
+        cpuTargets = cpuTargets.filter(({ row, col }) => !player.shots[row][col]);
+        if (cpuTargets.length) return cpuTargets.shift();
+
+        const candidates = [];
+        for (let row = 0; row < SIZE; row++) {
+          for (let col = 0; col < SIZE; col++) {
+            if (!player.shots[row][col] && (row + col) % 2 === 0) candidates.push({ row, col });
+          }
+        }
+        if (!candidates.length) {
+          for (let row = 0; row < SIZE; row++) for (let col = 0; col < SIZE; col++) {
+            if (!player.shots[row][col]) candidates.push({ row, col });
+          }
+        }
+        return candidates[Math.floor(Math.random() * candidates.length)];
+      }
+
+      function addCpuTargets(row, col) {
+        const around = [
+          { row: row - 1, col }, { row: row + 1, col },
+          { row, col: col - 1 }, { row, col: col + 1 }
+        ].filter(c => c.row >= 0 && c.row < SIZE && c.col >= 0 && c.col < SIZE && !player.shots[c.row][c.col]);
+        around.sort(() => Math.random() - .5);
+        cpuTargets.unshift(...around);
+      }
+
+      function cpuFire() {
+        if (state !== 'cpu-turn') return;
+        const target = chooseCpuTarget();
+        const result = fire(player, target.row, target.col);
+        tone(result.hit ? 'enemy-hit' : 'miss');
+        if (result.hit && !result.sunk) addCpuTargets(target.row, target.col);
+        if (result.sunk) cpuTargets = [];
+        if (result.hit) {
+          toast(result.sunk ? `Your ${result.ship.name} was sunk` : 'Your fleet was hit');
+          setStatus(result.sunk ? 'Vessel lost' : 'Incoming hit', result.sunk
+            ? `Your ${result.ship.name.toLowerCase()} was destroyed at ${coordinate(target.row, target.col)}. Enemy fires again.`
+            : `The enemy hit sector ${coordinate(target.row, target.col)}. Enemy fires again.`, true);
+        } else {
+          setStatus('Your turn', `Enemy fire missed at ${coordinate(target.row, target.col)}. Select your next target.`);
+        }
+        render();
+        if (allSunk(player)) return finishSingle(false);
+        if (result.hit) {
+          cpuTimer = window.setTimeout(cpuFire, 900);
+          return;
+        }
+        state = 'p1-turn';
+        round++;
+        cpuTimer = window.setTimeout(() => {
+          if (state === 'p1-turn') setStatus('Your turn', 'Select a coordinate in enemy waters to fire.');
+        }, result.hit ? 900 : 450);
+        render();
+      }
+
+      function finishSingle(won) {
+        clearTimeout(cpuTimer);
+        state = 'finished';
+        winner = won ? 1 : 2;
+        setStatus(won ? 'Operation complete' : 'Fleet destroyed', won
+          ? `All enemy vessels eliminated in ${round} rounds.`
+          : 'Enemy forces control the sector.', !won);
+        modeSwitch.hidden = false;
+        shuffleBtn.hidden = true;
+        actionBtn.hidden = false;
+        actionBtn.textContent = 'New operation';
+        tipEl.innerHTML = won
+          ? `<b>VICTORY:</b> The sector is secure. Operation completed in ${round} rounds.`
+          : '<b>DEFEAT:</b> The enemy fleet survived. Review the revealed formation and redeploy.';
+        render();
+        tone(won ? 'win' : 'lose');
+        window.setTimeout(() => showModal({
+          eyebrow: won ? 'MISSION ACCOMPLISHED' : 'SIGNAL LOST',
+          title: won ? 'SECTOR SECURED' : 'FLEET DESTROYED',
+          copy: won
+            ? `Every enemy vessel has been sunk. You completed Operation Northstar in ${round} rounds.`
+            : `Your last vessel has gone down after ${round} rounds. The enemy formation is now revealed on the grid.`,
+          symbol: won ? '✦' : '×',
+          button: 'Play again',
+          callback: deploy
+        }), 650);
+      }
+
+      function finishTwoPlayer(playerNumber) {
+        clearTimeout(cpuTimer);
+        state = 'finished';
+        winner = playerNumber;
+        setStatus(`Player ${playerNumber} wins`, `Player ${playerNumber} destroyed the opposing fleet in round ${round}.`);
+        modeSwitch.hidden = false;
+        shuffleBtn.hidden = true;
+        actionBtn.hidden = false;
+        actionBtn.textContent = 'New operation';
+        tipEl.innerHTML = `<b>VICTORY:</b> Player ${playerNumber} controls the sector. Both fleet formations are now revealed.`;
+        render();
+        tone('win');
+        window.setTimeout(() => showModal({
+          eyebrow: 'BATTLE COMPLETE', title: `PLAYER ${playerNumber} WINS`,
+          copy: `Player ${playerNumber} sank all five opposing vessels in round ${round}. Both fleets have been revealed for review.`,
+          symbol: String(playerNumber), button: 'Play again', callback: deploy
+        }), 650);
+      }
+
+      function showModal({ eyebrow, title, copy, symbol, button, callback = null }) {
+        modalEyebrow.textContent = eyebrow;
+        modalTitle.textContent = title;
+        modalCopy.textContent = copy;
+        modalSymbol.textContent = symbol;
+        modalAction.textContent = button;
+        modalCallback = callback;
+        modalEl.classList.remove('hidden');
+        window.setTimeout(() => modalAction.focus(), 30);
+      }
+
+      function hideModal() {
+        modalEl.classList.add('hidden');
+        const callback = modalCallback;
+        modalCallback = null;
+        if (callback) callback();
+      }
+
+      let toastTimer = 0;
+      function toast(text) {
+        clearTimeout(toastTimer);
+        toastEl.textContent = text;
+        toastEl.classList.add('show');
+        toastTimer = window.setTimeout(() => toastEl.classList.remove('show'), 1400);
+      }
+
+      function ensureAudio() {
+        if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') audioContext.resume();
+      }
+
+      function tone(kind) {
+        if (muted) return;
+        try {
+          ensureAudio();
+          const now = audioContext.currentTime;
+          const notes = {
+            miss: [190, .07, 'sine'], hit: [88, .16, 'sawtooth'], 'enemy-hit': [65, .2, 'square'],
+            win: [330, .45, 'sine'], lose: [95, .5, 'sawtooth']
+          };
+          const [frequency, duration, type] = notes[kind];
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          oscillator.type = type;
+          oscillator.frequency.setValueAtTime(frequency, now);
+          if (kind === 'win') oscillator.frequency.exponentialRampToValueAtTime(660, now + duration);
+          if (kind === 'lose') oscillator.frequency.exponentialRampToValueAtTime(45, now + duration);
+          gain.gain.setValueAtTime(.045, now);
+          gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+          oscillator.connect(gain).connect(audioContext.destination);
+          oscillator.start(now);
+          oscillator.stop(now + duration);
+        } catch (_) { /* Audio is an optional enhancement. */ }
+      }
+
+      function boardClick(event) {
+        const cell = event.target.closest('.cell');
+        if (!cell) return;
+        humanFire(event.currentTarget, Number(cell.dataset.row), Number(cell.dataset.col));
+      }
+      playerBoardEl.addEventListener('click', boardClick);
+      enemyBoardEl.addEventListener('click', boardClick);
+      shuffleBtn.addEventListener('click', () => {
+        if (!['deployment', 'deployment-p1', 'deployment-p2'].includes(state)) return;
+        if (state === 'deployment-p2') enemy = randomFleet();
+        else player = randomFleet();
+        render();
+        toast('New formation ready');
+        tone('miss');
+      });
+      actionBtn.addEventListener('click', () => {
+        if (state === 'deployment') startBattle();
+        else if (state === 'deployment-p1') lockPlayerOneFleet();
+        else if (state === 'deployment-p2') lockPlayerTwoFleet();
+        else if (state === 'finished') deploy();
+      });
+      function selectMode(mode) {
+        if (gameMode === mode && state !== 'finished') return;
+        gameMode = mode;
+        singleModeBtn.classList.toggle('active', mode === 'single');
+        twoModeBtn.classList.toggle('active', mode === 'two');
+        singleModeBtn.setAttribute('aria-pressed', mode === 'single');
+        twoModeBtn.setAttribute('aria-pressed', mode === 'two');
+        deploy();
+      }
+      singleModeBtn.addEventListener('click', () => selectMode('single'));
+      twoModeBtn.addEventListener('click', () => selectMode('two'));
+      $('#help').addEventListener('click', () => showModal({
+        eyebrow: 'COMMAND BRIEFING', title: 'HOW TO PLAY',
+        copy: gameMode === 'single'
+          ? 'Your fleet begins in a valid formation. Shuffle it or start the battle, then select enemy coordinates to fire. A hit earns another shot; a miss gives the enemy its turn.'
+          : 'Each player privately shuffles and locks a fleet. During battle, both formations stay hidden. A hit earns another shot; a miss passes play to the other player.',
+        symbol: '?', button: 'Return to command'
+      }));
+      $('#sound').addEventListener('click', event => {
+        muted = !muted;
+        event.currentTarget.textContent = muted ? '∕' : '♪';
+        event.currentTarget.setAttribute('aria-pressed', muted);
+        event.currentTarget.setAttribute('aria-label', muted ? 'Enable sound' : 'Mute sound');
+        if (!muted) tone('miss');
+        toast(muted ? 'Sound muted' : 'Sound enabled');
+      });
+      modalAction.addEventListener('click', hideModal);
+      modalEl.addEventListener('click', event => { if (event.target === modalEl && !modalCallback) hideModal(); });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !modalCallback) hideModal();
+      });
+
+      buildAxes();
+      buildBoard(playerBoardEl, false);
+      buildBoard(enemyBoardEl, true);
+      deploy();
+
+      console.groupCollapsed('%cNorthstar — generation info', 'font-weight:bold;font-size:14px');
+      console.log('Prompt: create a html webpage for a sea-battle grid game. it\'s a 2 player game. (paraphrased to remove third-party brand names)');
+      console.log('Date: 29 September 2026');
+      console.log('Model: GPT-5.6-Sol xhigh');
+      console.log('Revision: Make all the changes to derisk as much as possible (generic subtitle).');
+      console.log('Revision date: 2 October 2026');
+      console.log('Revision model: Claude Code');
+      console.groupEnd();
+    })();
+  </script>
+</body>
+</html>

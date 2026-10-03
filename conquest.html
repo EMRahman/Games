@@ -1,0 +1,2303 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a1626">
+  <meta name="description" content="Conquest is a world-domination strategy game for 1–6 players against computer opponents or friends sharing one device, on desktop, iPhone, and iPad.">
+  <title>Conquest — World Domination</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --sea: #0a1626;
+      --sea-2: #0f2239;
+      --panel: #0e1a2c;
+      --panel-2: #142540;
+      --line: rgba(160, 190, 230, .14);
+      --line-strong: rgba(160, 190, 230, .28);
+      --ink: #eef2f9;
+      --muted: #8da0bb;
+      --gold: #ffcf5a;
+      --danger: #ff7a7a;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; margin: 0; }
+    html { background: var(--sea); -webkit-text-size-adjust: 100%; }
+    body {
+      overflow: hidden;
+      color: var(--ink);
+      background: var(--sea);
+      font-family: var(--sans);
+    }
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+    [hidden] { display: none !important; }
+
+    .app {
+      height: 100vh;
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    /* ---------- Top bar ---------- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      padding: calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #0d1d33, #0a1729);
+    }
+    .icon-btn {
+      flex: 0 0 auto;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .05);
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 0 0 auto; }
+    .brand-mark {
+      width: 34px; height: 34px; flex: 0 0 auto; border-radius: 9px;
+      background:
+        linear-gradient(90deg, transparent 48%, rgba(10, 22, 38, .9) 48% 52%, transparent 52%),
+        linear-gradient(transparent 48%, rgba(10, 22, 38, .9) 48% 52%, transparent 52%),
+        conic-gradient(#ef4b55 0 25%, #3d8bff 0 50%, #ffc23d 0 75%, #2fbf7a 0);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, .18) inset;
+    }
+    .brand h1 { margin: 0; font: 900 17px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+    .brand p { margin: 5px 0 0; color: var(--muted); font: 700 9px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+    .players {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 2px;
+    }
+    .players::-webkit-scrollbar { display: none; }
+    .player-chip {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 36px;
+      padding: 4px 10px 4px 6px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .03);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .player-chip.current { border-color: var(--pc); background: rgba(255, 255, 255, .08); background: color-mix(in srgb, var(--pc) 16%, transparent); box-shadow: 0 0 0 1px var(--pc) inset; }
+    .player-chip.out { opacity: .4; text-decoration: line-through; }
+    .player-chip .sw { width: 14px; height: 14px; border-radius: 4px; background: var(--pc); flex: 0 0 auto; }
+    .player-chip b { font-weight: 800; max-width: 9ch; overflow: hidden; text-overflow: ellipsis; }
+    .player-chip .st { color: var(--muted); font: 700 11px/1 var(--mono); }
+    .top-actions { display: flex; gap: 6px; flex: 0 0 auto; }
+
+    /* ---------- Stage ---------- */
+    .stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      min-height: 0;
+    }
+    .map-wrap {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      touch-action: none;
+      overscroll-behavior: contain;
+      background: radial-gradient(circle at 30% 20%, #132a46, var(--sea) 70%);
+    }
+    #map {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      cursor: grab;
+    }
+    #map.dragging { cursor: grabbing; }
+    .terr { cursor: pointer; outline: none; }
+    .terr .fill { shape-rendering: crispEdges; transition: opacity .18s, filter .18s; }
+    .terr.dim .fill { opacity: .38; }
+    #map.has-focus-cont .terr.dim .fill { opacity: .22; }
+    .lane { stroke: rgba(170, 205, 245, .45); stroke-width: 2; stroke-dasharray: 5 6; fill: none; }
+    .grid-overlay { pointer-events: none; }
+    .borders { stroke: rgba(6, 14, 26, .78); stroke-width: 1.6; fill: none; stroke-linecap: square; pointer-events: none; }
+    .cont-borders { stroke: rgba(6, 14, 26, .95); stroke-width: 3.2; fill: none; stroke-linecap: square; pointer-events: none; }
+    .coast { stroke: rgba(210, 230, 255, .55); stroke-width: 1.6; fill: none; stroke-linecap: square; pointer-events: none; }
+    .outline { fill: none; stroke: transparent; stroke-width: 3.5; stroke-linecap: square; pointer-events: none; }
+    .outline.target { stroke: #fff; stroke-dasharray: 6 5; animation: march 1s linear infinite; }
+    .outline.attack-target { stroke: var(--danger); stroke-width: 4.5; stroke-dasharray: none; animation: none; }
+    .outline.move-target { stroke: var(--gold); stroke-width: 4.5; stroke-dasharray: none; animation: none; }
+    .outline.sel { stroke: #fff; stroke-width: 4.5; stroke-dasharray: none; animation: none; }
+    .outline.focus { stroke: var(--gold); stroke-width: 4; stroke-dasharray: none; animation: none; }
+    @keyframes march { to { stroke-dashoffset: -22; } }
+    .badge { cursor: pointer; }
+    .badge circle { stroke: rgba(6, 14, 26, .85); stroke-width: 2; }
+    .badge .num { font: 800 12px/1 var(--mono); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+    .badge .lbl { font: 700 8.5px/1 var(--sans); text-anchor: middle; fill: rgba(240, 246, 255, .92); paint-order: stroke; stroke: rgba(6, 14, 26, .85); stroke-width: 2.6px; stroke-linejoin: round; pointer-events: none; opacity: 0; transition: opacity .2s; }
+    #map.show-labels .badge .lbl { opacity: 1; }
+    .badge.dim { opacity: .55; }
+    .badge.pop circle { animation: pop .5s ease-out; }
+    @keyframes pop { 0% { transform: scale(1.6); } 100% { transform: scale(1); } }
+    .wrap-arrow { fill: rgba(170, 205, 245, .7); font: 700 11px var(--mono); pointer-events: none; }
+
+    .zoom {
+      position: absolute;
+      right: calc(10px + env(safe-area-inset-right));
+      bottom: 10px;
+      display: grid;
+      gap: 6px;
+    }
+    .zoom button {
+      width: 44px; height: 44px; border-radius: 12px;
+      border: 1px solid var(--line-strong);
+      background: rgba(10, 22, 38, .82);
+      color: var(--ink);
+      font: 800 20px/1 var(--mono);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+    }
+    .map-hint {
+      position: absolute;
+      left: calc(10px + env(safe-area-inset-left));
+      bottom: 10px;
+      max-width: calc(100% - 80px);
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(10, 22, 38, .86);
+      color: var(--ink);
+      font-size: 12px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .map-hint.show { opacity: 1; }
+    .map-hint .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+    .toast {
+      position: absolute;
+      left: 50%;
+      top: 12px;
+      max-width: calc(100% - 24px);
+      transform: translate(-50%, -8px);
+      padding: 9px 14px;
+      border-radius: 10px;
+      background: rgba(255, 207, 90, .96);
+      color: #1d1500;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s, transform .2s;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ---------- Panel ---------- */
+    .panel {
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 14px calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) 14px;
+      border-left: 1px solid var(--line);
+      background: var(--panel);
+    }
+    .phase-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .phase-steps span {
+      padding: 7px 4px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .04);
+      color: var(--muted);
+      font: 800 9.5px/1 var(--mono);
+      letter-spacing: .1em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .phase-steps span.on { background: var(--pc, var(--gold)); color: var(--pci, #0a1626); }
+    .phase-steps span.done { color: var(--ink); }
+    .turn { display: flex; align-items: center; gap: 10px; }
+    .turn .sw { width: 26px; height: 26px; border-radius: 8px; background: var(--pc); flex: 0 0 auto; box-shadow: 0 0 0 2px rgba(255, 255, 255, .12) inset; }
+    .turn h2 { margin: 0; font-size: 17px; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .turn small { display: block; margin-top: 3px; color: var(--muted); font: 700 10px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .instruction { margin: 0; color: #d3dceb; font-size: 14px; line-height: 1.45; }
+    .instruction strong { color: var(--ink); }
+    .actions { display: grid; gap: 10px; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .btn {
+      min-height: 44px;
+      padding: 0 16px;
+      border: 1px solid var(--line-strong);
+      border-radius: 11px;
+      background: rgba(255, 255, 255, .06);
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 750;
+    }
+    .btn.primary { border-color: transparent; background: var(--gold); color: #1d1500; }
+    .btn.danger { border-color: transparent; background: #e5484d; color: #fff; }
+    .btn.grow { flex: 1 1 auto; }
+    .btn:disabled { opacity: .38; cursor: not-allowed; }
+    .seg { display: inline-flex; padding: 3px; gap: 3px; border-radius: 12px; background: rgba(255, 255, 255, .06); }
+    .seg button {
+      min-width: 44px; min-height: 44px; padding: 0 10px;
+      border: 0; border-radius: 9px; background: transparent; color: var(--muted);
+      font: 800 14px/1 var(--mono);
+    }
+    .seg button[aria-pressed="true"] { background: var(--ink); color: #0a1626; }
+    .seg button:disabled { opacity: .3; cursor: not-allowed; }
+    .label { color: var(--muted); font: 800 10px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+    .big-num { font: 900 30px/1 var(--mono); color: var(--gold); }
+    .matchup {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel-2);
+    }
+    .matchup .side { min-width: 0; }
+    .matchup .side:last-child { text-align: right; }
+    .matchup .nm { font-size: 13px; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .matchup .ar { margin-top: 4px; font: 900 22px/1 var(--mono); color: var(--pc); }
+    .matchup .vs { color: var(--muted); font: 900 12px/1 var(--mono); }
+    .dice-out { display: grid; gap: 6px; padding: 10px; border-radius: 12px; background: rgba(255, 255, 255, .04); }
+    .dice-row { display: flex; align-items: center; gap: 6px; }
+    .dice-row .label { width: 64px; }
+    .die { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 7px; font: 900 15px/1 var(--mono); }
+    .die.att { background: #e5484d; color: #fff; }
+    .die.def { background: #efe9dc; color: #1b1b1b; }
+    .die.lost { opacity: .35; }
+    .dice-sum { font-size: 13px; color: #d3dceb; }
+    .stepper { display: flex; align-items: center; gap: 8px; }
+    .stepper button { width: 44px; height: 44px; border-radius: 11px; border: 1px solid var(--line-strong); background: rgba(255, 255, 255, .06); font: 800 20px/1 var(--mono); }
+    .stepper output { min-width: 56px; text-align: center; font: 900 26px/1 var(--mono); color: var(--gold); }
+    .stepper .range { color: var(--muted); font: 700 11px/1 var(--mono); }
+    .note { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .warn { margin: 0; padding: 9px 11px; border-radius: 10px; background: rgba(255, 122, 122, .12); color: #ffd2d2; font-size: 13px; line-height: 1.4; }
+
+    .hand-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .cards { display: flex; flex-wrap: wrap; gap: 6px; }
+    .card {
+      width: 62px; min-height: 74px; padding: 6px 5px; border-radius: 9px;
+      display: grid; align-content: space-between; justify-items: center; gap: 4px;
+      border: 1px solid var(--line-strong);
+      background: linear-gradient(160deg, #1b2f4f, #13223a);
+      text-align: center;
+    }
+    .card.owned { border-color: var(--gold); }
+    .card .sym { font-size: 20px; line-height: 1; }
+    .card .nm { font-size: 9px; line-height: 1.15; color: #c7d3e6; }
+    .card .ty { font: 800 7.5px/1 var(--mono); letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+    .hidden-hand { color: var(--muted); font-size: 12px; }
+
+    .drawer { border-top: 1px solid var(--line); padding-top: 10px; }
+    .drawer summary {
+      min-height: 44px; display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; list-style: none;
+      color: var(--muted); font: 800 10px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase;
+    }
+    .drawer summary::-webkit-details-marker { display: none; }
+    .drawer summary::after { content: "+"; font-size: 16px; }
+    .drawer[open] summary::after { content: "−"; }
+    .conts { display: grid; gap: 5px; margin-top: 8px; }
+    .cont {
+      display: grid; grid-template-columns: 10px 1fr auto auto; align-items: center; gap: 9px;
+      min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px;
+      background: rgba(255, 255, 255, .03); text-align: left; font-size: 13px;
+    }
+    .cont[aria-pressed="true"] { border-color: var(--gold); background: rgba(255, 207, 90, .1); }
+    .cont .cdot { width: 10px; height: 10px; border-radius: 50%; background: var(--cc); }
+    .cont .bonus { color: var(--gold); font: 800 12px/1 var(--mono); }
+    .cont .holder { width: 14px; height: 14px; border-radius: 4px; background: var(--hc, transparent); border: 1px dashed var(--line-strong); }
+    .cont .holder.held { border: 0; }
+    .log { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 12.5px; line-height: 1.4; color: #c9d4e6; }
+    .log li { padding-left: 10px; border-left: 3px solid var(--lc, var(--line-strong)); }
+
+    /* ---------- Overlays ---------- */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+      background: rgba(4, 10, 20, .78);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      overflow-y: auto;
+    }
+    .sheet {
+      width: min(520px, 100%);
+      max-height: 100%;
+      overflow-y: auto;
+      padding: 22px;
+      border: 1px solid var(--line-strong);
+      border-radius: 20px;
+      background: linear-gradient(170deg, #142744, #0d192b);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+    }
+    .sheet h2 { margin: 0 0 6px; font: 900 22px/1.1 var(--mono); letter-spacing: .04em; text-transform: uppercase; }
+    .sheet h3 { margin: 18px 0 8px; font: 800 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+    .sheet p, .sheet li { color: #cdd7e7; font-size: 14px; line-height: 1.5; }
+    .sheet ul { padding-left: 20px; margin: 6px 0; }
+    .sheet .lead { margin: 0 0 12px; color: var(--muted); }
+    fieldset { margin: 0; padding: 0; border: 0; }
+    fieldset + fieldset { margin-top: 6px; }
+    legend { padding: 0; margin: 16px 0 8px; font: 800 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+    .names { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    @media (max-width: 520px) { .names { grid-template-columns: 1fr; } }
+    .name-field { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 0 0 0 10px; border: 1px solid var(--line-strong); border-radius: 11px; background: rgba(255, 255, 255, .04); }
+    .name-field .sw { width: 14px; height: 14px; border-radius: 4px; flex: 0 0 auto; }
+    .name-field input { min-width: 0; width: 100%; min-height: 44px; border: 0; background: transparent; font-size: 16px; }
+    .name-field input:focus-visible { outline: none; }
+    .name-field:focus-within { border-color: var(--gold); }
+    .name-field .kind {
+      flex: 0 0 auto; min-width: 64px; min-height: 44px; margin: -1px -1px -1px 0; padding: 0 10px;
+      border: 0; border-left: 1px solid var(--line-strong); border-radius: 0 11px 11px 0;
+      background: rgba(255, 255, 255, .06); color: var(--ink);
+      font: 800 11px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+    }
+    .name-field .kind[aria-pressed="true"] { background: rgba(255, 207, 90, .16); color: var(--gold); }
+    .player-chip .cpu { padding: 2px 4px; border-radius: 4px; background: rgba(255, 255, 255, .1); color: var(--muted); font: 800 8.5px/1 var(--mono); letter-spacing: .06em; }
+    .thinking { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 50%; background: var(--gold); vertical-align: 0; animation: think 1s ease-in-out infinite; }
+    @keyframes think { 50% { opacity: .25; transform: scale(.7); } }
+    .choice { display: grid; gap: 6px; }
+    .choice label {
+      display: flex; gap: 10px; align-items: flex-start; min-height: 44px; padding: 10px 12px;
+      border: 1px solid var(--line); border-radius: 11px; background: rgba(255, 255, 255, .03); cursor: pointer; font-size: 14px; line-height: 1.35;
+    }
+    .choice label:has(input:checked) { border-color: var(--gold); background: rgba(255, 207, 90, .08); }
+    .choice input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--gold); flex: 0 0 auto; }
+    .choice small { display: block; color: var(--muted); font-size: 12px; }
+    .sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .curtain-card { text-align: center; }
+    .curtain-card .sw { width: 64px; height: 64px; margin: 6px auto 14px; border-radius: 18px; background: var(--pc); box-shadow: 0 0 0 4px rgba(255, 255, 255, .1); }
+    .curtain-card h2 { font-size: 26px; }
+    .curtain-card .btn { width: 100%; margin-top: 12px; }
+    .credits { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font: 600 11px/1.6 var(--mono); }
+    .credits span { color: #b9c6da; }
+    kbd { padding: 1px 5px; border: 1px solid var(--line-strong); border-radius: 4px; font: 700 11px var(--mono); }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1100px) {
+      .stage { grid-template-columns: minmax(0, 1fr) 300px; }
+      .brand p { display: none; }
+    }
+    @media (max-width: 899px) and (orientation: portrait), (max-width: 640px) {
+      .topbar { flex-wrap: wrap; row-gap: 6px; }
+      .players { order: 3; flex: 1 1 100%; }
+      .brand { flex: 1 1 auto; }
+      .stage {
+        grid-template-columns: 1fr;
+        grid-template-rows: max(180px, min(calc(62vw + 24px), 58vh)) minmax(0, 1fr);
+        grid-template-rows: max(180px, min(calc(62vw + 24px), 58dvh)) minmax(0, 1fr);
+      }
+      .panel {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        padding-left: calc(12px + env(safe-area-inset-left));
+        padding-right: calc(12px + env(safe-area-inset-right));
+        gap: 10px;
+      }
+      .zoom { grid-auto-flow: column; }
+      .map-hint { bottom: 62px; max-width: calc(100% - 20px); }
+    }
+    @media (orientation: landscape) and (max-height: 540px) {
+      .topbar { padding-top: calc(4px + env(safe-area-inset-top)); padding-bottom: 4px; }
+      .brand p, .brand-mark { display: none; }
+      .brand h1 { font-size: 14px; }
+      .player-chip { min-height: 32px; }
+      .stage { grid-template-columns: minmax(0, 1fr) 280px; }
+      .panel { padding-top: 10px; gap: 8px; }
+      .instruction { font-size: 13px; }
+      .zoom { grid-auto-flow: column; }
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .btn:not(:disabled):hover, .icon-btn:hover, .zoom button:hover, .stepper button:hover { border-color: var(--gold); }
+      .btn.primary:not(:disabled):hover { filter: brightness(1.08); }
+      .cont:hover { border-color: var(--line-strong); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="icon-btn" href="index.html" aria-label="Back to all games">←</a>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div><h1>Conquest</h1><p>World domination · 1–6 players</p></div>
+      </div>
+      <div class="players" id="players" aria-label="Players"></div>
+      <div class="top-actions">
+        <button class="icon-btn" id="helpBtn" type="button" aria-label="How to play">?</button>
+        <button class="icon-btn" id="newBtn" type="button" aria-label="New game">↺</button>
+      </div>
+    </header>
+
+    <main class="stage">
+      <section class="map-wrap" id="mapWrap" aria-label="World map">
+        <svg id="map" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Territories"></svg>
+        <div class="map-hint" id="mapHint" aria-hidden="true"></div>
+        <div class="toast" id="toast" role="status" aria-live="assertive"></div>
+        <div class="zoom" role="group" aria-label="Map zoom">
+          <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
+          <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
+          <button type="button" data-zoom="fit" aria-label="Show the whole map">⤢</button>
+        </div>
+      </section>
+
+      <aside class="panel" id="panel" aria-label="Turn controls">
+        <div class="phase-steps" id="phaseSteps" aria-hidden="true"></div>
+        <div class="turn" id="turnHead"></div>
+        <p class="instruction" id="instruction" role="status" aria-live="polite"></p>
+        <div class="actions" id="actions"></div>
+        <section id="hand" aria-label="Your cards"></section>
+        <details class="drawer" id="contDrawer">
+          <summary>Regions</summary>
+          <div class="conts" id="continents"></div>
+        </details>
+        <details class="drawer">
+          <summary>Battle log</summary>
+          <ol class="log" id="log"></ol>
+        </details>
+      </aside>
+    </main>
+  </div>
+
+  <div class="overlay" id="setup" role="dialog" aria-modal="true" aria-labelledby="setupTitle" hidden>
+    <form class="sheet" id="setupForm">
+      <h2 id="setupTitle">New campaign</h2>
+      <p class="lead">Play against the computer, share one device with friends, or both. Claim your corner of the map, then conquer the rest.</p>
+      <fieldset>
+        <legend>Players</legend>
+        <div class="seg" id="countSeg" role="group" aria-label="Number of players"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Commanders</legend>
+        <div class="names" id="nameFields"></div>
+      </fieldset>
+      <fieldset id="skillField">
+        <legend>Computer skill</legend>
+        <div class="seg" id="skillSeg" role="group" aria-label="Computer skill">
+          <button type="button" data-skill="easy" aria-pressed="false">Easy</button>
+          <button type="button" data-skill="normal" aria-pressed="true">Normal</button>
+          <button type="button" data-skill="hard" aria-pressed="false">Hard</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Setup</legend>
+        <div class="choice">
+          <label><input type="radio" name="mode" value="claim" checked><span>Claim territories<small>Take turns claiming one empty territory at a time, then add one army at a time until everyone is deployed.</small></span></label>
+          <label><input type="radio" name="mode" value="manual"><span>Deal territories, then place armies<small>Territories are dealt at random; players take turns adding 3 armies at a time.</small></span></label>
+          <label><input type="radio" name="mode" value="random"><span>Deal and place everything randomly<small>Skip setup and jump straight into the first turn.</small></span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Hot seat</legend>
+        <div class="choice">
+          <label><input type="checkbox" id="curtainOpt" checked><span>Pass-the-device screen<small>With two or more human players, hides each player's cards until they tap to start their turn.</small></span></label>
+        </div>
+      </fieldset>
+      <div class="sheet-actions">
+        <button class="btn primary grow" type="submit">Deal territories</button>
+        <button class="btn" type="button" id="cancelSetup" hidden>Back to game</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="overlay" id="curtain" role="dialog" aria-modal="true" aria-labelledby="curtainTitle" hidden>
+    <div class="sheet curtain-card" id="curtainCard">
+      <div class="sw" aria-hidden="true"></div>
+      <p class="label" id="curtainKicker">Pass the device</p>
+      <h2 id="curtainTitle"></h2>
+      <p id="curtainText"></p>
+      <button class="btn primary" type="button" id="curtainGo">Start turn</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="victory" role="dialog" aria-modal="true" aria-labelledby="victoryTitle" hidden>
+    <div class="sheet curtain-card" id="victoryCard">
+      <div class="sw" aria-hidden="true"></div>
+      <p class="label">The world is yours</p>
+      <h2 id="victoryTitle"></h2>
+      <p id="victoryText"></p>
+      <button class="btn primary" type="button" id="victoryNew">New campaign</button>
+      <button class="btn" type="button" id="victoryMap">View the map</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
+    <div class="sheet">
+      <h2 id="helpTitle">How to play</h2>
+      <p class="lead">Conquer every territory on the map. After setup, each turn has three phases.</p>
+      <h3>Setup</h3>
+      <ul>
+        <li>In the standard setup, players take turns claiming one empty (grey) territory each, placing one army on it, until the whole map is claimed.</li>
+        <li>Players then keep taking turns, adding one army at a time to their own territories, until everyone has placed all their starting armies (46 each for 2 players, 40 for 3, 34 for 4, 29 for 5, 25 for 6).</li>
+        <li>You can instead have territories dealt at random, or deal and place everything at random to start playing straight away.</li>
+      </ul>
+      <h3>1 · Reinforce</h3>
+      <ul>
+        <li>Receive armies equal to your territories ÷ 3 (minimum 3), plus a bonus for every region you hold completely.</li>
+        <li>Trade a set of three cards for extra armies: three of a kind, one of each, or any two with a wild. Sets are worth 5, 7, 9, 11, 14, 17, then 3 more each time. Holding 5 or more cards forces a trade.</li>
+        <li>If a traded card shows a territory you own, 3 bonus armies are placed there.</li>
+        <li>Tap your territories to place armies. Choose 1, 5 or all at a time.</li>
+      </ul>
+      <h3>2 · Attack</h3>
+      <ul>
+        <li>Pick one of your territories with at least 2 armies, then an adjacent enemy. Dashed lines are sea lanes; Klondike and Chukotka connect across the map edge.</li>
+        <li>Attack with up to 3 dice (one fewer than your armies); the defender rolls up to 2. Highest dice are compared in pairs and ties go to the defender.</li>
+        <li><strong>Blitz</strong> keeps rolling until you win or are down to one army.</li>
+        <li>When you take a territory, move in at least as many armies as dice you rolled. Eliminate a player to take their cards.</li>
+      </ul>
+      <h3>3 · Fortify</h3>
+      <ul>
+        <li>Make one move between two of your territories joined by a chain of your own territories, then your turn ends.</li>
+        <li>Conquer at least one territory during your turn to earn a card.</li>
+      </ul>
+      <h3>Computer opponents</h3>
+      <ul>
+        <li>Tap <strong>Human</strong> or <strong>CPU</strong> next to each name when setting up. You can mix both, or let the computers play each other.</li>
+        <li><strong>Easy</strong> computers attack only with big advantages; <strong>Normal</strong> and <strong>Hard</strong> chase regions, cards and weak players, and Hard takes riskier attacks.</li>
+        <li>Change how fast computers play with the speed buttons shown during their turns. Their cards stay hidden.</li>
+      </ul>
+      <h3>Controls</h3>
+      <p>Drag or pinch to move and zoom the map; use the mouse wheel on desktop. Keyboard: <kbd>Tab</kbd> to reach a territory and <kbd>Enter</kbd> to select it, <kbd>R</kbd> roll, <kbd>B</kbd> blitz, <kbd>N</kbd> next phase, <kbd>U</kbd> undo, <kbd>Esc</kbd> cancel, <kbd>+</kbd>/<kbd>−</kbd>/<kbd>0</kbd> zoom. The game saves itself on this device after every move.</p>
+      <div class="credits">
+        <div><span>prompt</span> Add an equivalent of the classic world-conquest board game · go ahead and create v1 for 2-6 players (paraphrased to remove third-party brand names)</div>
+        <div><span>date</span> 2 October 2026</div>
+        <div><span>v2 prompt</span> go ahead and create v2 with computer opponents</div>
+        <div><span>v2 date</span> 2 October 2026</div>
+        <div><span>v3 prompt</span> Make all the changes to derisk as much as possible (original map, regions and card values)</div>
+        <div><span>v3 date</span> 2 October 2026</div>
+        <div><span>built with</span> Claude Code</div>
+      </div>
+      <div class="sheet-actions"><button class="btn primary grow" type="button" id="helpClose">Got it</button></div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      // ---------- Map data ----------
+      // One character per 20×20 cell; '.' is sea. Territories that share a cell edge are
+      // neighbours; SEA_LANES adds the crossings over open water.
+      const MAP = [
+        '.................cccc.....................................',
+        '........bbbb....cccccc........pp..........GHHHHHHIJJJJJJJ.',
+        '..aaaaabbbbbbb..cccccc........ppptttttGGGGGHHHHHIIIJJJJJJJ',
+        '..aaaaabbbbbbb..cccccc..ppp..pppptttttGGGGGHHHHHIIIJJJJJJJ',
+        '.aaaaaabbbbbee...ccc.....p...pppptttttGGGGHHHHHIIIIIJJJJJJ',
+        '.aaaaaaddeeeee...............pppptttttGGGGHHHHHIIIIIKKKKKK',
+        '.aaaaaddddeeeeeff.......oo...rppttttuuGGGGHHHHIIIIIIKKKKKK',
+        '......ddddeeeeefff.....ooo...rrrruuuuuyyyyHHHHLLLLMMKKKK..',
+        '......ddddeeeeffff.....ooo.rrrrrruuuuuyyyyHHHHLLLLMM......',
+        '......ddddhhhhffff......oo.rrrrrruuuuuyyyyNLLLLLLLMM..RR..',
+        '......gdddhhhhhi...........rrrrrsssuuuxxyyNNLLLLLMMM..RR..',
+        '.....ggggghhhhiii........qqqrrssssssuuxxxxNNNLOOOOMM..RR..',
+        '.....ggggghhhiiii.......qqqqqssssssssuxxxxNNNNOOOO....RR..',
+        '......gggghhiiiii.......qqqqqs..svvvvxxxNNNNNNQOO.........',
+        '......ggggghiii..........qq.......vvvwxxPNNNNQQQO.........',
+        '.......jjjjj............zzzzzzBBBBvvwww.PPPPQQQQQ.........',
+        '.........jjj............zzzzzBBBBBwwww..PPPPPQQQ..........',
+        '..........jjj...........zzzAAABBBBww.....PPP.QQ...........',
+        '..........jjk...........AAAAAABBBBB.......P...............',
+        '...........kkkkkk........AAAAAABBBB.......................',
+        '...........kkkkkk.........AAAAAABDD...........SSSS...TTTTT',
+        '............kkkk..........AACCCCDDD............SSSS...TTT.',
+        '..........mmkkklllll......CCCCCDDDD.......................',
+        '..........mmmmllllll......CCCCCDDD..............UUUUWWWW..',
+        '..........mmmmmlllll......CCCCCDDD..FF.........UUUUUWWWWW.',
+        '..........mmmmmllll........CCCEDD...FF.........UUUUVVWWWW.',
+        '............mnnnll.........EEEEEE...FF.........UUUUVVVVWW.',
+        '............nnnn............EEEEE...FF.........UUUVVVVVVW.',
+        '............nnn.............EEE.................UVVV.VVV..',
+        '............nn............................................'
+      ];
+      const CS = 20;
+      const COLS = MAP[0].length;
+      const ROWS = MAP.length;
+      const MW = COLS * CS;
+      const MH = ROWS * CS;
+
+      const CONTINENTS = [
+        { name: 'North America', bonus: 5, color: '#f2b84b' },
+        { name: 'Latin America', bonus: 3, color: '#ef7b54' },
+        { name: 'Europe', bonus: 5, color: '#6aa7ff' },
+        { name: 'Africa', bonus: 4, color: '#c99566' },
+        { name: 'Silk Road', bonus: 3, color: '#e7d36a' },
+        { name: 'Siberia', bonus: 4, color: '#7fd6d0' },
+        { name: 'East Asia', bonus: 5, color: '#5fcf8f' },
+        { name: 'Oceania', bonus: 2, color: '#c78bff' }
+      ];
+
+      // code, full name, map label, region
+      const TERRITORY_DATA = [
+        ['a', 'Klondike', 'Klondike', 0],
+        ['b', 'Arctic Isles', 'Arctic Isles', 0],
+        ['c', 'Greenland', 'Greenland', 0],
+        ['d', 'Rockies', 'Rockies', 0],
+        ['e', 'Hudson Bay', 'Hudson Bay', 0],
+        ['f', 'Labrador', 'Labrador', 0],
+        ['g', 'Pacific Coast', 'Pacific', 0],
+        ['h', 'Great Lakes', 'Great Lakes', 0],
+        ['i', 'Atlantic Coast', 'Atlantic', 0],
+        ['j', 'Mexico', 'Mexico', 1],
+        ['k', 'Gran Colombia', 'Colombia', 1],
+        ['l', 'Amazonia', 'Amazonia', 1],
+        ['m', 'Andes', 'Andes', 1],
+        ['n', 'Patagonia', 'Patagonia', 1],
+        ['o', 'British Isles', 'Brit. Isles', 2],
+        ['p', 'Nordic Lands', 'Nordic', 2],
+        ['q', 'Iberia', 'Iberia', 2],
+        ['r', 'Rhineland', 'Rhineland', 2],
+        ['s', 'Balkans', 'Balkans', 2],
+        ['t', 'Baltic', 'Baltic', 2],
+        ['u', 'Muscovy', 'Muscovy', 2],
+        ['v', 'Anatolia', 'Anatolia', 4],
+        ['w', 'Arabia', 'Arabia', 4],
+        ['x', 'Persia', 'Persia', 4],
+        ['y', 'Turan', 'Turan', 4],
+        ['z', 'Maghreb', 'Maghreb', 3],
+        ['A', 'Sahel', 'Sahel', 3],
+        ['B', 'Nile Valley', 'Nile', 3],
+        ['C', 'Central Africa', 'Central Afr.', 3],
+        ['D', 'Swahili Coast', 'Swahili', 3],
+        ['E', 'The Cape', 'Cape', 3],
+        ['F', 'Madagascar', 'Madagascar', 3],
+        ['G', 'Taiga', 'Taiga', 5],
+        ['H', 'Yenisei', 'Yenisei', 5],
+        ['I', 'Lena Basin', 'Lena', 5],
+        ['J', 'Chukotka', 'Chukotka', 5],
+        ['K', 'Okhotsk', 'Okhotsk', 5],
+        ['L', 'Gobi', 'Gobi', 6],
+        ['M', 'Manchuria', 'Manchuria', 6],
+        ['N', 'Tibet', 'Tibet', 6],
+        ['O', 'Yangtze', 'Yangtze', 6],
+        ['P', 'Hindustan', 'Hindustan', 6],
+        ['Q', 'Indochina', 'Indochina', 6],
+        ['R', 'Japan', 'Japan', 6],
+        ['S', 'Sunda Isles', 'Sunda', 7],
+        ['T', 'New Guinea', 'New Guinea', 7],
+        ['U', 'Pilbara', 'Pilbara', 7],
+        ['V', 'Outback', 'Outback', 7],
+        ['W', 'Coral Coast', 'Coral', 7]
+      ];
+      // Neighbours across open water; the first pair wraps around the edge of the map.
+      const SEA_LANES = ['aJ', 'cb', 'cf', 'cp', 'po', 'or', 'oq', 'sz', 'lA', 'FD', 'FE', 'RM', 'RK', 'QS', 'ST', 'SU', 'TW'];
+      const CODE_INDEX = new Map(TERRITORY_DATA.map((row, i) => [row[0], i]));
+      const TERRS = TERRITORY_DATA.map(([code, name, label, cont], i) => ({ i, code, name, label, cont, adj: [], cells: [] }));
+      const NT = TERRS.length;
+      MAP.forEach((row, r) => [...row].forEach((ch, c) => { if (ch !== '.') TERRS[CODE_INDEX.get(ch)].cells.push([c, r]); }));
+      const cellAt = (c, r) => (r < 0 || r >= ROWS || c < 0 || c >= COLS) ? '.' : MAP[r][c];
+      const linkTerrs = (a, b) => {
+        const x = CODE_INDEX.get(a);
+        const y = CODE_INDEX.get(b);
+        if (x !== y && !TERRS[x].adj.includes(y)) { TERRS[x].adj.push(y); TERRS[y].adj.push(x); }
+      };
+      TERRS.forEach(t => t.cells.forEach(([c, r]) => {
+        [cellAt(c + 1, r), cellAt(c, r + 1)].forEach(o => { if (o !== '.') linkTerrs(t.code, o); });
+      }));
+      SEA_LANES.forEach(([a, b]) => linkTerrs(a, b));
+      const WRAP = SEA_LANES[0];
+
+      const COLORS = [
+        { label: 'Crimson', main: '#ef4b55', land: '#93303a', ink: '#ffffff' },
+        { label: 'Azure', main: '#3d8bff', land: '#27569c', ink: '#ffffff' },
+        { label: 'Jade', main: '#2fbf7a', land: '#1c7650', ink: '#04170d' },
+        { label: 'Amber', main: '#ffc23d', land: '#9f7716', ink: '#221600' },
+        { label: 'Violet', main: '#a879ff', land: '#62439f', ink: '#ffffff' },
+        { label: 'Ivory', main: '#ece6d8', land: '#857f72', ink: '#16130d' }
+      ];
+      const START_ARMIES = { 2: 46, 3: 40, 4: 34, 5: 29, 6: 25 };
+      const SYMBOLS = [
+        { glyph: '▲', name: 'Shield' },
+        { glyph: '◆', name: 'Banner' },
+        { glyph: '●', name: 'Tower' },
+        { glyph: '★', name: 'Wild' }
+      ];
+      const SAVE_KEY = 'conquest-save-v2';
+      const NS = 'http://www.w3.org/2000/svg';
+
+      // ---------- Elements ----------
+      const $ = sel => document.querySelector(sel);
+      const svg = $('#map');
+      const mapWrap = $('#mapWrap');
+      const els = {
+        players: $('#players'), phaseSteps: $('#phaseSteps'), turnHead: $('#turnHead'), instruction: $('#instruction'),
+        actions: $('#actions'), hand: $('#hand'), continents: $('#continents'), log: $('#log'), hint: $('#mapHint'), toast: $('#toast'),
+        setup: $('#setup'), curtain: $('#curtain'), victory: $('#victory'), help: $('#help')
+      };
+
+      // ---------- Helpers ----------
+      const randInt = n => {
+        if (window.crypto && crypto.getRandomValues) {
+          const buf = new Uint32Array(1);
+          crypto.getRandomValues(buf);
+          return buf[0] % n;
+        }
+        return Math.floor(Math.random() * n);
+      };
+      const shuffle = arr => {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = randInt(i + 1);
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      };
+      const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+      const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+      const el = (tag, attrs = {}, parent) => {
+        const node = document.createElementNS(NS, tag);
+        for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+        if (parent) parent.appendChild(node);
+        return node;
+      };
+
+      // ---------- Game state ----------
+      let S = null;
+      const ui = { sel: null, target: null, dice: 3, amount: 1, moveN: 1, contFocus: null, popped: new Set() };
+
+      const player = p => S.players[p];
+      const colorOf = p => COLORS[S.players[p].color];
+      const pName = p => esc(S.players[p].name);
+      const owned = p => TERRS.filter(t => S.owner[t.i] === p).map(t => t.i);
+      const countOwned = p => S.owner.reduce((n, o) => n + (o === p ? 1 : 0), 0);
+      const totalArmies = p => S.owner.reduce((n, o, t) => n + (o === p ? S.armies[t] : 0), 0);
+      const contHolder = c => {
+        const ts = TERRS.filter(t => t.cont === c);
+        const o = S.owner[ts[0].i];
+        return ts.every(t => S.owner[t.i] === o) ? o : -1;
+      };
+      const reinforcementsFor = p => {
+        const base = Math.max(3, Math.floor(countOwned(p) / 3));
+        const conts = CONTINENTS.map((c, ci) => ci).filter(ci => contHolder(ci) === p);
+        const bonus = conts.reduce((n, ci) => n + CONTINENTS[ci].bonus, 0);
+        return { base, bonus, conts, total: base + bonus };
+      };
+      const cardSymbol = id => id >= NT ? 3 : id % 3;
+      const tradeValue = n => n < 6 ? [5, 7, 9, 11, 14, 17][n] : 17 + 3 * (n - 5);
+      const isSet = ids => {
+        if (ids.length !== 3) return false;
+        const syms = ids.map(cardSymbol);
+        if (syms.includes(3)) return true;
+        return new Set(syms).size !== 2;
+      };
+      const bestSet = p => {
+        const hand = player(p).cards;
+        let best = null;
+        let bestScore = -Infinity;
+        for (let a = 0; a < hand.length; a++) {
+          for (let b = a + 1; b < hand.length; b++) {
+            for (let c = b + 1; c < hand.length; c++) {
+              const ids = [hand[a], hand[b], hand[c]];
+              if (!isSet(ids)) continue;
+              const wilds = ids.filter(id => id >= NT).length;
+              const ownedBonus = ids.some(id => id < NT && S.owner[id] === p) ? 3 : 0;
+              const score = ownedBonus - wilds * 5;
+              if (score > bestScore) { bestScore = score; best = ids; }
+            }
+          }
+        }
+        return best;
+      };
+      const mustTrade = () => S.phase === 'reinforce' && player(S.current).cards.length >= 5;
+
+      const canAttackFrom = t => S.owner[t] === S.current && S.armies[t] > 1 && TERRS[t].adj.some(o => S.owner[o] !== S.current);
+      const reachable = src => {
+        const seen = new Set([src]);
+        const stack = [src];
+        while (stack.length) {
+          const t = stack.pop();
+          for (const o of TERRS[t].adj) {
+            if (!seen.has(o) && S.owner[o] === S.current) { seen.add(o); stack.push(o); }
+          }
+        }
+        return seen;
+      };
+      const canFortifyFrom = t => S.owner[t] === S.current && S.armies[t] > 1 && TERRS[t].adj.some(o => S.owner[o] === S.current);
+
+      const log = (msg, p = null) => {
+        S.log.unshift({ m: msg, p });
+        if (S.log.length > 80) S.log.length = 80;
+      };
+
+      const save = () => {
+        try {
+          if (S && S.phase !== 'over') localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+          else localStorage.removeItem(SAVE_KEY);
+        } catch (err) { /* storage unavailable: the game still works without saving */ }
+      };
+      const loadSaved = () => {
+        try {
+          const raw = localStorage.getItem(SAVE_KEY);
+          if (!raw) return null;
+          const data = JSON.parse(raw);
+          if (data && data.v === 1 && Array.isArray(data.owner) && data.owner.length === NT) return data;
+        } catch (err) { /* ignore corrupt or unavailable storage */ }
+        return null;
+      };
+
+      const commit = () => { save(); render(); scheduleAI(); };
+
+      // ---------- Game flow ----------
+      function newGame(roster, mode, curtain, level) {
+        const n = roster.length;
+        S = {
+          v: 1,
+          players: roster.map((r, i) => ({ name: r.name, ai: r.ai, color: i, alive: true, cards: [] })),
+          aiLevel: level,
+          owner: Array(NT).fill(-1),
+          armies: Array(NT).fill(0),
+          pool: [],
+          current: 0,
+          first: 0,
+          phase: 'setup',
+          turn: 0,
+          setupLeft: 0,
+          setupStep: mode === 'claim' ? 1 : 3,
+          reinforce: 0,
+          placements: [],
+          deck: shuffle([...Array(NT + 2).keys()]),
+          discard: [],
+          trades: 0,
+          conquered: false,
+          pending: null,
+          elimTrade: false,
+          returnToAttack: false,
+          lastRoll: null,
+          curtain,
+          showCurtain: false,
+          winner: null,
+          log: []
+        };
+        const first = randInt(n);
+        S.first = first;
+        if (mode !== 'claim') {
+          shuffle([...Array(NT).keys()]).forEach((t, k) => {
+            S.owner[t] = (first + k) % n;
+            S.armies[t] = 1;
+          });
+        }
+        S.pool = S.players.map((_, p) => START_ARMIES[n] - countOwned(p));
+        log(mode === 'claim' ? `${pName(first)} claims first.` : `Territories dealt. ${pName(first)} moves first.`, first);
+        resetSelection();
+        if (mode === 'random') {
+          S.players.forEach((_, p) => {
+            const mine = owned(p);
+            while (S.pool[p] > 0) { S.armies[mine[randInt(mine.length)]]++; S.pool[p]--; }
+          });
+          log('Starting armies were placed at random.');
+          startTurn(first);
+        } else {
+          S.current = first;
+          S.setupLeft = Math.min(S.setupStep, S.pool[first]);
+        }
+        fitMap();
+        commit();
+      }
+
+      function resetSelection() {
+        ui.sel = null;
+        ui.target = null;
+      }
+
+      function advanceSetup() {
+        const n = S.players.length;
+        for (let k = 1; k <= n; k++) {
+          const p = (S.current + k) % n;
+          if (S.pool[p] > 0) {
+            S.current = p;
+            S.setupLeft = Math.min(S.setupStep || 3, S.pool[p]);
+            return;
+          }
+        }
+        log('All armies are deployed. The war begins.');
+        startTurn(S.first);
+      }
+
+      const claiming = () => S.phase === 'setup' && S.owner.includes(-1);
+
+      function setupPlace(t) {
+        if (claiming()) {
+          if (S.owner[t] !== -1) return flash('Claim an empty (grey) territory.');
+          S.owner[t] = S.current;
+          S.armies[t] = 1;
+          if (!claiming()) log('Every territory is claimed. Players now add one army at a time.');
+        } else {
+          if (S.owner[t] !== S.current) return flash('Place armies on your own territories.');
+          S.armies[t]++;
+        }
+        S.pool[S.current]--;
+        S.setupLeft--;
+        popBadge(t);
+        if (S.setupLeft <= 0 || S.pool[S.current] <= 0) advanceSetup();
+        commit();
+      }
+
+      function setupAuto() {
+        const p = S.current;
+        if (claiming()) return setupPlace(claimTarget(p, true));
+        const mine = owned(p);
+        while (S.pool[p] > 0) { S.armies[mine[randInt(mine.length)]]++; S.pool[p]--; }
+        log(`${pName(p)} deployed the rest of their armies at random.`, p);
+        advanceSetup();
+        commit();
+      }
+
+      function startTurn(p) {
+        S.current = p;
+        S.phase = 'reinforce';
+        S.turn++;
+        S.conquered = false;
+        S.returnToAttack = false;
+        S.placements = [];
+        S.lastRoll = null;
+        S.pending = null;
+        const r = reinforcementsFor(p);
+        S.reinforce = r.total;
+        const conts = r.conts.length ? ` + ${r.bonus} for ${r.conts.map(ci => CONTINENTS[ci].name).join(', ')}` : '';
+        log(`Turn ${S.turn}: ${pName(p)} receives ${r.total} armies (${r.base} for territories${conts}).`, p);
+        S.showCurtain = !!S.curtain && !isAI(p) && humansAlive() > 1;
+        resetSelection();
+        ui.amount = 1;
+      }
+
+      function tradeCards() {
+        const p = S.current;
+        const set = bestSet(p);
+        if (!set) return;
+        const value = tradeValue(S.trades);
+        S.trades++;
+        S.reinforce += value;
+        const hand = player(p).cards;
+        set.forEach(id => hand.splice(hand.indexOf(id), 1));
+        S.discard.push(...set);
+        const bonusT = set.find(id => id < NT && S.owner[id] === p);
+        let extra = '';
+        if (bonusT !== undefined) {
+          S.armies[bonusT] += 3;
+          popBadge(bonusT);
+          extra = ` +3 placed on ${esc(TERRS[bonusT].name)}`;
+        }
+        log(`${pName(p)} traded cards for ${value} armies${extra}.`, p);
+        commit();
+      }
+
+      function reinforcePlace(t) {
+        if (S.owner[t] !== S.current) return flash('Reinforce your own territories.');
+        if (mustTrade()) return flash('You hold 5 or more cards: trade a set first.');
+        if (S.reinforce <= 0) return flash('All armies placed. Continue when ready.');
+        const n = ui.amount === 'all' ? S.reinforce : Math.min(ui.amount, S.reinforce);
+        S.armies[t] += n;
+        S.reinforce -= n;
+        S.placements.push([t, n]);
+        popBadge(t);
+        commit();
+      }
+
+      function undoPlacement() {
+        const last = S.placements.pop();
+        if (!last) return;
+        S.armies[last[0]] -= last[1];
+        S.reinforce += last[1];
+        commit();
+      }
+
+      function finishReinforce() {
+        if (S.reinforce > 0 || mustTrade()) return;
+        if (S.placements.length) {
+          const totals = new Map();
+          S.placements.forEach(([t, n]) => totals.set(t, (totals.get(t) || 0) + n));
+          const parts = [...totals].map(([t, n]) => `${esc(TERRS[t].name)} +${n}`).join(', ');
+          log(`${pName(S.current)} reinforced ${parts}.`, S.current);
+        }
+        S.placements = [];
+        S.returnToAttack = false;
+        S.phase = 'attack';
+        resetSelection();
+        commit();
+      }
+
+      const rollDice = n => Array.from({ length: n }, () => 1 + randInt(6)).sort((a, b) => b - a);
+
+      function attack(blitz, keepGoing) {
+        const from = ui.sel;
+        const to = ui.target;
+        if (S.phase !== 'attack' || S.pending || from === null || to === null) return;
+        if (S.owner[to] === S.current || S.armies[from] < 2) return;
+        const defender = S.owner[to];
+        let lostA = 0;
+        let lostD = 0;
+        let rounds = 0;
+        let last = null;
+        do {
+          const n = Math.min(blitz ? 3 : ui.dice, S.armies[from] - 1);
+          if (n < 1) break;
+          const a = rollDice(n);
+          const d = rollDice(Math.min(2, S.armies[to]));
+          let al = 0;
+          let dl = 0;
+          for (let i = 0; i < Math.min(a.length, d.length); i++) {
+            if (a[i] > d[i]) dl++;
+            else al++;
+          }
+          S.armies[from] -= al;
+          S.armies[to] -= dl;
+          lostA += al;
+          lostD += dl;
+          rounds++;
+          last = { a, d, n };
+        } while (blitz && S.armies[to] > 0 && S.armies[from] > 1 && (!keepGoing || keepGoing()));
+        if (!last) return;
+        S.lastRoll = { a: last.a, d: last.d, lostA, lostD, rounds, blitz, from, to };
+        popBadge(from);
+        popBadge(to);
+        if (S.armies[to] === 0) {
+          conquer(from, to, last.n, defender, lostA, lostD);
+        } else {
+          const how = blitz ? `blitzed ${rounds} round${rounds === 1 ? '' : 's'}` : 'attacked';
+          log(`${pName(S.current)} ${how} ${esc(TERRS[to].name)} from ${esc(TERRS[from].name)}: lost ${lostA}, destroyed ${lostD}.`, S.current);
+          if (S.armies[from] < 2) {
+            if (!isAI(S.current)) flash(`${TERRS[from].name} can no longer attack.`);
+            resetSelection();
+          }
+        }
+        commit();
+      }
+
+      function conquer(from, to, diceUsed, defender, lostA, lostD) {
+        const p = S.current;
+        S.owner[to] = p;
+        S.conquered = true;
+        log(`${pName(p)} conquered ${esc(TERRS[to].name)} from ${pName(defender)} (lost ${lostA}, destroyed ${lostD}).`, p);
+        if (countOwned(defender) === 0) {
+          const taken = player(defender).cards.splice(0);
+          player(defender).alive = false;
+          player(p).cards.push(...taken);
+          log(`${pName(defender)} has been eliminated! ${pName(p)} takes ${taken.length} card${taken.length === 1 ? '' : 's'}.`, p);
+          if (player(p).cards.length >= 6) S.elimTrade = true;
+        }
+        const max = S.armies[from] - 1;
+        const min = Math.min(diceUsed, max);
+        S.pending = { from, to, min, max };
+        ui.moveN = max;
+        if (countOwned(p) === NT) {
+          S.phase = 'over';
+          S.winner = p;
+          S.elimTrade = false;
+          applyMove(max);
+          log(`${pName(p)} conquers the world in ${S.turn} turns!`, p);
+          return;
+        }
+        if (min === max) applyMove(min);
+      }
+
+      function applyMove(n) {
+        const { from, to } = S.pending;
+        S.armies[from] -= n;
+        S.armies[to] += n;
+        S.pending = null;
+        popBadge(to);
+        if (S.phase === 'over') return;
+        if (S.elimTrade) {
+          S.elimTrade = false;
+          S.phase = 'reinforce';
+          S.returnToAttack = true;
+          S.reinforce = 0;
+          S.placements = [];
+          resetSelection();
+          log(`${pName(S.current)} must trade cards before attacking again.`, S.current);
+          return;
+        }
+        ui.sel = canAttackFrom(to) ? to : canAttackFrom(from) ? from : null;
+        ui.target = null;
+      }
+
+      function endAttack() {
+        if (S.phase !== 'attack' || S.pending) return;
+        S.phase = 'fortify';
+        resetSelection();
+        commit();
+      }
+
+      function fortify() {
+        const from = ui.sel;
+        const to = ui.target;
+        if (S.phase !== 'fortify' || from === null || to === null) return;
+        const n = clamp(ui.moveN, 1, S.armies[from] - 1);
+        S.armies[from] -= n;
+        S.armies[to] += n;
+        popBadge(to);
+        log(`${pName(S.current)} moved ${n} from ${esc(TERRS[from].name)} to ${esc(TERRS[to].name)}.`, S.current);
+        endTurn();
+      }
+
+      function endTurn() {
+        if (S.phase === 'attack' && S.pending) return;
+        const p = S.current;
+        if (S.conquered) {
+          if (!S.deck.length && S.discard.length) { S.deck = shuffle(S.discard); S.discard = []; }
+          if (S.deck.length) {
+            player(p).cards.push(S.deck.pop());
+            log(`${pName(p)} earned a card.`, p);
+          }
+        }
+        const n = S.players.length;
+        let next = p;
+        for (let k = 1; k <= n; k++) {
+          const q = (p + k) % n;
+          if (S.players[q].alive) { next = q; break; }
+        }
+        startTurn(next);
+        commit();
+      }
+
+      function nextStep() {
+        if (!S || S.showCurtain || isAI(S.current)) return;
+        if (S.phase === 'reinforce') finishReinforce();
+        else if (S.phase === 'attack') endAttack();
+        else if (S.phase === 'fortify') endTurn();
+      }
+
+      function cancelSelection() {
+        if (!S || S.pending) return;
+        if (ui.contFocus !== null) { ui.contFocus = null; render(); return; }
+        if (ui.target !== null) ui.target = null;
+        else ui.sel = null;
+        render();
+      }
+
+      // ---------- Computer opponents ----------
+      // Exact odds that an attacker with `a` spare armies (all but the one left behind) takes a
+      // territory held by `d` defenders, rolling every round with the most dice allowed.
+      const ODDS_CAP = 120;
+      const ROUND_OUTCOMES = (() => {
+        const table = {};
+        for (let ad = 1; ad <= 3; ad++) {
+          for (let dd = 1; dd <= 2; dd++) {
+            const counts = new Map();
+            const total = 6 ** (ad + dd);
+            for (let k = 0; k < total; k++) {
+              let x = k;
+              const dice = [];
+              for (let j = 0; j < ad + dd; j++) { dice.push(1 + (x % 6)); x = Math.floor(x / 6); }
+              const a = dice.slice(0, ad).sort((p, q) => q - p);
+              const d = dice.slice(ad).sort((p, q) => q - p);
+              let al = 0;
+              let dl = 0;
+              for (let i = 0; i < Math.min(ad, dd); i++) { if (a[i] > d[i]) dl++; else al++; }
+              counts.set(`${al},${dl}`, (counts.get(`${al},${dl}`) || 0) + 1);
+            }
+            table[`${ad},${dd}`] = [...counts].map(([key, n]) => { const [al, dl] = key.split(',').map(Number); return { al, dl, p: n / total }; });
+          }
+        }
+        return table;
+      })();
+      const ODDS = (() => {
+        const t = Array.from({ length: ODDS_CAP + 1 }, () => new Float64Array(ODDS_CAP + 1));
+        for (let a = 0; a <= ODDS_CAP; a++) {
+          for (let d = 0; d <= ODDS_CAP; d++) {
+            if (d === 0) { t[a][d] = 1; continue; }
+            if (a === 0) { t[a][d] = 0; continue; }
+            let p = 0;
+            for (const o of ROUND_OUTCOMES[`${Math.min(3, a)},${Math.min(2, d)}`]) p += o.p * t[Math.max(0, a - o.al)][Math.max(0, d - o.dl)];
+            t[a][d] = p;
+          }
+        }
+        return t;
+      })();
+      const winProb = (a, d) => {
+        if (d <= 0) return 1;
+        if (a <= 0) return 0;
+        if (a > ODDS_CAP || d > ODDS_CAP) {
+          const k = ODDS_CAP / Math.max(a, d);
+          a = Math.max(1, Math.round(a * k));
+          d = Math.max(1, Math.round(d * k));
+        }
+        return ODDS[a][d];
+      };
+
+      const AI_LEVELS = {
+        easy: { threshold: 0.78, cardChase: 0.78, elim: 0.78, weigh: false, noise: 0.5, maxEngage: 5, tradeEarly: false, fortify: 0.5 },
+        normal: { threshold: 0.62, cardChase: 0.45, elim: 0.5, weigh: true, noise: 0.12, maxEngage: 40, tradeEarly: true, fortify: 1 },
+        hard: { threshold: 0.52, cardChase: 0.32, elim: 0.35, weigh: true, noise: 0, maxEngage: 80, tradeEarly: true, fortify: 1 }
+      };
+      const AI_SPEEDS = { slow: 1100, normal: 550, fast: 180, instant: 0 };
+      const SPEED_KEY = 'conquest-ai-speed';
+      let aiSpeed = 'normal';
+      try { const v = localStorage.getItem(SPEED_KEY); if (v && v in AI_SPEEDS) aiSpeed = v; } catch (err) { /* optional */ }
+      const isAI = p => !!(S && S.players[p] && S.players[p].ai);
+      const humansAlive = () => S.players.filter(pl => pl.alive && !pl.ai).length;
+      const aiLevel = () => AI_LEVELS[S.aiLevel] || AI_LEVELS.normal;
+      const CONT_SIZE = CONTINENTS.map((_, ci) => TERRS.filter(t => t.cont === ci).length);
+      const ownedIn = (p, ci) => TERRS.reduce((n, t) => n + (t.cont === ci && S.owner[t.i] === p ? 1 : 0), 0);
+      const enemyNeighbours = (t, p) => TERRS[t].adj.filter(o => S.owner[o] !== p);
+
+      // How much a territory is worth taking for player p.
+      function targetValue(p, e) {
+        if (!aiLevel().weigh) return 1;
+        const ci = TERRS[e].cont;
+        const size = CONT_SIZE[ci];
+        const mine = ownedIn(p, ci);
+        const bonus = CONTINENTS[ci].bonus;
+        let v = 1 + 3 * (mine + 1) / size + bonus / size;
+        if (mine + 1 === size) v += bonus * 1.5;
+        const o = S.owner[e];
+        if (contHolder(ci) === o) v += bonus;
+        const left = countOwned(o);
+        if (left <= 3) v += 2 + player(o).cards.length * 1.2;
+        return v;
+      }
+
+      // Which empty territory to claim: build towards continents the player is already
+      // winning (and that rivals have not contested), next to territories it holds.
+      function claimTarget(p, smart) {
+        const free = TERRS.filter(t => S.owner[t.i] === -1).map(t => t.i);
+        if (!smart) return free[randInt(free.length)];
+        let best = free[0];
+        let bestScore = -Infinity;
+        free.forEach(t => {
+          const ci = TERRS[t].cont;
+          const size = CONT_SIZE[ci];
+          const mine = ownedIn(p, ci);
+          const rivals = TERRS.filter(x => x.cont === ci && S.owner[x.i] >= 0 && S.owner[x.i] !== p).length;
+          const friends = TERRS[t].adj.filter(o => S.owner[o] === p).length;
+          const score = (2 * mine - 1.5 * rivals) / size * 3 + CONTINENTS[ci].bonus / size + friends * 0.6 + Math.random() * 0.3;
+          if (score > bestScore) { bestScore = score; best = t; }
+        });
+        return best;
+      }
+
+      // Where to put new armies: the frontier territory that sets up the most valuable attack,
+      // with extra weight for defending a continent the player already holds.
+      function placementTarget(p, extra) {
+        const mine = owned(p);
+        const frontier = mine.filter(t => enemyNeighbours(t, p).length);
+        if (!frontier.length) return mine[0];
+        if (!aiLevel().weigh) return frontier[randInt(frontier.length)];
+        let best = frontier[0];
+        let bestScore = -Infinity;
+        frontier.forEach(t => {
+          const foes = enemyNeighbours(t, p);
+          let attack = 0;
+          foes.forEach(e => { attack = Math.max(attack, targetValue(p, e) * winProb(S.armies[t] - 1 + extra, S.armies[e])); });
+          const threat = foes.reduce((n, e) => n + S.armies[e], 0);
+          const holds = contHolder(TERRS[t].cont) === p ? CONTINENTS[TERRS[t].cont].bonus : 0;
+          const defend = holds * 0.35 * threat / (S.armies[t] + extra + 1);
+          const score = attack + defend + Math.random() * aiLevel().noise;
+          if (score > bestScore) { bestScore = score; best = t; }
+        });
+        return best;
+      }
+
+      function bestAttack(p) {
+        const lvl = aiLevel();
+        let best = null;
+        owned(p).forEach(t => {
+          if (S.armies[t] < 2) return;
+          enemyNeighbours(t, p).forEach(e => {
+            const pr = winProb(S.armies[t] - 1, S.armies[e]);
+            let need = lvl.threshold;
+            if (!S.conquered) need = Math.min(need, lvl.cardChase);
+            if (countOwned(S.owner[e]) === 1) need = Math.min(need, lvl.elim);
+            if (pr < need) return;
+            const score = pr * targetValue(p, e) + Math.random() * lvl.noise;
+            if (!best || score > best.score) best = { from: t, to: e, need, score };
+          });
+        });
+        return best;
+      }
+
+      function aiMoveAmount() {
+        const { from, to, min, max } = S.pending;
+        const p = S.current;
+        const behind = enemyNeighbours(from, p);
+        if (!behind.length) return max;
+        if (!enemyNeighbours(to, p).length) return min;
+        const threat = behind.reduce((n, e) => n + S.armies[e], 0);
+        return clamp(max - Math.ceil(threat * 0.5), min, max);
+      }
+
+      function aiFortifyPlan(p) {
+        const interior = owned(p).filter(t => S.armies[t] > 1 && !enemyNeighbours(t, p).length).sort((a, b) => S.armies[b] - S.armies[a]);
+        for (const t of interior) {
+          let dest = null;
+          let bestThreat = -Infinity;
+          reachable(t).forEach(f => {
+            if (f === t) return;
+            const foes = enemyNeighbours(f, p);
+            if (!foes.length) return;
+            const threat = foes.reduce((n, e) => n + S.armies[e], 0) - S.armies[f];
+            if (threat > bestThreat) { bestThreat = threat; dest = f; }
+          });
+          if (dest !== null) return { from: t, to: dest, n: S.armies[t] - 1 };
+        }
+        return null;
+      }
+
+      // One visible action per call; returns false when there is nothing for the computer to do.
+      function aiAct() {
+        const p = S.current;
+        const lvl = aiLevel();
+        if (ui.aiTurn !== S.turn) { ui.aiTurn = S.turn; ui.aiEngagements = 0; }
+        if (S.phase === 'setup') {
+          if (claiming()) {
+            const t = claimTarget(p, lvl.weigh);
+            ui.sel = t;
+            setupPlace(t);
+            return true;
+          }
+          const t = placementTarget(p, S.setupLeft);
+          const n = Math.min(S.setupLeft, S.pool[p]);
+          S.armies[t] += n;
+          S.pool[p] -= n;
+          S.setupLeft = 0;
+          popBadge(t);
+          ui.sel = t;
+          advanceSetup();
+          commit();
+          return true;
+        }
+        if (S.phase === 'reinforce') {
+          if (bestSet(p) && (mustTrade() || lvl.tradeEarly)) { tradeCards(); return true; }
+          if (S.reinforce > 0) {
+            const t = placementTarget(p, S.reinforce);
+            const n = lvl.weigh ? S.reinforce : Math.max(1, Math.ceil(S.reinforce / 2));
+            ui.sel = t;
+            S.armies[t] += n;
+            S.reinforce -= n;
+            S.placements.push([t, n]);
+            popBadge(t);
+            commit();
+            return true;
+          }
+          finishReinforce();
+          return true;
+        }
+        if (S.phase === 'attack') {
+          if (S.pending) {
+            applyMove(aiMoveAmount());
+            commit();
+            return true;
+          }
+          const move = ui.aiEngagements < lvl.maxEngage ? bestAttack(p) : null;
+          if (!move) { endAttack(); return true; }
+          ui.aiEngagements++;
+          ui.sel = move.from;
+          ui.target = move.to;
+          const { from, to, need } = move;
+          attack(true, () => winProb(S.armies[from] - 1, S.armies[to]) >= need * 0.7);
+          return true;
+        }
+        if (S.phase === 'fortify') {
+          const plan = Math.random() < lvl.fortify ? aiFortifyPlan(p) : null;
+          if (plan) {
+            ui.sel = plan.from;
+            ui.target = plan.to;
+            ui.moveN = plan.n;
+            fortify();
+          } else {
+            endTurn();
+          }
+          return true;
+        }
+        return false;
+      }
+
+      let aiTimer = null;
+      function scheduleAI() {
+        clearTimeout(aiTimer);
+        if (!S || S.phase === 'over' || !isAI(S.current) || [els.setup, els.help].some(o => !o.hidden)) return;
+        aiTimer = setTimeout(() => {
+          if (!S || S.phase === 'over' || !isAI(S.current) || [els.setup, els.help].some(o => !o.hidden)) return;
+          aiAct();
+        }, AI_SPEEDS[aiSpeed] * (S.phase === 'setup' ? 0.4 : 1));
+      }
+      function setSpeed(v) {
+        if (!(v in AI_SPEEDS)) return;
+        aiSpeed = v;
+        try { localStorage.setItem(SPEED_KEY, v); } catch (err) { /* optional */ }
+        render();
+        scheduleAI();
+      }
+
+      // ---------- Map interaction ----------
+      function activate(t) {
+        if (!S || S.phase === 'over' || S.showCurtain || anyOverlayOpen()) return;
+        if (ui.contFocus !== null) ui.contFocus = null;
+        if (isAI(S.current)) {
+          showHint(t, true);
+          return flash(`${S.players[S.current].name} is playing. Wait for your turn.`);
+        }
+        switch (S.phase) {
+          case 'setup': setupPlace(t); break;
+          case 'reinforce': reinforcePlace(t); break;
+          case 'attack': attackTap(t); break;
+          case 'fortify': fortifyTap(t); break;
+        }
+        // Describe the territory as it is after the tap (e.g. once claimed).
+        showHint(t, true);
+      }
+
+      function attackTap(t) {
+        if (S.pending) return flash('Choose how many armies to move in first.');
+        if (S.owner[t] === S.current) {
+          if (ui.sel === t) resetSelection();
+          else if (canAttackFrom(t)) { ui.sel = t; ui.target = null; }
+          else if (S.armies[t] < 2) flash(`${TERRS[t].name} needs at least 2 armies to attack.`);
+          else flash(`${TERRS[t].name} has no enemy neighbours.`);
+          return render();
+        }
+        if (ui.sel === null) return flash('First choose one of your territories to attack from.');
+        if (!TERRS[ui.sel].adj.includes(t)) return flash(`${TERRS[t].name} is not next to ${TERRS[ui.sel].name}.`);
+        ui.target = t;
+        ui.dice = 3;
+        render();
+      }
+
+      function fortifyTap(t) {
+        if (S.owner[t] !== S.current) return flash('Fortify between your own territories.');
+        if (ui.sel === t) { resetSelection(); return render(); }
+        if (ui.sel !== null && reachable(ui.sel).has(t)) {
+          ui.target = t;
+          ui.moveN = S.armies[ui.sel] - 1;
+          return render();
+        }
+        if (canFortifyFrom(t)) {
+          ui.sel = t;
+          ui.target = null;
+          ui.moveN = S.armies[t] - 1;
+          return render();
+        }
+        if (ui.sel !== null) return flash(`${TERRS[t].name} is not connected to ${TERRS[ui.sel].name} through your territories.`);
+        flash(S.armies[t] < 2 ? `${TERRS[t].name} needs at least 2 armies to move troops.` : `${TERRS[t].name} has no friendly neighbours.`);
+      }
+
+      // ---------- Build the SVG ----------
+      const terrNodes = [];
+      const fillNodes = [];
+      const outlineNodes = [];
+      const badgeNodes = [];
+      const anchors = [];
+
+      function buildMap() {
+        const defs = el('defs', {}, svg);
+        const pat = el('pattern', { id: 'cellgrid', width: CS, height: CS, patternUnits: 'userSpaceOnUse' }, defs);
+        el('path', { d: `M ${CS} 0 V ${CS} H 0`, fill: 'none', stroke: 'rgba(170,205,245,.07)', 'stroke-width': 1 }, pat);
+        el('rect', { x: -2000, y: -2000, width: MW + 4000, height: MH + 4000, fill: 'url(#cellgrid)', class: 'grid-overlay' }, svg);
+
+        const lanes = el('g', {}, svg);
+        const lands = el('g', {}, svg);
+        const lines = el('g', {}, svg);
+        const outlines = el('g', {}, svg);
+        const badges = el('g', {}, svg);
+
+        // Sea lanes: any neighbour pair that does not share a land edge.
+        const touching = new Set();
+        TERRS.forEach(t => t.cells.forEach(([c, r]) => {
+          [[1, 0], [0, 1]].forEach(([dc, dr]) => {
+            const o = cellAt(c + dc, r + dr);
+            if (o !== '.' && o !== t.code) touching.add([t.code, o].sort().join(''));
+          });
+        }));
+        const done = new Set();
+        TERRS.forEach(t => t.adj.forEach(o => {
+          const key = [t.code, TERRS[o].code].sort().join('');
+          if (touching.has(key) || done.has(key)) return;
+          done.add(key);
+          const pair = [t.code, TERRS[o].code].sort().join('');
+          if (pair === [...WRAP].sort().join('')) {
+            // Klondike ↔ Chukotka wraps around the edge of the map.
+            const ak = TERRS[CODE_INDEX.get(WRAP[0])].cells.reduce((m, cell) => cell[0] < m[0] ? cell : m);
+            const kk = TERRS[CODE_INDEX.get(WRAP[1])].cells.reduce((m, cell) => cell[0] > m[0] ? cell : m);
+            el('line', { class: 'lane', x1: ak[0] * CS + CS / 2, y1: ak[1] * CS + CS / 2, x2: -14, y2: ak[1] * CS + CS / 2 }, lanes);
+            el('line', { class: 'lane', x1: kk[0] * CS + CS / 2, y1: kk[1] * CS + CS / 2, x2: MW + 14, y2: kk[1] * CS + CS / 2 }, lanes);
+            // Both labels sit in open sea above the two territories.
+            const ta = el('text', { class: 'wrap-arrow', x: 2, y: CS * 1.6, 'text-anchor': 'start' }, lanes);
+            ta.textContent = '◂ to Chukotka';
+            const tk = el('text', { class: 'wrap-arrow', x: MW - 2, y: CS * 0.7, 'text-anchor': 'end' }, lanes);
+            tk.textContent = 'to Klondike ▸';
+            return;
+          }
+          let best = null;
+          let bd = Infinity;
+          t.cells.forEach(a => TERRS[o].cells.forEach(b => {
+            const d = (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+            if (d < bd) { bd = d; best = [a, b]; }
+          }));
+          el('line', {
+            class: 'lane',
+            x1: best[0][0] * CS + CS / 2, y1: best[0][1] * CS + CS / 2,
+            x2: best[1][0] * CS + CS / 2, y2: best[1][1] * CS + CS / 2
+          }, lanes);
+        }));
+
+        let borderD = '';
+        let contD = '';
+        let coastD = '';
+        TERRS.forEach(t => {
+          const g = el('g', { class: 'terr', 'data-t': t.i, tabindex: '0', role: 'button' }, lands);
+          let d = '';
+          let outlineD = '';
+          t.cells.forEach(([c, r]) => {
+            const x = c * CS;
+            const y = r * CS;
+            d += `M${x} ${y}h${CS}v${CS}h-${CS}z`;
+            const sides = [
+              [cellAt(c, r - 1), `M${x} ${y}h${CS}`],
+              [cellAt(c + 1, r), `M${x + CS} ${y}v${CS}`],
+              [cellAt(c, r + 1), `M${x} ${y + CS}h${CS}`],
+              [cellAt(c - 1, r), `M${x} ${y}v${CS}`]
+            ];
+            sides.forEach(([o, seg], k) => {
+              if (o === t.code) return;
+              outlineD += seg;
+              if (o === '.') coastD += seg;
+              else if (k < 2) {
+                // Draw each shared border once (from the top/right side of the cell).
+                if (TERRS[CODE_INDEX.get(o)].cont !== t.cont) contD += seg;
+                else borderD += seg;
+              }
+            });
+          });
+          fillNodes[t.i] = el('path', { class: 'fill', d, fill: '#24364f' }, g);
+          terrNodes[t.i] = g;
+          outlineNodes[t.i] = el('path', { class: 'outline', d: outlineD }, outlines);
+          g.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(t.i); }
+          });
+          g.addEventListener('focus', () => {
+            let visible = true;
+            try { visible = g.matches(':focus-visible'); } catch (err) { /* older browsers */ }
+            if (!visible) return;
+            outlineNodes[t.i].classList.add('focus');
+            showHint(t.i);
+          });
+          g.addEventListener('blur', () => { outlineNodes[t.i].classList.remove('focus'); hideHint(); });
+
+          // Badge anchor: the cell deepest inside the territory, nearest its centre.
+          const set = new Set(t.cells.map(([c, r]) => `${c},${r}`));
+          const cx = t.cells.reduce((s, [c]) => s + c, 0) / t.cells.length;
+          const cy = t.cells.reduce((s, [, r]) => s + r, 0) / t.cells.length;
+          let bestCell = t.cells[0];
+          let bestScore = -Infinity;
+          t.cells.forEach(([c, r]) => {
+            let depth = 0;
+            while (depth < 6) {
+              const k = depth + 1;
+              let inside = true;
+              for (let dc = -k; dc <= k && inside; dc++) {
+                for (let dr = -k; dr <= k && inside; dr++) {
+                  if (Math.abs(dc) + Math.abs(dr) <= k && !set.has(`${c + dc},${r + dr}`)) inside = false;
+                }
+              }
+              if (!inside) break;
+              depth++;
+            }
+            const score = depth * 10 - Math.hypot(c - cx, r - cy);
+            if (score > bestScore) { bestScore = score; bestCell = [c, r]; }
+          });
+          anchors[t.i] = [bestCell[0] * CS + CS / 2, bestCell[1] * CS + CS / 2];
+        });
+        el('path', { class: 'borders', d: borderD }, lines);
+        el('path', { class: 'cont-borders', d: contD }, lines);
+        el('path', { class: 'coast', d: coastD }, lines);
+
+        TERRS.forEach(t => {
+          const b = el('g', { class: 'badge', 'data-t': t.i, 'aria-hidden': 'true' }, badges);
+          el('circle', { r: 11, fill: '#3a4d6a' }, b);
+          el('text', { class: 'num' }, b);
+          const lbl = el('text', { class: 'lbl', y: 21 }, b);
+          lbl.textContent = t.label;
+          badgeNodes[t.i] = b;
+        });
+      }
+
+      // ---------- Viewport (pan & zoom) ----------
+      let vb = { x: 0, y: 0, w: MW, h: MH };
+      let fitted = true;
+      let badgeScale = 1;
+      const box = () => {
+        const r = mapWrap.getBoundingClientRect();
+        return { w: Math.max(1, r.width), h: Math.max(1, r.height), l: r.left, t: r.top };
+      };
+      // On stacked (portrait) layouts the zoom buttons run along the bottom of the map,
+      // so spare height goes below the map there; otherwise the map is centred.
+      const stackedQuery = window.matchMedia ? window.matchMedia('(max-width: 899px) and (orientation: portrait), (max-width: 640px)') : null;
+      const fitTop = h => (stackedQuery && stackedQuery.matches ? -15 : MH / 2 - h / 2);
+      const fitBox = () => {
+        const { w, h } = box();
+        const bw = MW + 60;
+        const bh = MH + 30;
+        const aspect = w / h;
+        let fw;
+        let fh;
+        if (bw / bh > aspect) { fw = bw; fh = bw / aspect; } else { fh = bh; fw = bh * aspect; }
+        return { x: MW / 2 - fw / 2, y: fitTop(fh), w: fw, h: fh };
+      };
+      function setView(next) {
+        const f = fitBox();
+        const { w, h } = box();
+        const vw = clamp(next.w, f.w / 7, f.w);
+        const vh = vw * h / w;
+        let x = next.x;
+        let y = next.y;
+        if (vw >= MW + 60) x = MW / 2 - vw / 2;
+        else x = clamp(x, -30, MW + 30 - vw);
+        if (vh >= MH + 30) y = fitTop(vh);
+        else y = clamp(y, -15, MH + 15 - vh);
+        vb = { x, y, w: vw, h: vh };
+        fitted = vw >= f.w - 0.5;
+        svg.setAttribute('viewBox', `${vb.x.toFixed(2)} ${vb.y.toFixed(2)} ${vb.w.toFixed(2)} ${vb.h.toFixed(2)}`);
+        const ppu = w / vw;
+        svg.classList.toggle('show-labels', ppu >= 0.72);
+        const nextScale = Math.max(1, 9 / (11 * ppu));
+        if (Math.abs(nextScale - badgeScale) > 0.01 || !badgeNodes[0].hasAttribute('transform')) {
+          badgeScale = nextScale;
+          placeBadges();
+        }
+      }
+      function placeBadges() {
+        badgeNodes.forEach((b, i) => b.setAttribute('transform', `translate(${anchors[i][0]} ${anchors[i][1]}) scale(${badgeScale.toFixed(3)})`));
+      }
+      function fitMap() { setView(fitBox()); }
+      const toSvg = (cx, cy, view = vb) => {
+        const b = box();
+        return { x: view.x + (cx - b.l) / b.w * view.w, y: view.y + (cy - b.t) / b.h * view.h };
+      };
+      function zoomAt(factor, cx, cy) {
+        const b = box();
+        if (cx === undefined) { cx = b.l + b.w / 2; cy = b.t + b.h / 2; }
+        const p = toSvg(cx, cy);
+        const nw = vb.w / factor;
+        const nh = nw * b.h / b.w;
+        setView({ x: p.x - (p.x - vb.x) * (nw / vb.w), y: p.y - (p.y - vb.y) * (nh / vb.h), w: nw, h: nh });
+      }
+
+      const pointers = new Map();
+      let gesture = null;
+      const territoryFromTarget = target => {
+        const node = target && target.closest ? target.closest('[data-t]') : null;
+        return node ? Number(node.getAttribute('data-t')) : null;
+      };
+      const nearestTerritory = (cx, cy, maxPx) => {
+        const p = toSvg(cx, cy);
+        const b = box();
+        const maxUnits = maxPx * vb.w / b.w;
+        let best = null;
+        let bd = maxUnits;
+        TERRS.forEach(t => t.cells.forEach(([c, r]) => {
+          const dx = Math.max(c * CS - p.x, 0, p.x - (c + 1) * CS);
+          const dy = Math.max(r * CS - p.y, 0, p.y - (r + 1) * CS);
+          const d = Math.hypot(dx, dy);
+          if (d < bd) { bd = d; best = t.i; }
+        }));
+        return best;
+      };
+
+      svg.addEventListener('pointerdown', e => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        try { svg.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (pointers.size === 1) {
+          gesture = { type: 'tap', sx: e.clientX, sy: e.clientY, vb0: { ...vb }, terr: territoryFromTarget(e.target), kind: e.pointerType };
+        } else if (pointers.size === 2) {
+          const [a, b] = [...pointers.values()];
+          const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+          gesture = { type: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, vb0: { ...vb }, m0: toSvg(mid.x, mid.y) };
+        }
+      });
+      svg.addEventListener('pointermove', e => {
+        if (e.pointerType === 'mouse' && !pointers.size) {
+          const t = territoryFromTarget(e.target);
+          if (t !== null) showHint(t); else hideHint();
+        }
+        if (!pointers.has(e.pointerId)) return;
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (!gesture) return;
+        const b = box();
+        if (gesture.type === 'tap' || gesture.type === 'pan') {
+          const dx = e.clientX - gesture.sx;
+          const dy = e.clientY - gesture.sy;
+          if (gesture.type === 'tap' && Math.hypot(dx, dy) > 8) { gesture.type = 'pan'; svg.classList.add('dragging'); }
+          if (gesture.type === 'pan') {
+            setView({ x: gesture.vb0.x - dx * gesture.vb0.w / b.w, y: gesture.vb0.y - dy * gesture.vb0.h / b.h, w: gesture.vb0.w, h: gesture.vb0.h });
+          }
+        } else if (gesture.type === 'pinch' && pointers.size >= 2) {
+          const [p1, p2] = [...pointers.values()];
+          const d = Math.hypot(p1.x - p2.x, p1.y - p2.y) || 1;
+          const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+          const f = fitBox();
+          const nw = clamp(gesture.vb0.w * gesture.d0 / d, f.w / 7, f.w);
+          const scale = nw / b.w;
+          setView({ x: gesture.m0.x - (mid.x - b.l) * scale, y: gesture.m0.y - (mid.y - b.t) * scale, w: nw, h: nw * b.h / b.w });
+        }
+      });
+      const endPointer = e => {
+        if (!pointers.has(e.pointerId)) return;
+        pointers.delete(e.pointerId);
+        if (gesture && gesture.type === 'tap' && e.type === 'pointerup') {
+          let t = gesture.terr;
+          if (t === null && gesture.kind !== 'mouse') t = nearestTerritory(e.clientX, e.clientY, 22);
+          if (t !== null) activate(t);
+        }
+        if (pointers.size === 1 && gesture && gesture.type === 'pinch') {
+          const [rest] = [...pointers.values()];
+          gesture = { type: 'pan', sx: rest.x, sy: rest.y, vb0: { ...vb } };
+        } else if (!pointers.size) {
+          gesture = null;
+          svg.classList.remove('dragging');
+        }
+      };
+      svg.addEventListener('pointerup', endPointer);
+      svg.addEventListener('pointercancel', endPointer);
+      svg.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !pointers.size) hideHint(); });
+      svg.addEventListener('wheel', e => {
+        e.preventDefault();
+        const scale = e.deltaMode === 1 ? 16 : 1;
+        zoomAt(Math.exp(-e.deltaY * scale * 0.0015), e.clientX, e.clientY);
+      }, { passive: false });
+      // Stop iOS Safari from treating pinches on the map as page zoom.
+      ['gesturestart', 'gesturechange'].forEach(type => mapWrap.addEventListener(type, e => e.preventDefault()));
+      document.querySelectorAll('[data-zoom]').forEach(btn => btn.addEventListener('click', () => {
+        const z = btn.dataset.zoom;
+        if (z === 'in') zoomAt(1.5);
+        else if (z === 'out') zoomAt(1 / 1.5);
+        else fitMap();
+      }));
+      if (window.ResizeObserver) {
+        new ResizeObserver(() => {
+          if (fitted) fitMap();
+          else setView(vb);
+        }).observe(mapWrap);
+      } else {
+        window.addEventListener('resize', () => (fitted ? fitMap() : setView(vb)));
+      }
+
+      // ---------- Feedback ----------
+      let toastTimer = null;
+      function flash(msg) {
+        els.toast.textContent = msg;
+        els.toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => els.toast.classList.remove('show'), 2200);
+      }
+      let hintTimer = null;
+      function showHint(t, transient = false) {
+        if (!S) return;
+        clearTimeout(hintTimer);
+        if (transient) hintTimer = setTimeout(hideHint, 2600);
+        const o = S.owner[t];
+        const sw = o >= 0 ? `<span class="sw" style="background:${colorOf(o).main}"></span>` : '';
+        const holder = o >= 0 ? `${pName(o)} · ${S.armies[t]} ${S.armies[t] === 1 ? 'army' : 'armies'}` : 'Unclaimed';
+        els.hint.innerHTML = `${sw}<strong>${esc(TERRS[t].name)}</strong> · ${esc(CONTINENTS[TERRS[t].cont].name)} · ${holder}`;
+        els.hint.classList.add('show');
+      }
+      function hideHint() { els.hint.classList.remove('show'); }
+      function popBadge(t) { ui.popped.add(t); }
+
+      // ---------- Rendering ----------
+      function highlights() {
+        const dim = new Set();
+        const out = { dim, targets: new Set(), sel: null, attackTarget: null, moveTarget: null };
+        if (!S) return out;
+        if (ui.contFocus !== null) {
+          TERRS.forEach(t => { if (t.cont !== ui.contFocus) dim.add(t.i); });
+          return out;
+        }
+        const cur = S.current;
+        if (S.phase === 'setup' && claiming()) {
+          TERRS.forEach(t => { if (S.owner[t.i] !== -1) dim.add(t.i); });
+        } else if (S.phase === 'setup' || S.phase === 'reinforce') {
+          if (S.phase === 'setup' || S.reinforce > 0) TERRS.forEach(t => { if (S.owner[t.i] !== cur) dim.add(t.i); });
+        } else if (S.phase === 'attack') {
+          if (S.pending) {
+            out.sel = S.pending.from;
+            out.moveTarget = S.pending.to;
+            TERRS.forEach(t => { if (t.i !== S.pending.from && t.i !== S.pending.to) dim.add(t.i); });
+          } else if (ui.sel !== null) {
+            out.sel = ui.sel;
+            TERRS[ui.sel].adj.forEach(o => { if (S.owner[o] !== cur) out.targets.add(o); });
+            out.attackTarget = ui.target;
+            TERRS.forEach(t => { if (t.i !== ui.sel && !out.targets.has(t.i)) dim.add(t.i); });
+          } else {
+            TERRS.forEach(t => { if (!canAttackFrom(t.i)) dim.add(t.i); });
+          }
+        } else if (S.phase === 'fortify') {
+          if (ui.sel !== null) {
+            out.sel = ui.sel;
+            const reach = reachable(ui.sel);
+            reach.delete(ui.sel);
+            reach.forEach(t => out.targets.add(t));
+            out.moveTarget = ui.target;
+            TERRS.forEach(t => { if (t.i !== ui.sel && !reach.has(t.i)) dim.add(t.i); });
+          } else {
+            TERRS.forEach(t => { if (!canFortifyFrom(t.i)) dim.add(t.i); });
+          }
+        }
+        return out;
+      }
+
+      function renderMap() {
+        const h = highlights();
+        svg.classList.toggle('has-focus-cont', ui.contFocus !== null);
+        TERRS.forEach(t => {
+          const o = S.owner[t.i];
+          const col = o >= 0 ? colorOf(o) : { main: '#3a4d6a', land: '#24364f', ink: '#fff' };
+          fillNodes[t.i].setAttribute('fill', col.land);
+          terrNodes[t.i].classList.toggle('dim', h.dim.has(t.i));
+          terrNodes[t.i].setAttribute('aria-label', `${t.name}, ${o >= 0 ? S.players[o].name : 'unclaimed'}, ${S.armies[t.i]} ${S.armies[t.i] === 1 ? 'army' : 'armies'}`);
+          const outline = outlineNodes[t.i];
+          const focused = outline.classList.contains('focus');
+          let cls = 'outline';
+          if (h.sel === t.i) cls += ' sel';
+          else if (h.attackTarget === t.i) cls += ' attack-target';
+          else if (h.moveTarget === t.i) cls += ' move-target';
+          else if (h.targets.has(t.i)) cls += ' target';
+          if (focused) cls += ' focus';
+          outline.setAttribute('class', cls);
+          const b = badgeNodes[t.i];
+          b.querySelector('circle').setAttribute('fill', col.main);
+          const num = b.querySelector('.num');
+          num.setAttribute('fill', col.ink);
+          num.textContent = o >= 0 ? S.armies[t.i] : '';
+          b.classList.toggle('dim', h.dim.has(t.i));
+          if (ui.popped.has(t.i)) {
+            b.classList.remove('pop');
+            void b.getBoundingClientRect();
+            b.classList.add('pop');
+          }
+        });
+        ui.popped.clear();
+      }
+
+      function renderPlayers() {
+        els.players.innerHTML = S.players.map((pl, p) => {
+          const c = COLORS[pl.color];
+          const cls = ['player-chip', p === S.current && S.phase !== 'over' ? 'current' : '', pl.alive ? '' : 'out'].join(' ');
+          const terr = countOwned(p);
+          const arm = totalArmies(p);
+          return `<div class="${cls}" style="--pc:${c.main}" aria-label="${esc(pl.name)}${pl.ai ? ' (computer)' : ''}: ${terr} territories, ${arm} armies, ${pl.cards.length} cards${pl.alive ? '' : ', eliminated'}">
+            <span class="sw"></span><b>${esc(pl.name)}</b>${pl.ai ? '<span class="cpu">CPU</span>' : ''}
+            <span class="st" title="Territories">◼${terr}</span><span class="st" title="Armies">▲${arm}</span><span class="st" title="Cards">▭${pl.cards.length}</span>
+          </div>`;
+        }).join('');
+        const chip = els.players.querySelector('.current');
+        if (chip && chip.scrollIntoView) chip.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
+
+      function renderPhase() {
+        const steps = ['Reinforce', 'Attack', 'Fortify'];
+        const idx = { reinforce: 0, attack: 1, fortify: 2 }[S.phase];
+        const c = colorOf(S.current);
+        els.phaseSteps.style.setProperty('--pc', c.main);
+        els.phaseSteps.style.setProperty('--pci', c.ink);
+        els.phaseSteps.innerHTML = S.phase === 'setup'
+          ? `<span class="on" style="grid-column:1/-1">${claiming() ? 'Claim territories' : 'Deploy starting armies'}</span>`
+          : S.phase === 'over'
+            ? '<span class="on" style="grid-column:1/-1">Victory</span>'
+            : steps.map((s, i) => `<span class="${i === idx ? 'on' : i < idx ? 'done' : ''}">${s}</span>`).join('');
+        const who = S.phase === 'over' ? S.winner : S.current;
+        const kind = isAI(who) ? ' · Computer' : '';
+        const sub = S.phase === 'setup' ? `${S.pool[who]} armies left to deploy${kind}` : S.phase === 'over' ? `Won in ${S.turn} turns` : `Turn ${S.turn}${kind}`;
+        els.turnHead.style.setProperty('--pc', colorOf(who).main);
+        els.turnHead.innerHTML = `<span class="sw" aria-hidden="true"></span><div style="min-width:0"><h2>${pName(who)}</h2><small>${sub}</small></div>`;
+      }
+
+      function stepper(value, min, max, label) {
+        return `<div class="row"><span class="label">${label}</span></div>
+          <div class="stepper">
+            <button type="button" data-action="move-min" aria-label="Minimum">«</button>
+            <button type="button" data-action="move-dec" aria-label="One fewer">−</button>
+            <output aria-live="polite">${value}</output>
+            <button type="button" data-action="move-inc" aria-label="One more">+</button>
+            <button type="button" data-action="move-max" aria-label="Maximum">»</button>
+          </div>
+          <span class="note">Between ${min} and ${max}.</span>`;
+      }
+
+      function diceHtml() {
+        const r = S.lastRoll;
+        if (!r) return '';
+        const n = Math.min(r.a.length, r.d.length);
+        const aDie = r.a.map((v, i) => `<span class="die att${i < n && v <= r.d[i] ? ' lost' : ''}">${v}</span>`).join('');
+        const dDie = r.d.map((v, i) => `<span class="die def${i < n && r.a[i] > v ? ' lost' : ''}">${v}</span>`).join('');
+        const loss = isAI(S.current)
+          ? `attacker lost ${r.lostA}, defender lost ${r.lostD}.`
+          : `you lost ${r.lostA}, they lost ${r.lostD}.`;
+        const summary = r.blitz
+          ? `${r.rounds} round${r.rounds === 1 ? '' : 's'}: ${loss}`
+          : loss.charAt(0).toUpperCase() + loss.slice(1);
+        return `<div class="dice-out" aria-label="Last roll">
+          <div class="dice-row"><span class="label">Attack</span>${aDie}</div>
+          <div class="dice-row"><span class="label">Defend</span>${dDie}</div>
+          <div class="dice-sum">${summary}</div>
+        </div>`;
+      }
+
+      function speedControl() {
+        return `<div class="row" style="justify-content:space-between"><span class="label">Computer speed</span>
+          <div class="seg" role="group" aria-label="Computer speed">
+            ${Object.keys(AI_SPEEDS).map(v => `<button type="button" data-action="speed" data-v="${v}" aria-pressed="${aiSpeed === v}">${v.charAt(0).toUpperCase() + v.slice(1)}</button>`).join('')}
+          </div></div>`;
+      }
+
+      function renderActions() {
+        const cur = S.current;
+        let text = '';
+        let html = '';
+        if (isAI(cur) && S.phase !== 'over') {
+          const doing = {
+            setup: claiming() ? 'is claiming a territory' : 'is deploying armies',
+            reinforce: 'is reinforcing',
+            attack: ui.target !== null ? `is attacking <strong>${esc(TERRS[ui.target].name)}</strong>` : 'is planning an attack',
+            fortify: 'is fortifying'
+          }[S.phase];
+          els.instruction.innerHTML = `<span class="thinking" aria-hidden="true"></span><strong>${pName(cur)}</strong> ${doing}…`;
+          els.actions.innerHTML = (S.phase === 'attack' ? diceHtml() : '') + speedControl();
+          return;
+        }
+        if (S.phase === 'setup' && claiming()) {
+          const left = S.owner.filter(o => o === -1).length;
+          text = `<strong>${pName(cur)}</strong>, tap an empty grey territory to claim it. ${left} ${left === 1 ? 'territory is' : 'territories are'} still unclaimed.`;
+          html = '<div class="row"><button class="btn grow" type="button" data-action="setup-auto">Choose one for me</button></div>';
+        } else if (S.phase === 'setup') {
+          text = S.setupLeft === 1
+            ? `<strong>${pName(cur)}</strong>, tap one of your territories to add an army.`
+            : `<strong>${pName(cur)}</strong>, tap your territories to place <strong>${S.setupLeft}</strong> more ${S.setupLeft === 1 ? 'army' : 'armies'} this round.`;
+          html = `<div class="row"><button class="btn grow" type="button" data-action="setup-auto">Place my remaining ${S.pool[cur]} at random</button></div>`;
+        } else if (S.phase === 'reinforce') {
+          const set = bestSet(cur);
+          const must = mustTrade();
+          if (must) text = `You hold ${player(cur).cards.length} cards: trade a set before placing armies.`;
+          else if (S.reinforce > 0) text = `Tap your territories to place your <strong>${S.reinforce}</strong> ${S.reinforce === 1 ? 'army' : 'armies'}.`;
+          else text = S.returnToAttack ? 'Armies placed. Return to the attack when ready.' : 'All armies placed. Ready to attack.';
+          html += `<div class="row" style="justify-content:space-between"><div><div class="label">To place</div><div class="big-num">${S.reinforce}</div></div>
+            <div class="seg" role="group" aria-label="Armies per tap">
+              ${[1, 5, 'all'].map(v => `<button type="button" data-action="amount" data-v="${v}" aria-pressed="${ui.amount === v}">${v === 'all' ? 'All' : v}</button>`).join('')}
+            </div></div>`;
+          if (must) html += '<p class="warn">Five or more cards in hand means you must trade.</p>';
+          if (set) html += `<button class="btn${must ? ' primary' : ''}" type="button" data-action="trade">Trade a set for +${tradeValue(S.trades)} armies</button>`;
+          html += `<div class="row">
+              <button class="btn" type="button" data-action="undo" ${S.placements.length ? '' : 'disabled'}>Undo</button>
+              <button class="btn primary grow" type="button" data-action="next" ${S.reinforce > 0 || must ? 'disabled' : ''}>${S.returnToAttack ? 'Back to attack' : 'Start attacking'} →</button>
+            </div>`;
+        } else if (S.phase === 'attack') {
+          if (S.pending) {
+            const { from, to, min, max } = S.pending;
+            ui.moveN = clamp(ui.moveN, min, max);
+            text = `<strong>${esc(TERRS[to].name)}</strong> is yours! Move armies in from ${esc(TERRS[from].name)}.`;
+            html = diceHtml() + stepper(ui.moveN, min, max, 'Armies to move') +
+              '<button class="btn primary" type="button" data-action="move-confirm">Move armies</button>';
+          } else if (ui.sel !== null && ui.target !== null) {
+            const from = ui.sel;
+            const to = ui.target;
+            const maxDice = Math.min(3, S.armies[from] - 1);
+            ui.dice = clamp(ui.dice, 1, maxDice);
+            const dc = colorOf(S.owner[to]);
+            text = `Attack <strong>${esc(TERRS[to].name)}</strong> from ${esc(TERRS[from].name)}.`;
+            html = `<div class="matchup">
+                <div class="side" style="--pc:${colorOf(cur).main}"><div class="nm">${esc(TERRS[from].name)}</div><div class="ar">${S.armies[from]}</div></div>
+                <div class="vs">VS</div>
+                <div class="side" style="--pc:${dc.main}"><div class="nm">${esc(TERRS[to].name)}</div><div class="ar">${S.armies[to]}</div></div>
+              </div>
+              <div class="row"><span class="label">Dice</span>
+                <div class="seg" role="group" aria-label="Attack dice">
+                  ${[1, 2, 3].map(v => `<button type="button" data-action="dice" data-v="${v}" aria-pressed="${ui.dice === v}" ${v > maxDice ? 'disabled' : ''}>${v}</button>`).join('')}
+                </div></div>
+              <div class="row">
+                <button class="btn danger grow" type="button" data-action="roll">Roll</button>
+                <button class="btn grow" type="button" data-action="blitz">Blitz</button>
+              </div>
+              ${S.lastRoll && S.lastRoll.to === to && S.lastRoll.from === from ? diceHtml() : ''}
+              <div class="row"><button class="btn" type="button" data-action="cancel">Change target</button>
+              <button class="btn grow" type="button" data-action="next">End attack →</button></div>`;
+          } else if (ui.sel !== null) {
+            text = `Attacking from <strong>${esc(TERRS[ui.sel].name)}</strong> (${S.armies[ui.sel]}). Tap a highlighted enemy territory.`;
+            html = `${diceHtml()}
+              <div class="row"><button class="btn" type="button" data-action="cancel">Cancel</button>
+              <button class="btn grow" type="button" data-action="next">End attack →</button></div>`;
+          } else {
+            text = 'Tap one of your territories with 2+ armies to attack from, or end the attack.';
+            html = `${S.lastRoll ? diceHtml() : ''}<button class="btn primary" type="button" data-action="next">End attack →</button>`;
+          }
+        } else if (S.phase === 'fortify') {
+          if (ui.sel !== null && ui.target !== null) {
+            const max = S.armies[ui.sel] - 1;
+            ui.moveN = clamp(ui.moveN, 1, max);
+            text = `Move armies from <strong>${esc(TERRS[ui.sel].name)}</strong> to <strong>${esc(TERRS[ui.target].name)}</strong>.`;
+            html = stepper(ui.moveN, 1, max, 'Armies to move') +
+              `<div class="row"><button class="btn" type="button" data-action="cancel">Back</button>
+              <button class="btn primary grow" type="button" data-action="fortify">Move &amp; end turn</button></div>`;
+          } else if (ui.sel !== null) {
+            text = `Moving from <strong>${esc(TERRS[ui.sel].name)}</strong>. Tap a highlighted territory you own.`;
+            html = `<div class="row"><button class="btn" type="button" data-action="cancel">Cancel</button>
+              <button class="btn grow" type="button" data-action="next">Skip &amp; end turn</button></div>`;
+          } else {
+            text = 'Optionally move armies once between connected territories, then end your turn.';
+            html = '<button class="btn primary" type="button" data-action="next">End turn</button>';
+          }
+          if (S.conquered) html += '<p class="note">You conquered a territory this turn, so you will earn a card.</p>';
+        } else if (S.phase === 'over') {
+          text = `<strong>${pName(S.winner)}</strong> controls every territory.`;
+          html = '<button class="btn primary" type="button" data-action="new">New campaign</button>';
+        }
+        els.instruction.innerHTML = text;
+        els.actions.innerHTML = html;
+      }
+
+      function renderHand() {
+        if (S.phase === 'setup' || S.phase === 'over') { els.hand.innerHTML = ''; return; }
+        if (S.showCurtain) { els.hand.innerHTML = '<p class="hidden-hand">Cards are hidden until the next player starts their turn.</p>'; return; }
+        if (isAI(S.current)) {
+          const n = player(S.current).cards.length;
+          els.hand.innerHTML = `<p class="hidden-hand">${pName(S.current)} holds ${n} hidden card${n === 1 ? '' : 's'}. Next set: +${tradeValue(S.trades)}</p>`;
+          return;
+        }
+        const cur = S.current;
+        const hand = player(cur).cards;
+        const next = `Next set: +${tradeValue(S.trades)}`;
+        const cards = hand.length
+          ? `<div class="cards">${hand.map(id => {
+              const sym = SYMBOLS[cardSymbol(id)];
+              const isOwned = id < NT && S.owner[id] === cur;
+              return `<div class="card${isOwned ? ' owned' : ''}" title="${sym.name}${id < NT ? ' · ' + esc(TERRS[id].name) : ''}">
+                <span class="ty">${sym.name}</span><span class="sym" aria-hidden="true">${sym.glyph}</span><span class="nm">${id < NT ? esc(TERRS[id].label) : 'Any'}</span></div>`;
+            }).join('')}</div>`
+          : '<p class="hidden-hand">No cards yet. Conquer a territory this turn to earn one.</p>';
+        els.hand.innerHTML = `<div class="hand-head"><span class="label">Your cards (${hand.length})</span><span class="label">${next}</span></div>${cards}`;
+      }
+
+      function renderContinents() {
+        els.continents.innerHTML = CONTINENTS.map((c, ci) => {
+          const h = contHolder(ci);
+          const hc = h >= 0 ? colorOf(h).main : 'transparent';
+          return `<button type="button" class="cont" data-action="cont" data-v="${ci}" aria-pressed="${ui.contFocus === ci}" style="--cc:${c.color};--hc:${hc}"
+            aria-label="${c.name}, bonus ${c.bonus}${h >= 0 ? ', held by ' + esc(S.players[h].name) : ''}">
+            <span class="cdot"></span><span>${c.name}</span><span class="bonus">+${c.bonus}</span><span class="holder${h >= 0 ? ' held' : ''}"></span></button>`;
+        }).join('');
+      }
+
+      function renderLog() {
+        els.log.innerHTML = S.log.slice(0, 40).map(e => `<li style="--lc:${e.p !== null && e.p !== undefined ? COLORS[S.players[e.p].color].main : 'var(--line-strong)'}">${e.m}</li>`).join('');
+      }
+
+      function renderOverlays() {
+        const curtainOn = S.showCurtain && S.phase !== 'over';
+        if (curtainOn) {
+          const c = colorOf(S.current);
+          $('#curtainCard').style.setProperty('--pc', c.main);
+          $('#curtainTitle').textContent = `${S.players[S.current].name}'s turn`;
+          const n = player(S.current).cards.length;
+          $('#curtainText').textContent = `Turn ${S.turn}. Hand the device to ${S.players[S.current].name}. You have ${S.reinforce} armies to place and ${n} card${n === 1 ? '' : 's'}.`;
+        }
+        toggleOverlay(els.curtain, curtainOn, '#curtainGo');
+        const won = S.phase === 'over' && !ui.victorySeen;
+        if (won) {
+          $('#victoryCard').style.setProperty('--pc', colorOf(S.winner).main);
+          $('#victoryTitle').textContent = `${S.players[S.winner].name} conquers the world`;
+          $('#victoryText').textContent = `Every territory fell in ${S.turn} turns.`;
+        }
+        toggleOverlay(els.victory, won, '#victoryNew');
+      }
+
+      function render() {
+        if (!S) return;
+        renderMap();
+        renderPlayers();
+        renderPhase();
+        renderActions();
+        renderHand();
+        renderContinents();
+        renderLog();
+        renderOverlays();
+      }
+
+      // ---------- Overlays ----------
+      let lastFocus = null;
+      function toggleOverlay(node, show, focusSel) {
+        const wasHidden = node.hidden;
+        node.hidden = !show;
+        if (show && wasHidden) {
+          lastFocus = document.activeElement;
+          const f = node.querySelector(focusSel);
+          if (f) setTimeout(() => f.focus({ preventScroll: true }), 30);
+        } else if (!show && !wasHidden && lastFocus && document.contains(lastFocus)) {
+          lastFocus.focus({ preventScroll: true });
+        }
+        if (!show && !wasHidden) scheduleAI();
+      }
+      const anyOverlayOpen = () => [els.setup, els.curtain, els.victory, els.help].some(o => !o.hidden);
+
+      // ---------- Setup sheet ----------
+      let setupCount = 3;
+      const nameInputs = [];
+      function buildSetup() {
+        $('#countSeg').innerHTML = [2, 3, 4, 5, 6].map(n => `<button type="button" data-n="${n}" aria-pressed="${n === setupCount}">${n}</button>`).join('');
+        $('#nameFields').innerHTML = COLORS.map((c, i) => `<div class="name-field" data-i="${i}"><span class="sw" style="background:${c.main}" aria-hidden="true"></span>
+          <input type="text" maxlength="14" value="${c.label}" aria-label="Player ${i + 1} name" autocomplete="off" spellcheck="false">
+          <button type="button" class="kind" data-i="${i}" aria-label="Player ${i + 1} is a computer" aria-pressed="${i > 0}">CPU</button></div>`).join('');
+        $('#nameFields').querySelectorAll('input').forEach(inp => nameInputs.push(inp));
+        $('#nameFields').addEventListener('click', e => {
+          const b = e.target.closest('.kind');
+          if (!b) return;
+          b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+          syncSetup();
+        });
+        $('#skillSeg').addEventListener('click', e => {
+          const b = e.target.closest('[data-skill]');
+          if (!b) return;
+          $('#skillSeg').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+        });
+        $('#countSeg').addEventListener('click', e => {
+          const b = e.target.closest('[data-n]');
+          if (!b) return;
+          setupCount = Number(b.dataset.n);
+          syncSetup();
+        });
+        syncSetup();
+      }
+      function syncSetup() {
+        $('#countSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.n) === setupCount)));
+        $('#nameFields').querySelectorAll('.name-field').forEach((f, i) => { f.hidden = i >= setupCount; });
+        $('#nameFields').querySelectorAll('.kind').forEach(b => { b.textContent = b.getAttribute('aria-pressed') === 'true' ? 'CPU' : 'Human'; });
+        const cpus = [...$('#nameFields').querySelectorAll('.kind')].slice(0, setupCount).filter(b => b.getAttribute('aria-pressed') === 'true').length;
+        $('#skillField').hidden = cpus === 0;
+      }
+      function openSetup() {
+        $('#cancelSetup').hidden = !(S && S.phase !== 'over');
+        toggleOverlay(els.setup, true, '#setupForm .btn.primary');
+      }
+      $('#setupForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const kinds = [...$('#nameFields').querySelectorAll('.kind')];
+        const roster = nameInputs.slice(0, setupCount).map((inp, i) => ({
+          name: inp.value.trim().slice(0, 14) || COLORS[i].label,
+          ai: kinds[i].getAttribute('aria-pressed') === 'true'
+        }));
+        const mode = new FormData(e.target).get('mode') || 'manual';
+        const skill = ($('#skillSeg [aria-pressed="true"]') || {}).dataset?.skill || 'normal';
+        ui.victorySeen = false;
+        ui.contFocus = null;
+        toggleOverlay(els.setup, false);
+        newGame(roster, mode, $('#curtainOpt').checked, skill);
+      });
+      $('#cancelSetup').addEventListener('click', () => toggleOverlay(els.setup, false));
+      $('#newBtn').addEventListener('click', openSetup);
+      $('#helpBtn').addEventListener('click', () => toggleOverlay(els.help, true, '#helpClose'));
+      $('#helpClose').addEventListener('click', () => toggleOverlay(els.help, false));
+      $('#curtainGo').addEventListener('click', () => {
+        S.showCurtain = false;
+        commit();
+      });
+      $('#victoryNew').addEventListener('click', () => { ui.victorySeen = true; render(); openSetup(); });
+      $('#victoryMap').addEventListener('click', () => { ui.victorySeen = true; render(); });
+
+      // ---------- Panel actions ----------
+      document.querySelector('#panel').addEventListener('click', e => {
+        const b = e.target.closest('[data-action]');
+        if (!b || b.disabled || !S) return;
+        const v = b.dataset.v;
+        switch (b.dataset.action) {
+          case 'setup-auto': return setupAuto();
+          case 'amount': ui.amount = v === 'all' ? 'all' : Number(v); return render();
+          case 'trade': return tradeCards();
+          case 'undo': return undoPlacement();
+          case 'next': return nextStep();
+          case 'dice': ui.dice = Number(v); return render();
+          case 'roll': return attack(false);
+          case 'blitz': return attack(true);
+          case 'cancel': return cancelSelection();
+          case 'move-dec': ui.moveN--; return render();
+          case 'move-inc': ui.moveN++; return render();
+          case 'move-min': ui.moveN = S.pending ? S.pending.min : 1; return render();
+          case 'move-max': ui.moveN = 1e9; return render();
+          case 'move-confirm':
+            if (!S.pending) return;
+            applyMove(clamp(ui.moveN, S.pending.min, S.pending.max));
+            return commit();
+          case 'fortify': return fortify();
+          case 'cont': ui.contFocus = ui.contFocus === Number(v) ? null : Number(v); return render();
+          case 'new': return openSetup();
+          case 'speed': return setSpeed(v);
+        }
+      });
+
+      // ---------- Keyboard ----------
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          if (!els.help.hidden) return toggleOverlay(els.help, false);
+          if (!els.setup.hidden && S) return toggleOverlay(els.setup, false);
+          if (!anyOverlayOpen()) cancelSelection();
+          return;
+        }
+        if (e.metaKey || e.ctrlKey || e.altKey || anyOverlayOpen() || !S) return;
+        const tag = (e.target.tagName || '').toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+        const k = e.key.toLowerCase();
+        if (isAI(S.current) && !['+', '=', '-', '_', '0'].includes(k)) return;
+        if (k === 'r' && S.phase === 'attack' && !S.pending) attack(false);
+        else if (k === 'b' && S.phase === 'attack' && !S.pending) attack(true);
+        else if (k === 'n') nextStep();
+        else if (k === 'u' && S.phase === 'reinforce') undoPlacement();
+        else if (k === '+' || k === '=') zoomAt(1.5);
+        else if (k === '-' || k === '_') zoomAt(1 / 1.5);
+        else if (k === '0') fitMap();
+      });
+
+      // ---------- Start ----------
+      buildMap();
+      buildSetup();
+      fitMap();
+      const saved = loadSaved();
+      if (saved) {
+        S = saved;
+        S.players.forEach(pl => { pl.ai = !!pl.ai; });
+        S.aiLevel = S.aiLevel || 'normal';
+        S.setupStep = S.setupStep || 3;
+        resetSelection();
+        render();
+        scheduleAI();
+        flash('Saved game restored.');
+      } else {
+        openSetup();
+        $('#cancelSetup').hidden = true;
+      }
+      if (window.matchMedia && window.matchMedia('(min-width: 900px) and (min-height: 700px)').matches) $('#contDrawer').open = true;
+
+      console.info('Conquest — World Domination | Prompt: Add an equivalent of the classic world-conquest board game · go ahead and create v1 for 2-6 players (paraphrased to remove third-party brand names) | Date: 2 October 2026 | v2 prompt: go ahead and create v2 with computer opponents | v2 date: 2 October 2026 | v3 prompt: Make all the changes to derisk as much as possible (original map, regions and card values) | v3 date: 2 October 2026 | Built with Claude Code');
+    })();
+  </script>
+</body>
+</html>
