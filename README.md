@@ -1,5 +1,7 @@
 # Side Quest
 
+[![Play Side Quest — a pixel-art spacecraft weaves between asteroids and falling blocks](docs/side-quest-splash.jpg)](https://emrahman.github.io/Games/)
+
 A small, dependency-free collection of browser games built for desktop, iPhone, and iPad.
 
 ## [Play the games →](https://emrahman.github.io/Games/)
