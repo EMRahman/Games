@@ -59,6 +59,10 @@
     }
     .icon-button:hover, .button:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.35); }
     .icon-button { width: 40px; height: 40px; border-radius: 10px; background: var(--panel); font-size: 16px; }
+    a.icon-button { flex: 0 0 auto; display: inline-grid; place-items: center; text-decoration: none; }
+    a:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+    .panel-link { min-height: 44px; display: inline-flex; align-items: center; margin-top: 8px; padding: 0 12px; border-radius: 9px; color: var(--muted); font-size: 10px; font-weight: 850; letter-spacing: .12em; text-decoration: none; text-transform: uppercase; }
+    .panel-link:hover { color: var(--ink); }
 
     .status-panel {
       margin: 17px 0 12px; min-height: 72px; padding: 12px 17px; display: flex; align-items: center; justify-content: space-between; gap: 15px;
@@ -124,8 +128,11 @@
     .button { min-height: 41px; padding: 0 15px; border-radius: 10px; background: rgba(42, 34, 70, .76); font-size: 9px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
     .button.primary { color: #fff; border-color: transparent; background: linear-gradient(135deg, #9075f0, #6447cc); box-shadow: 0 8px 22px rgba(92, 59, 195, .27); }
 
-    .overlay { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: max(19px, env(safe-area-inset-top)) max(19px, env(safe-area-inset-right)) max(19px, env(safe-area-inset-bottom)) max(19px, env(safe-area-inset-left)); background: rgba(8, 6, 17, .74); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); opacity: 1; transition: opacity .22s; }
+    /* The overlay scrolls when a panel is taller than the screen (phones in landscape).
+       The panel centres itself with auto margins so its top never scrolls out of reach. */
+    .overlay { position: fixed; inset: 0; z-index: 30; display: grid; max-height: 100vh; max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: max(19px, env(safe-area-inset-top)) max(19px, env(safe-area-inset-right)) max(19px, env(safe-area-inset-bottom)) max(19px, env(safe-area-inset-left)); background: rgba(8, 6, 17, .74); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); opacity: 1; transition: opacity .22s; }
     .overlay.hidden { opacity: 0; pointer-events: none; }
+    .overlay > .panel { margin: auto; }
     .panel { width: min(470px, 100%); padding: 28px; text-align: center; border: 1px solid rgba(232,225,255,.23); border-radius: 22px; background: linear-gradient(145deg, rgba(49, 39, 80, .98), rgba(25, 20, 44, .98)); box-shadow: 0 30px 90px rgba(0,0,0,.5); transform: none; transition: transform .22s; }
     .hidden .panel { transform: translateY(10px) scale(.98); }
     .panel-icon { width: 62px; height: 62px; margin: 0 auto 17px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.04); color: var(--gold); font-size: 27px; }
@@ -183,6 +190,7 @@
   <main class="app">
     <header class="topbar">
       <div class="brand">
+        <a class="icon-button" href="index.html" aria-label="Back to all games">←</a>
         <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         <div><h1>RECALL CLUB</h1><p>MEMORY MATCH · 1–5 PLAYERS</p></div>
       </div>
@@ -234,6 +242,7 @@
         <button class="choice wide" data-level="expert" type="button">Expert<small>18 pairs</small></button>
       </div>
       <button class="button primary" id="start" type="button">Deal the cards</button>
+      <div><a class="panel-link" href="index.html">← All games</a></div>
     </section>
   </div>
 

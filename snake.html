@@ -85,6 +85,9 @@
     .panel p { margin: 15px auto 20px; max-width: 336px; color: #c5bedf; font-size: 13px; line-height: 1.55; }
     .panel .button { min-width: 172px; background: linear-gradient(100deg, #e842ad, #566bff 55%, #32ddec); border: 0; box-shadow: 0 8px 25px rgba(139, 77, 255, .35); }
     .panel .button:hover { background: linear-gradient(100deg, #f252b9, #6978ff 55%, #45e8f5); }
+    .panel-link { min-height: 44px; display: inline-flex; align-items: center; margin-top: 8px; padding: 0 12px; border-radius: 11px; color: #c5bedf; font-size: 11px; font-weight: 850; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+    .panel-link:hover { color: #eaffff; }
+    .panel-link:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
     .panel .result { margin: 14px 0 18px; font-size: 15px; color: #fff; }
     .panel .result b { color: #ffcf68; font-size: 24px; }
     @media (max-width: 620px) {
@@ -135,6 +138,7 @@
       <p id="panel-copy">Eat the glowing dots, grow your trail, and weave around the other snakes. Yellow comet dots are worth ten.</p>
       <p class="result" id="result" hidden></p>
       <button class="button" id="play" type="button">Start a run</button>
+      <div><a class="panel-link" href="index.html">← All games</a></div>
     </section>
   </div>
   <script>
@@ -492,7 +496,7 @@
       addEventListener('keydown', e => {
         if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS', 'Space'].includes(e.code)) e.preventDefault();
         keys[e.code] = true;
-        if ((e.code === 'Space' || e.code === 'Enter') && state !== 'playing') newGame();
+        if ((e.code === 'Space' || e.code === 'Enter') && state !== 'playing' && !e.target.closest?.('a[href]')) newGame();
       });
       addEventListener('keyup', e => { keys[e.code] = false; });
       canvas.addEventListener('pointermove', pointer); canvas.addEventListener('pointerdown', e => { e.preventDefault(); pointer(e); if (state !== 'playing') newGame(); });

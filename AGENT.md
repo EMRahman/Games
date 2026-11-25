@@ -46,7 +46,7 @@ Before considering a game change complete:
 3. Play the changed game with mouse/keyboard and with touch emulation.
 4. Check portrait and landscape layouts when the game supports mobile play.
 5. Confirm that text does not overflow, controls remain reachable, and important content is not hidden behind safe areas.
-6. Confirm that the landing-page card list and displayed game count match all playable root-level game HTML files other than `index.html`.
+6. Confirm that the landing-page card list and displayed game count match all playable root-level game HTML files other than `index.html`. Run `python3 scripts/check_catalogue.py`; it checks cards, icons, counts, the README list, and each game's link back to `index.html`, and runs on every pull request.
 
 
 ### Post-PR Review Protocol

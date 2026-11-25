@@ -62,6 +62,8 @@
       color: #f8f4e8; background: rgba(255,255,255,.06); cursor: pointer; transition: transform .16s, background .16s, border-color .16s;
     }
     .icon-btn { width: 44px; padding: 0; font-weight: 900; }
+    a.icon-btn { flex: 0 0 auto; display: inline-grid; place-items: center; text-decoration: none; }
+    a:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
     .text-btn, .primary-btn { padding: 0 16px; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
     .primary-btn { border-color: #ec7568; background: var(--coral); box-shadow: 0 8px 22px rgba(236,95,80,.2); }
     .text-btn:disabled { opacity: .35; cursor: not-allowed; }
@@ -207,6 +209,7 @@
   <main class="app">
     <header class="topbar">
       <div class="brand">
+        <a class="icon-btn" href="index.html" aria-label="Back to all games">←</a>
         <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
         <div><h1>Boxed In</h1><p>Dots &amp; Boxes · Local match</p></div>
       </div>

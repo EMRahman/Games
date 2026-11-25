@@ -63,6 +63,8 @@
     }
     .icon-button:hover, .secondary:hover, .primary:hover { transform: translateY(-1px); border-color: var(--aqua); }
     .icon-button { width: 40px; height: 40px; border-radius: 10px; font-size: 16px; }
+    a.icon-button { flex: 0 0 auto; display: inline-grid; place-items: center; text-decoration: none; }
+    a:focus-visible { outline: 2px solid var(--aqua); outline-offset: 3px; }
 
     .mission {
       margin: 19px 0 17px; min-height: 69px; padding: 14px 18px; display: flex; align-items: center;
@@ -251,6 +253,7 @@
   <main class="shell">
     <header class="topbar">
       <div class="brand">
+        <a class="icon-button" href="index.html" aria-label="Back to all games">←</a>
         <span class="brand-mark" aria-hidden="true"></span>
         <div><h1>NORTHSTAR</h1><p>TACTICAL NAVAL COMMAND</p></div>
       </div>

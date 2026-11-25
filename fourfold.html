@@ -61,6 +61,8 @@
     }
     .icon-btn:hover, .ghost-btn:hover, .main-btn:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.3); }
     .icon-btn { width: 40px; height: 40px; border-radius: 10px; background: var(--panel); font-size: 16px; }
+    a.icon-btn { flex: 0 0 auto; display: inline-grid; place-items: center; text-decoration: none; }
+    a.icon-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
     .layout { margin-top: 19px; display: grid; grid-template-columns: 210px 1fr 210px; gap: 18px; align-items: center; }
     .player-card {
@@ -206,6 +208,7 @@
   <main class="app">
     <header class="topbar">
       <div class="brand">
+        <a class="icon-btn" href="index.html" aria-label="Back to all games">←</a>
         <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         <div><h1>FOURFOLD</h1><p>FOUR IN A ROW · LOCAL MATCH</p></div>
       </div>
@@ -530,7 +533,29 @@
           render();
         }
       });
+      // A button that was just clicked keeps focus in some browsers. Remember it so that
+      // Enter still drops a counter afterwards, until focus moves on (for example with Tab).
+      let clickedControl = null;
+      document.addEventListener('pointerdown', event => {
+        clickedControl = event.target.closest?.('button, a[href]') || null;
+      }, true);
+      document.addEventListener('focusin', event => {
+        if (event.target !== clickedControl) clickedControl = null;
+      });
+      boardEl.addEventListener('focusin', event => {
+        const cell = event.target.closest('.cell');
+        if (cell && !busy && state === 'playing') {
+          selectedColumn = Number(cell.dataset.col);
+          render();
+        }
+      });
       document.addEventListener('keydown', event => {
+        // Leave browser shortcuts (such as Alt+← for Back) alone.
+        if (event.altKey || event.ctrlKey || event.metaKey) return;
+        // Enter and Space activate a toolbar button or link reached with the keyboard.
+        // Elsewhere (the board, the page, or a button that was just clicked) they drop a counter.
+        const control = event.target.closest?.('button, a[href], input, select, textarea, summary');
+        if (control && control !== clickedControl && !boardEl.contains(control) && (event.key === 'Enter' || event.key === ' ')) return;
         if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
           event.preventDefault();
           selectedColumn = Math.max(0, Math.min(COLS - 1, selectedColumn + (event.key === 'ArrowLeft' ? -1 : 1)));
