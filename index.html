@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#070712">
   <meta name="description" content="A collection of beautifully crafted browser games. No downloads, no accounts—just pick a game and play.">
   <title>Side Quest — Browser Games</title>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <style>
     :root {
       color-scheme: dark;
@@ -237,6 +240,10 @@
       box-shadow: inset 0 0 12px rgba(92, 243, 255, .06);
     }
 
+    .quick-icon svg { width: 22px; height: 22px; }
+
+    .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
     .quick-name {
       min-width: 0;
       overflow: hidden;
@@ -318,10 +325,10 @@
       top: 17px;
       left: 17px;
       padding: 7px 10px;
-      border: 1px solid rgba(255, 255, 255, .22);
+      border: 1px solid rgba(255, 255, 255, .2);
       border-radius: 999px;
-      background: rgba(10, 10, 10, .18);
-      color: rgba(255, 255, 255, .82);
+      background: rgba(6, 7, 18, .55);
+      color: #fff;
       font: 750 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
       letter-spacing: .1em;
       text-transform: uppercase;
@@ -329,132 +336,34 @@
       backdrop-filter: blur(8px);
     }
 
-    .art-northstar { --card-bg: #08283a; }
+    .art-northstar { --card-bg: radial-gradient(circle at 50% 52%, #0c3850, #03121c 74%); }
     .art-northstar::before {
       inset: 0;
-      opacity: .48;
-      background-image: linear-gradient(rgba(105, 226, 221, .22) 1px, transparent 1px), linear-gradient(90deg, rgba(105, 226, 221, .22) 1px, transparent 1px);
-      background-size: 34px 34px;
-      transform: perspective(360px) rotateX(57deg) scale(1.3) translateY(22%);
-    }
-    .art-northstar::after {
-      width: 56%; height: 24%; right: 10%; top: 35%;
-      border-radius: 60% 16% 54% 34%;
-      background: linear-gradient(170deg, #a5e7e4 0 8%, #315f6f 9% 48%, #112f40 49%);
-      box-shadow: -140px 70px 0 -35px rgba(88, 222, 221, .5), 0 19px 42px rgba(0, 0, 0, .38);
-      transform: rotate(-7deg);
+      background: repeating-radial-gradient(circle at 50% 52%, transparent 0 46px, rgba(100, 232, 223, .09) 46px 47px);
     }
 
-    .art-driftbelt { --card-bg: radial-gradient(circle at 42% 40%, #202039, #05050e 68%); }
+    .art-driftbelt { --card-bg: radial-gradient(circle at 78% 28%, rgba(126, 96, 255, .2), transparent 42%), radial-gradient(circle at 45% 60%, #151533, #04040c 72%); }
     .art-driftbelt::before {
-      width: 36px; height: 47px; left: 46%; top: 39%;
-      background: #fff;
-      clip-path: polygon(50% 0, 100% 100%, 50% 76%, 0 100%);
-      filter: drop-shadow(0 0 14px #75e6ff);
-      transform: rotate(17deg);
-    }
-    .art-driftbelt::after {
-      width: 60px; height: 55px; left: 18%; top: 22%;
-      border: 4px solid #7f839d;
-      clip-path: polygon(25% 0, 80% 7%, 100% 43%, 74% 97%, 20% 87%, 0 54%);
-      box-shadow: 210px 95px 0 -9px #6b6f88, 110px -72px 0 -18px #a6a8b4;
-      transform: rotate(-14deg);
-    }
-
-    .art-connect { --card-bg: linear-gradient(145deg, #241840, #4c368f); }
-    .art-connect::before {
-      width: 212px; height: 150px; left: 50%; top: 50%;
-      border-radius: 12px;
-      background-color: #6e57da;
-      background-image: radial-gradient(circle, #261d48 0 44%, transparent 46%);
-      background-size: 30px 30px;
-      box-shadow: 0 18px 30px rgba(10, 6, 35, .32);
-      transform: translate(-50%, -45%) rotate(-4deg);
-    }
-    .art-connect::after {
-      width: 24px; height: 24px; left: calc(50% - 79px); top: 47px;
-      border-radius: 50%;
-      background: #ff6469;
-      box-shadow: 30px 60px #ffd44f, 60px 0 #ff6469, 90px 90px #ffd44f, 120px 30px #ff6469, 150px 90px #ffd44f;
-    }
-
-    .art-go { --card-bg: #d7a660; }
-    .art-go::before {
       inset: 0;
-      background-image: linear-gradient(rgba(66, 43, 20, .54) 1px, transparent 1px), linear-gradient(90deg, rgba(66, 43, 20, .54) 1px, transparent 1px);
-      background-size: 31px 31px;
-      transform: rotate(4deg) scale(1.12);
-    }
-    .art-go::after {
-      width: 41px; height: 41px; left: 39%; top: 34%;
-      border-radius: 50%;
-      background: radial-gradient(circle at 32% 27%, #fff, #dedede 64%, #aaa);
-      box-shadow: 63px 31px 0 #151515, -31px 62px 0 #111, 93px 93px 0 #ececec, -62px -31px 0 #161616, 90px -62px 0 #f0f0ee;
+      background:
+        radial-gradient(circle, rgba(255, 255, 255, .9) 0 .7px, transparent 1.2px) 0 0 / 53px 47px,
+        radial-gradient(circle, rgba(190, 225, 255, .7) 0 .6px, transparent 1.1px) 19px 23px / 71px 61px,
+        radial-gradient(circle, rgba(255, 255, 255, .45) 0 .5px, transparent 1px) 7px 31px / 31px 37px;
     }
 
-    .art-dots { --card-bg: #f0e7d2; }
-    .art-dots::before {
-      width: 178px; height: 178px; left: 50%; top: 50%;
-      background-image: radial-gradient(circle, #173740 0 5px, transparent 6px);
-      background-size: 44px 44px;
-      transform: translate(-44%, -44%) rotate(-3deg);
-    }
-    .art-dots::after {
-      width: 132px; height: 132px; left: 50%; top: 50%;
-      border: 7px solid #ec5f50;
-      border-left-color: #168aa0;
-      box-shadow: inset 44px 0 rgba(236,95,80,.2), inset -44px 0 rgba(22,138,160,.2), 0 10px 25px rgba(39,45,39,.13);
-      transform: translate(-50%, -50%) rotate(-3deg);
-    }
+    .art-connect { --card-bg: radial-gradient(circle at 50% 42%, #2e2266, #120e26 74%); }
+    .art-go { --card-bg: radial-gradient(ellipse at 50% 46%, #43392b, #15191b 70%); }
+    .art-dots { --card-bg: radial-gradient(circle at 50% 40%, #1e5864, #102c35 76%); }
+    .art-memory { --card-bg: radial-gradient(circle at 50% 46%, #30265c, #17132b 74%); }
 
-    .art-memory { --card-bg: linear-gradient(145deg, #292047, #17122d); }
-    .art-memory::before {
-      width: 74px; height: 96px; left: 31%; top: 27%;
-      border-radius: 9px;
-      background: linear-gradient(145deg, #9a79fb, #6449c8);
-      box-shadow: 88px 15px 0 #ff7c7f, 27px 112px 0 #62dcb9, 114px 113px 0 #ffd063;
-      transform: rotate(-8deg);
-    }
-    .art-memory::after {
-      width: 28px; height: 28px; left: calc(31% + 23px); top: calc(27% + 34px);
-      border-radius: 50%;
-      background: rgba(255,255,255,.85);
-      box-shadow: 92px 4px 0 rgba(255,255,255,.85), 37px 108px 0 rgba(255,255,255,.85), 122px 100px 0 rgba(255,255,255,.85);
-      transform: rotate(-8deg);
-    }
-
-    .art-neon { --card-bg: radial-gradient(circle at 50% 50%, #241456, #09051b 70%); }
+    .art-neon { --card-bg: radial-gradient(circle at 50% 46%, #1d1250, #0b0725 60%, #04020f); }
     .art-neon::before {
-      width: 150px; height: 100px; left: 50%; top: 51%;
-      border: 9px solid #4df7ff;
-      border-right-color: #ff4fb6;
-      border-radius: 55% 35% 55% 40%;
-      box-shadow: 0 0 15px #4df7ff, inset 0 0 12px #ff4fb6;
-      transform: translate(-50%, -50%) rotate(-12deg);
-    }
-    .art-neon::after {
-      width: 15px; height: 15px; right: 16%; top: 23%;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 0 13px 4px #ff4fb6, -185px 93px 0 -4px #fff, -185px 93px 13px #4df7ff;
+      inset: 0;
+      background-image: linear-gradient(rgba(140, 120, 255, .09) 1px, transparent 1px), linear-gradient(90deg, rgba(140, 120, 255, .09) 1px, transparent 1px);
+      background-size: 22px 22px;
     }
 
-    .art-pocket { --card-bg: linear-gradient(145deg, #08273c, #1e719a); }
-    .art-pocket::before {
-      width: 112px; height: 218px; left: 50%; top: 51%;
-      border: 8px solid #8e9799;
-      border-radius: 48px 48px 34px 34px / 22px 22px 28px 28px;
-      background: linear-gradient(#bfc4c3 0 17%, #aab99a 17% 56%, #bfc4c3 56%);
-      box-shadow: 0 22px 32px rgba(2, 13, 20, .35);
-      transform: translate(-50%, -50%) rotate(7deg);
-    }
-    .art-pocket::after {
-      width: 62px; height: 8px; left: calc(50% - 31px); top: 52%;
-      border-radius: 6px;
-      background: #284035;
-      box-shadow: 10px -16px #284035, 20px -32px #284035, 30px -48px #284035;
-      transform: rotate(7deg);
-    }
+    .art-pocket { --card-bg: radial-gradient(circle at 30% 30%, #1f7aa6, #08273c 78%); }
 
     .art-conquest { --card-bg: radial-gradient(circle at 40% 35%, #17345a, #081425 72%); }
     .art-conquest::before {
@@ -525,6 +434,70 @@
     .routes-art .edge { fill: none; stroke: #2c241b; stroke-width: 8.5; stroke-dasharray: 13 2.5; }
     .routes-art .mine { stroke: #fff; }
     .routes-art circle { fill: #fffaf0; stroke: #3a2f22; stroke-width: 2; }
+
+    /* Inline SVG card scenes: a 300 × 150 viewBox, centred and scaled to fit the art box. */
+    .card-svg {
+      position: absolute;
+      z-index: 1;
+      left: 50%;
+      top: 53%;
+      width: min(92%, 520px);
+      height: auto;
+      max-height: 94%;
+      transform: translate(-50%, -50%);
+      filter: drop-shadow(0 14px 22px rgba(0, 0, 0, .45));
+    }
+
+    /* Scene parts that move on hover or keyboard focus. Every scene is complete when still. */
+    .ns-ping, .db-flame, .db-shots, .ff-drop, .kd-new, .kd-capt, .bx-pencil, .rc-flip-back, .rc-flip-front, .rc-spark, .nc-food, .ps-food {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .db-flame { transform-origin: right center; }
+    .ns-ping, .kd-new { opacity: 0; }
+    .ff-win { opacity: 0; stroke-dasharray: 100; stroke-dashoffset: 100; }
+    .bx-draw { stroke-dasharray: 100; stroke-dashoffset: 100; }
+    .rc-flip-back { transform: scaleX(.3); }
+    .rc-flip-front { transform: scaleX(0); }
+    .nc-pulse { opacity: 0; stroke-dasharray: 7 107; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .kd-new { transition: opacity .3s ease; }
+      .kd-capt, .kd-ghost { transition: opacity .35s ease .3s; }
+      .bx-draw { transition: stroke-dashoffset .5s ease; }
+      .bx-preview { transition: opacity .2s ease; }
+      .bx-target { transition: fill-opacity .35s ease .45s; }
+      .bx-pencil { transition: transform .5s ease; }
+      .rc-flip-back { transition: transform .16s ease-in; }
+      .rc-flip-front { transition: transform .2s ease-out; }
+
+      .game-card:is(:hover, :focus-visible) .ns-ping { animation: ns-ping 1.5s ease-out infinite; }
+      .game-card:is(:hover, :focus-visible) .db-flame { animation: db-flame .12s steps(2) infinite alternate; }
+      .game-card:is(:hover, :focus-visible) .db-shots { animation: db-shots .45s linear infinite; }
+      .game-card:is(:hover, :focus-visible) .ff-drop { animation: ff-drop .6s cubic-bezier(.45, 0, .55, 1) forwards; }
+      .game-card:is(:hover, :focus-visible) .ff-win { animation: ff-win .45s ease .55s forwards; }
+      .game-card:is(:hover, :focus-visible) .kd-new { opacity: 1; }
+      .game-card:is(:hover, :focus-visible) :is(.kd-capt, .kd-ghost, .bx-preview) { opacity: 0; }
+      .game-card:is(:hover, :focus-visible) .bx-draw { stroke-dashoffset: 0; }
+      .game-card:is(:hover, :focus-visible) .bx-target { fill-opacity: .8; }
+      .game-card:is(:hover, :focus-visible) .bx-pencil { transform: translateY(-24px); }
+      .game-card:is(:hover, :focus-visible) .rc-flip-back { transform: scaleX(0); }
+      .game-card:is(:hover, :focus-visible) .rc-flip-front { transform: scaleX(1); transition-delay: .16s; }
+      .game-card:is(:hover, :focus-visible) .rc-spark { animation: rc-spark .9s ease-in-out infinite alternate; }
+      .game-card:is(:hover, :focus-visible) .nc-pulse { opacity: .95; animation: nc-pulse 1.3s linear infinite; }
+      .game-card:is(:hover, :focus-visible) .nc-food { animation: nc-food .8s ease-in-out infinite alternate; }
+      .game-card:is(:hover, :focus-visible) .ps-food { animation: ps-blink .7s steps(1) infinite; }
+    }
+
+    @keyframes ns-ping { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(2.4); } }
+    @keyframes db-flame { from { transform: scaleX(1); } to { transform: scaleX(1.6); } }
+    @keyframes db-shots { from { transform: translate(0, 0); opacity: 1; } to { transform: translate(9px, -3.8px); opacity: .35; } }
+    @keyframes ff-drop { 0% { transform: translateY(0); } 62% { transform: translateY(62.5px); } 78% { transform: translateY(56px); } 100% { transform: translateY(62.5px); } }
+    @keyframes ff-win { to { opacity: 1; stroke-dashoffset: 0; } }
+    @keyframes rc-spark { from { transform: scale(.5); opacity: .4; } to { transform: scale(1.25); opacity: 1; } }
+    @keyframes nc-pulse { from { stroke-dashoffset: 114; } to { stroke-dashoffset: 0; } }
+    @keyframes nc-food { from { transform: scale(1); } to { transform: scale(1.35); } }
+    @keyframes ps-blink { 50% { opacity: 0; } }
 
     .game-copy {
       display: grid;
@@ -670,6 +643,22 @@
   </style>
 </head>
 <body>
+  <!-- Quick-launch icons: one <symbol id="qi-<game file name>"> per card; data-icon is the fallback. -->
+  <svg class="icon-sprite" aria-hidden="true" focusable="false">
+    <symbol id="qi-northstar" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="#0a2740" stroke="#2c6a96"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke="#6fb2ff" stroke-opacity=".35" stroke-width=".8"/><circle cx="12" cy="12" r="5" fill="none" stroke="#f1bd62" stroke-width="1.6"/><path d="M12 4.5v3M12 16.5v3M4.5 12h3M16.5 12h3" stroke="#f1bd62" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="1.6" fill="#ff725e"/></symbol>
+    <symbol id="qi-driftbelt" viewBox="0 0 24 24"><path d="M5.5 20.5l3-3" stroke="#ffc66f" stroke-width="2.2" stroke-linecap="round"/><path d="M20 4L6.5 9.5L11 13L14.5 17.5Z" fill="#ddffff" stroke="#77ffff" stroke-width="1" stroke-linejoin="round"/><path d="M17 15.5l2.6-.6 1.4 2.1-.9 2.5-2.6.3-1.3-2.2Z" fill="#9b8a6a" stroke="#c9b693" stroke-width=".8"/></symbol>
+    <symbol id="qi-fourfold" viewBox="0 0 24 24"><rect x="2.5" y="2.5" width="19" height="19" rx="4" fill="#6049d8"/><circle cx="8" cy="8" r="3.5" fill="#ff5d65"/><circle cx="16" cy="8" r="3.5" fill="#1b1540"/><circle cx="8" cy="16" r="3.5" fill="#ffd24d"/><circle cx="16" cy="16" r="3.5" fill="#ff5d65"/></symbol>
+    <symbol id="qi-go" viewBox="0 0 24 24"><rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="#d9a85d"/><path d="M7 2.5v19M12 2.5v19M17 2.5v19M2.5 7h19M2.5 12h19M2.5 17h19" stroke="#5a3d1c" stroke-opacity=".7" stroke-width=".8"/><circle cx="12" cy="12" r="4.4" fill="#111"/><circle cx="17" cy="7" r="4.4" fill="#f4f1ea" stroke="#b9b4a8" stroke-width=".6"/></symbol>
+    <symbol id="qi-dots_and_boxes" viewBox="0 0 24 24"><rect x="4" y="4" width="8" height="8" fill="#f7b2a8"/><path d="M4 4h8v8H4z" fill="none" stroke="#ec5f50" stroke-width="2" stroke-linejoin="round"/><path d="M12 12h8M20 12v8" stroke="#31b4c7" stroke-width="2" stroke-linecap="round"/><g fill="#f4efdf"><circle cx="4" cy="4" r="1.7"/><circle cx="12" cy="4" r="1.7"/><circle cx="20" cy="4" r="1.7"/><circle cx="4" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="20" cy="12" r="1.7"/><circle cx="4" cy="20" r="1.7"/><circle cx="12" cy="20" r="1.7"/><circle cx="20" cy="20" r="1.7"/></g></symbol>
+    <symbol id="qi-linefall" viewBox="0 0 24 24"><g stroke="#0b0c1d" stroke-width=".8"><rect x="2.5" y="12" width="6.3" height="6.3" fill="#ff4fa3"/><rect x="8.8" y="12" width="6.3" height="6.3" fill="#ff4fa3"/><rect x="15.1" y="12" width="6.3" height="6.3" fill="#ff4fa3"/><rect x="8.8" y="5.7" width="6.3" height="6.3" fill="#ff4fa3"/></g><rect x="2.5" y="19.4" width="19" height="2.2" rx="1" fill="#2ed3b7"/></symbol>
+    <symbol id="qi-memory_match" viewBox="0 0 24 24"><rect x="3" y="5" width="11" height="15" rx="2.5" fill="#8a6cf0" transform="rotate(-10 8.5 12.5)"/><rect x="10" y="4" width="11" height="15" rx="2.5" fill="#2a2244" stroke="#ffd064" stroke-width="1" transform="rotate(6 15.5 11.5)"/><path d="M15.5 7.3Q16.2 10.8 19.2 11.5Q16.2 12.2 15.5 15.7Q14.8 12.2 11.8 11.5Q14.8 10.8 15.5 7.3Z" fill="#ffd064"/></symbol>
+    <symbol id="qi-snake" viewBox="0 0 24 24"><path d="M3.5 19C7 21.5 9.5 14 12 12.5S16 6.5 18 5" fill="none" stroke="#4df7ff" stroke-width="3.2" stroke-linecap="round"/><circle cx="18.6" cy="4.8" r="2.4" fill="#c4fff6"/><circle cx="19.5" cy="15.5" r="2" fill="#ff4fb6"/></symbol>
+    <symbol id="qi-pocket_snake" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="2" fill="#aab99a" stroke="#5f7055" stroke-width=".8"/><path d="M5 15.5h6v-5h6v3" fill="none" stroke="#1d2c22" stroke-width="2"/><rect x="17.5" y="7" width="2" height="2" fill="#1d2c22"/></symbol>
+    <symbol id="qi-conquest" viewBox="0 0 24 24"><path d="M3 17c1-4 4-6 7-5s4-3 7-2 4 4 4 7-4 4-9 4-10-1-9-4z" fill="#8a5fd6"/><path d="M12 15c0-2 3-3 5-2s4 3 4 4-3 4-6 4-3-4-3-6z" fill="#c23d48"/><path d="M9 14V3.5" stroke="#f3eedd" stroke-width="1.4" stroke-linecap="round"/><path d="M9.6 3.8h7.4l-1.8 2.6 1.8 2.6H9.6z" fill="#ef4b55"/></symbol>
+    <symbol id="qi-landlord" viewBox="0 0 24 24"><path d="M3 11.5L12 4l9 7.5" fill="none" stroke="#b8322a" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M5.5 10.5V20h13v-9.5L12 5.5z" fill="#f3eedd"/><rect x="10" y="14" width="4" height="6" fill="#167f7c"/></symbol>
+    <symbol id="qi-iron_routes" viewBox="0 0 24 24"><path d="M4.5 18L12 7.5L19.5 15" fill="none" stroke="#2c241b" stroke-width="4.5" stroke-linejoin="round"/><path d="M4.5 18L12 7.5" stroke="#ff4d6d" stroke-width="3" stroke-dasharray="3.4 1"/><path d="M12 7.5L19.5 15" stroke="#2fa4ff" stroke-width="3" stroke-dasharray="3.4 1"/><g fill="#fffaf0" stroke="#3a2f22" stroke-width="1.2"><circle cx="4.5" cy="18" r="2.4"/><circle cx="12" cy="7.5" r="2.4"/><circle cx="19.5" cy="15" r="2.4"/></g></symbol>
+  </svg>
+
   <div class="shell">
     <header class="site-header">
       <a class="brand" href="index.html" aria-label="Side Quest home">
@@ -707,7 +696,39 @@
         <div class="game-grid" id="game-grid">
           <!-- Keep this card collection in sync with every playable .html file. See AGENT.md. -->
           <a class="game-card featured" href="northstar.html" data-game data-icon="⌖">
-            <div class="game-art art-northstar" aria-hidden="true"><span class="art-label">Strategy</span></div>
+            <div class="game-art art-northstar" aria-hidden="true">
+              <span class="art-label">Strategy</span>
+              <svg class="card-svg" viewBox="0 0 300 150" focusable="false">
+                <defs>
+                  <pattern id="ns-gb" width="14" height="14" x="4" y="4" patternUnits="userSpaceOnUse"><path d="M14 0H0V14" fill="none" stroke="#6fb2ff" stroke-opacity=".3" stroke-width=".7"/></pattern>
+                  <pattern id="ns-gr" width="14" height="14" x="4" y="4" patternUnits="userSpaceOnUse"><path d="M14 0H0V14" fill="none" stroke="#ff8a78" stroke-opacity=".28" stroke-width=".7"/></pattern>
+                  <linearGradient id="ns-ship" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9d4ff"/><stop offset="1" stop-color="#4a86d6"/></linearGradient>
+                  <radialGradient id="ns-fire"><stop offset="0" stop-color="#fff1cf"/><stop offset=".4" stop-color="#ff9d73"/><stop offset="1" stop-color="#ff5838" stop-opacity="0"/></radialGradient>
+                </defs>
+                <g transform="translate(26 18) rotate(-8 60 60)">
+                  <rect width="120" height="120" rx="6" fill="#0a2740" stroke="#2c6a96" stroke-width="1.2"/>
+                  <rect x="4" y="4" width="112" height="112" fill="url(#ns-gb)" stroke="#6fb2ff" stroke-opacity=".3" stroke-width=".7"/>
+                  <g fill="url(#ns-ship)" stroke="#d6ecff" stroke-opacity=".55" stroke-width=".8"><rect x="20" y="20" width="52" height="10" rx="5"/><rect x="90" y="34" width="10" height="38" rx="5"/><rect x="34" y="62" width="38" height="10" rx="5"/><rect x="20" y="90" width="24" height="10" rx="5"/><rect x="90" y="90" width="10" height="24" rx="5"/></g>
+                  <circle cx="81" cy="11" r="1.7" fill="#eaf8f7" fill-opacity="0.45"/><circle cx="25" cy="67" r="1.7" fill="#eaf8f7" fill-opacity="0.45"/><circle cx="67" cy="95" r="1.7" fill="#eaf8f7" fill-opacity="0.45"/><circle cx="109" cy="39" r="1.7" fill="#eaf8f7" fill-opacity="0.45"/>
+                  <circle cx="39" cy="25" r="6" fill="url(#ns-fire)"/><circle cx="39" cy="25" r="2.2" fill="#ff725e"/>
+                </g>
+                <g transform="translate(152 14) rotate(5 60 60)">
+                  <rect width="120" height="120" rx="6" fill="#2a1220" stroke="#83384a" stroke-width="1.2"/>
+                  <rect x="4" y="4" width="112" height="112" fill="url(#ns-gr)" stroke="#ff8a78" stroke-opacity=".28" stroke-width=".7"/>
+                  <rect x="20" y="90" width="38" height="10" rx="5" fill="#ff725e" fill-opacity=".2" stroke="#ff725e" stroke-width=".9" stroke-dasharray="2 1.6"/>
+                  <path d="M23 93l4 4m0-4-4 4M37 93l4 4m0-4-4 4M51 93l4 4m0-4-4 4" stroke="#ffd1c2" stroke-opacity=".8" stroke-width="1"/>
+                  <circle cx="25" cy="25" r="1.7" fill="#eaf8f7" fill-opacity="0.7"/><circle cx="81" cy="25" r="1.7" fill="#eaf8f7" fill-opacity="0.7"/><circle cx="11" cy="53" r="1.7" fill="#eaf8f7" fill-opacity="0.7"/><circle cx="109" cy="67" r="1.7" fill="#eaf8f7" fill-opacity="0.7"/><circle cx="53" cy="11" r="1.7" fill="#eaf8f7" fill-opacity="0.7"/><circle cx="95" cy="95" r="1.7" fill="#eaf8f7" fill-opacity="0.7"/><circle cx="39" cy="67" r="1.7" fill="#eaf8f7" fill-opacity="0.7"/><circle cx="95" cy="39" r="1.7" fill="#eaf8f7" fill-opacity="0.7"/>
+                  <rect x="32" y="46" width="14" height="14" fill="#822c25" fill-opacity=".45"/><circle cx="39" cy="53" r="7.5" fill="url(#ns-fire)"/><circle cx="39" cy="53" r="2.8" fill="#ff725e"/><path d="M35.4 49.4l7.2 7.2m0-7.2-7.2 7.2" stroke="#ffd1c2" stroke-width="1.3" stroke-linecap="round"/><rect x="46" y="46" width="14" height="14" fill="#822c25" fill-opacity=".45"/><circle cx="53" cy="53" r="7.5" fill="url(#ns-fire)"/><circle cx="53" cy="53" r="2.8" fill="#ff725e"/><path d="M49.4 49.4l7.2 7.2m0-7.2-7.2 7.2" stroke="#ffd1c2" stroke-width="1.3" stroke-linecap="round"/>
+                  <rect x="60" y="46" width="14" height="14" fill="#f1bd62" fill-opacity=".16" stroke="#f1bd62" stroke-opacity=".75" stroke-width=".8"/>
+                  <circle class="ns-ping" cx="67" cy="53" r="10" fill="none" stroke="#f1bd62" stroke-width="1.2"/>
+                  <g stroke="#f1bd62" stroke-width="1.5" stroke-linecap="round" fill="none">
+                    <circle cx="67" cy="53" r="10"/>
+                    <path d="M67 37v7M67 62v7M51 53h7M76 53h7"/>
+                  </g>
+                  <circle cx="67" cy="53" r="1.9" fill="#f1bd62"/>
+                </g>
+              </svg>
+            </div>
             <div class="game-copy">
               <div><h3>Northstar</h3><p>Read the grid, call your shot, and send the rival fleet to the deep.</p></div>
               <span class="play-arrow" aria-hidden="true">↗</span>
@@ -716,7 +737,31 @@
           </a>
 
           <a class="game-card" href="driftbelt.html" data-game data-icon="△">
-            <div class="game-art art-driftbelt" aria-hidden="true"><span class="art-label">Arcade</span></div>
+            <div class="game-art art-driftbelt" aria-hidden="true">
+              <span class="art-label">Arcade</span>
+              <svg class="card-svg" viewBox="0 0 300 150" focusable="false">
+                <defs>
+                  <radialGradient id="db-rock" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#bba585"/><stop offset=".6" stop-color="#7a6750"/><stop offset="1" stop-color="#3b3127"/></radialGradient>
+                  <filter id="db-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                  <linearGradient id="db-trail" gradientUnits="userSpaceOnUse" x1="0" y1="140" x2="110" y2="100"><stop offset="0" stop-color="#77ffff" stop-opacity="0"/><stop offset="1" stop-color="#77ffff" stop-opacity=".6"/></linearGradient>
+                </defs>
+                <path d="M-4 142C30 140 62 122 106 103" fill="none" stroke="url(#db-trail)" stroke-width="2" stroke-dasharray="1 5" stroke-linecap="round"/>
+                <g stroke="#c9b693" stroke-width="1.6" stroke-linejoin="round" fill="url(#db-rock)">
+                  <path d="M253.0 56.0L244.4 71.4L228.4 83.9L211.2 73.6L200.1 58.3L205.5 41.7L221.3 29.4L239.8 36.3Z"/><path d="M77.0 42.0L70.4 52.0L59.2 57.8L48.8 46.8L49.0 34.5L62.0 29.0L73.5 32.4Z"/><path d="M271.0 124.0L267.1 130.1L258.9 132.5L254.1 125.4L256.2 117.1L264.7 116.5Z"/><path d="M37.0 112.0L33.2 117.6L26.5 118.1L24.0 112.0L26.5 105.9L33.2 106.4Z"/><path d="M193.0 50.0L188.2 53.0L188.8 47.8Z"/><path d="M196.6 77.5L191.7 77.3L194.0 72.8Z"/>
+                </g>
+                <g fill="#2a2119" fill-opacity=".5"><circle cx="233" cy="50" r="5"/><circle cx="217" cy="67" r="3.5"/><circle cx="239" cy="69" r="2.5"/><circle cx="60" cy="45" r="3"/><circle cx="264" cy="122" r="2"/></g>
+                <g filter="url(#db-glow)">
+                  <circle cx="203" cy="62" r="9" fill="none" stroke="#ffb655" stroke-opacity=".6" stroke-width="1.2"/>
+                  <circle cx="203" cy="62" r="4.5" fill="#fff3c4"/>
+                  <path d="M199 58l-6-5M198 64l-7 3M202 67l-3 7M202 56l-1-7" stroke="#ffc66f" stroke-width="1.3" stroke-linecap="round"/>
+                  <g class="db-shots" stroke="#bfffff" stroke-width="2" stroke-linecap="round"><path d="M148.0 85.2l5.5 -2.3"/><path d="M166.0 77.5l5.5 -2.3"/><path d="M182.0 70.7l5.5 -2.3"/></g>
+                </g>
+                <g transform="translate(118 98) rotate(-23)" filter="url(#db-glow)">
+                  <g class="db-flame"><path d="M-5 -3.4L-18 0L-5 3.4Z" fill="#ffc66f"/><path d="M-5 -1.7L-11.5 0L-5 1.7Z" fill="#fff7e0"/></g>
+                  <path d="M13 0L-8 -8L-4 0L-8 8Z" fill="#ddffff" stroke="#77ffff" stroke-width="1" stroke-linejoin="round"/>
+                </g>
+              </svg>
+            </div>
             <div class="game-copy">
               <div><h3>Driftbelt</h3><p>Thread the void, dodge the rocks, and keep your blaster warm.</p></div>
               <span class="play-arrow" aria-hidden="true">↗</span>
@@ -725,7 +770,29 @@
           </a>
 
           <a class="game-card" href="fourfold.html" data-game data-icon="●">
-            <div class="game-art art-connect" aria-hidden="true"><span class="art-label">Classic</span></div>
+            <div class="game-art art-connect" aria-hidden="true">
+              <span class="art-label">Classic</span>
+              <svg class="card-svg" viewBox="0 0 300 150" focusable="false">
+                <defs>
+                  <linearGradient id="ff-board" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d68f2"/><stop offset="1" stop-color="#5640cf"/></linearGradient>
+                  <radialGradient id="ff-red" cx=".38" cy=".32" r=".7"><stop offset="0" stop-color="#ffa3a7"/><stop offset=".55" stop-color="#ff5d65"/><stop offset="1" stop-color="#cf3649"/></radialGradient>
+                  <radialGradient id="ff-yel" cx=".38" cy=".32" r=".7"><stop offset="0" stop-color="#fff0b8"/><stop offset=".55" stop-color="#ffd24d"/><stop offset="1" stop-color="#d99d24"/></radialGradient>
+                </defs>
+                <ellipse cx="46" cy="133" rx="20" ry="4" fill="#000" fill-opacity=".3"/><ellipse cx="254" cy="133" rx="20" ry="4" fill="#000" fill-opacity=".3"/>
+                <ellipse cx="46" cy="130.6" rx="15" ry="4.8" fill="#a32a3a"/><ellipse cx="46" cy="128.0" rx="15" ry="4.8" fill="#ff5d65"/><ellipse cx="46" cy="125.39999999999999" rx="15" ry="4.8" fill="#a32a3a"/><ellipse cx="46" cy="122.8" rx="15" ry="4.8" fill="#ff5d65"/><ellipse cx="46" cy="120.19999999999999" rx="15" ry="4.8" fill="#a32a3a"/><ellipse cx="46" cy="117.6" rx="15" ry="4.8" fill="#ff5d65"/><ellipse cx="46" cy="115.0" rx="15" ry="4.8" fill="#a32a3a"/><ellipse cx="46" cy="112.4" rx="15" ry="4.8" fill="#ff5d65"/><ellipse cx="46" cy="109.8" rx="15" ry="4.8" fill="#a32a3a"/><ellipse cx="46" cy="107.2" rx="15" ry="4.8" fill="#ff5d65"/><ellipse cx="46" cy="107.2" rx="9.5" ry="2.9" fill="none" stroke="#cf3649" stroke-width="1.1"/><ellipse cx="254" cy="130.6" rx="15" ry="4.8" fill="#b07f1c"/><ellipse cx="254" cy="128.0" rx="15" ry="4.8" fill="#ffd24d"/><ellipse cx="254" cy="125.39999999999999" rx="15" ry="4.8" fill="#b07f1c"/><ellipse cx="254" cy="122.8" rx="15" ry="4.8" fill="#ffd24d"/><ellipse cx="254" cy="120.19999999999999" rx="15" ry="4.8" fill="#b07f1c"/><ellipse cx="254" cy="117.6" rx="15" ry="4.8" fill="#ffd24d"/><ellipse cx="254" cy="115.0" rx="15" ry="4.8" fill="#b07f1c"/><ellipse cx="254" cy="112.4" rx="15" ry="4.8" fill="#ffd24d"/><ellipse cx="254" cy="112.4" rx="9.5" ry="2.9" fill="none" stroke="#d99d24" stroke-width="1.1"/>
+                <ellipse cx="150" cy="146" rx="72" ry="3.5" fill="#000" fill-opacity=".35"/>
+                <rect x="84.5" y="30" width="131" height="114" rx="9" fill="url(#ff-board)"/>
+                <rect x="85.5" y="31" width="129" height="112" rx="8" fill="none" stroke="#fff" stroke-opacity=".2"/>
+                <rect x="158.5" y="34" width="17" height="106" rx="8.5" fill="#fff" fill-opacity=".08"/>
+                <g fill="#1b1540" stroke="#0b0820" stroke-opacity=".6" stroke-width="1"><circle cx="99" cy="44.5" r="6.6"/><circle cx="99" cy="61.5" r="6.6"/><circle cx="99" cy="78.5" r="6.6"/><circle cx="99" cy="95.5" r="6.6"/><circle cx="99" cy="112.5" r="6.6"/><circle cx="99" cy="129.5" r="6.6"/><circle cx="116" cy="44.5" r="6.6"/><circle cx="116" cy="61.5" r="6.6"/><circle cx="116" cy="78.5" r="6.6"/><circle cx="116" cy="95.5" r="6.6"/><circle cx="116" cy="112.5" r="6.6"/><circle cx="116" cy="129.5" r="6.6"/><circle cx="133" cy="44.5" r="6.6"/><circle cx="133" cy="61.5" r="6.6"/><circle cx="133" cy="78.5" r="6.6"/><circle cx="133" cy="95.5" r="6.6"/><circle cx="133" cy="112.5" r="6.6"/><circle cx="133" cy="129.5" r="6.6"/><circle cx="150" cy="44.5" r="6.6"/><circle cx="150" cy="61.5" r="6.6"/><circle cx="150" cy="78.5" r="6.6"/><circle cx="150" cy="95.5" r="6.6"/><circle cx="150" cy="112.5" r="6.6"/><circle cx="150" cy="129.5" r="6.6"/><circle cx="167" cy="44.5" r="6.6"/><circle cx="167" cy="61.5" r="6.6"/><circle cx="167" cy="78.5" r="6.6"/><circle cx="167" cy="95.5" r="6.6"/><circle cx="167" cy="112.5" r="6.6"/><circle cx="167" cy="129.5" r="6.6"/><circle cx="184" cy="44.5" r="6.6"/><circle cx="184" cy="61.5" r="6.6"/><circle cx="184" cy="78.5" r="6.6"/><circle cx="184" cy="95.5" r="6.6"/><circle cx="184" cy="112.5" r="6.6"/><circle cx="184" cy="129.5" r="6.6"/><circle cx="201" cy="44.5" r="6.6"/><circle cx="201" cy="61.5" r="6.6"/><circle cx="201" cy="78.5" r="6.6"/><circle cx="201" cy="95.5" r="6.6"/><circle cx="201" cy="112.5" r="6.6"/><circle cx="201" cy="129.5" r="6.6"/></g>
+                <circle cx="116" cy="129.5" r="7.1" fill="url(#ff-red)"/><circle cx="116" cy="129.5" r="4.6" fill="none" stroke="#cf3649" stroke-opacity=".75" stroke-width="1.1"/><circle cx="133" cy="112.5" r="7.1" fill="url(#ff-red)"/><circle cx="133" cy="112.5" r="4.6" fill="none" stroke="#cf3649" stroke-opacity=".75" stroke-width="1.1"/><circle cx="150" cy="129.5" r="7.1" fill="url(#ff-red)"/><circle cx="150" cy="129.5" r="4.6" fill="none" stroke="#cf3649" stroke-opacity=".75" stroke-width="1.1"/><circle cx="150" cy="95.5" r="7.1" fill="url(#ff-red)"/><circle cx="150" cy="95.5" r="4.6" fill="none" stroke="#cf3649" stroke-opacity=".75" stroke-width="1.1"/><circle cx="167" cy="112.5" r="7.1" fill="url(#ff-red)"/><circle cx="167" cy="112.5" r="4.6" fill="none" stroke="#cf3649" stroke-opacity=".75" stroke-width="1.1"/><circle cx="184" cy="112.5" r="7.1" fill="url(#ff-red)"/><circle cx="184" cy="112.5" r="4.6" fill="none" stroke="#cf3649" stroke-opacity=".75" stroke-width="1.1"/><circle cx="99" cy="129.5" r="7.1" fill="url(#ff-yel)"/><circle cx="99" cy="129.5" r="4.6" fill="none" stroke="#d99d24" stroke-opacity=".75" stroke-width="1.1"/><circle cx="133" cy="129.5" r="7.1" fill="url(#ff-yel)"/><circle cx="133" cy="129.5" r="4.6" fill="none" stroke="#d99d24" stroke-opacity=".75" stroke-width="1.1"/><circle cx="150" cy="112.5" r="7.1" fill="url(#ff-yel)"/><circle cx="150" cy="112.5" r="4.6" fill="none" stroke="#d99d24" stroke-opacity=".75" stroke-width="1.1"/><circle cx="167" cy="129.5" r="7.1" fill="url(#ff-yel)"/><circle cx="167" cy="129.5" r="4.6" fill="none" stroke="#d99d24" stroke-opacity=".75" stroke-width="1.1"/><circle cx="167" cy="95.5" r="7.1" fill="url(#ff-yel)"/><circle cx="167" cy="95.5" r="4.6" fill="none" stroke="#d99d24" stroke-opacity=".75" stroke-width="1.1"/><circle cx="184" cy="129.5" r="7.1" fill="url(#ff-yel)"/><circle cx="184" cy="129.5" r="4.6" fill="none" stroke="#d99d24" stroke-opacity=".75" stroke-width="1.1"/>
+                <g fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.2"><circle cx="116" cy="129.5" r="8.7"/><circle cx="133" cy="112.5" r="8.7"/><circle cx="150" cy="95.5" r="8.7"/></g>
+                <circle cx="167" cy="78.5" r="7.1" fill="none" stroke="#ff5d65" stroke-width="1.3" stroke-dasharray="2.2 2"/>
+                <path class="ff-win" d="M116 129.5L167 78.5" pathLength="100" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+                <path d="M161 2v6M167 0v5M173 2v6" stroke="#fff" stroke-opacity=".35" stroke-width="1.2" stroke-linecap="round"/>
+                <g class="ff-drop"><circle cx="167" cy="16" r="7.1" fill="url(#ff-red)"/><circle cx="167" cy="16" r="4.6" fill="none" stroke="#cf3649" stroke-opacity=".75" stroke-width="1.1"/></g>
+              </svg>
+            </div>
             <div class="game-copy">
               <div><h3>Fourfold</h3><p>Drop a disc, block a line, and line up four before your rival does.</p></div>
               <span class="play-arrow" aria-hidden="true">↗</span>
@@ -734,7 +801,31 @@
           </a>
 
           <a class="game-card featured" href="go.html" data-game data-icon="○">
-            <div class="game-art art-go" aria-hidden="true"><span class="art-label">Board</span></div>
+            <div class="game-art art-go" aria-hidden="true">
+              <span class="art-label">Board</span>
+              <svg class="card-svg" viewBox="0 0 300 150" focusable="false">
+                <defs>
+                  <linearGradient id="kd-wood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1cd86"/><stop offset=".55" stop-color="#dcab5f"/><stop offset="1" stop-color="#c58f47"/></linearGradient>
+                  <radialGradient id="kd-b" cx=".36" cy=".3" r=".75"><stop offset="0" stop-color="#707070"/><stop offset=".45" stop-color="#222"/><stop offset="1" stop-color="#050505"/></radialGradient>
+                  <radialGradient id="kd-w" cx=".36" cy=".3" r=".75"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#efece4"/><stop offset="1" stop-color="#b9b4a8"/></radialGradient>
+                  <radialGradient id="kd-bowl" cx=".4" cy=".2" r=".9"><stop offset="0" stop-color="#a5703a"/><stop offset=".6" stop-color="#6b4220"/><stop offset="1" stop-color="#3a220e"/></radialGradient>
+                  <clipPath id="kd-clip-l"><ellipse cx="42" cy="100" rx="27" ry="7.3"/></clipPath>
+                  <clipPath id="kd-clip-r"><ellipse cx="258" cy="100" rx="27" ry="7.3"/></clipPath>
+                </defs>
+                <ellipse cx="42" cy="134" rx="25" ry="4" fill="#000" fill-opacity=".35"/><path d="M14 100Q14 132 42 132Q70 132 70 100Z" fill="url(#kd-bowl)"/><ellipse cx="42" cy="100" rx="28" ry="8" fill="#2b1a0b"/><g clip-path="url(#kd-clip-l)"><ellipse cx="30" cy="102" rx="6.2" ry="3.6" fill="url(#kd-b)"/><ellipse cx="39" cy="99" rx="6.2" ry="3.6" fill="url(#kd-b)"/><ellipse cx="49" cy="101" rx="6.2" ry="3.6" fill="url(#kd-b)"/><ellipse cx="56" cy="103" rx="6.2" ry="3.6" fill="url(#kd-b)"/><ellipse cx="44" cy="104" rx="6.2" ry="3.6" fill="url(#kd-b)"/><ellipse cx="34" cy="105" rx="6.2" ry="3.6" fill="url(#kd-b)"/></g><ellipse cx="42" cy="100" rx="28" ry="8" fill="none" stroke="#e7bc72" stroke-opacity=".45" stroke-width="1"/><ellipse cx="258" cy="134" rx="25" ry="4" fill="#000" fill-opacity=".35"/><path d="M230 100Q230 132 258 132Q286 132 286 100Z" fill="url(#kd-bowl)"/><ellipse cx="258" cy="100" rx="28" ry="8" fill="#2b1a0b"/><g clip-path="url(#kd-clip-r)"><ellipse cx="246" cy="102" rx="6.2" ry="3.6" fill="url(#kd-w)"/><ellipse cx="255" cy="99" rx="6.2" ry="3.6" fill="url(#kd-w)"/><ellipse cx="265" cy="101" rx="6.2" ry="3.6" fill="url(#kd-w)"/><ellipse cx="272" cy="103" rx="6.2" ry="3.6" fill="url(#kd-w)"/><ellipse cx="260" cy="104" rx="6.2" ry="3.6" fill="url(#kd-w)"/><ellipse cx="250" cy="105" rx="6.2" ry="3.6" fill="url(#kd-w)"/></g><ellipse cx="258" cy="100" rx="28" ry="8" fill="none" stroke="#e7bc72" stroke-opacity=".45" stroke-width="1"/>
+                <g transform="rotate(-4 150 75)">
+                  <rect x="85" y="16" width="130" height="130" rx="3" fill="#9a6a32"/>
+                  <rect x="85" y="10" width="130" height="130" rx="3" fill="url(#kd-wood)"/>
+                  <g fill="none" stroke="#8a5a26" stroke-opacity=".16" stroke-width="1.2"><path d="M85 22C115 19 155 26 215 20"/><path d="M85 41C115 38 155 45 215 39"/><path d="M85 58C115 55 155 62 215 56"/><path d="M85 80C115 77 155 84 215 78"/><path d="M85 99C115 96 155 103 215 97"/><path d="M85 121C115 118 155 125 215 119"/></g>
+                  <path d="M94 19V131M108 19V131M122 19V131M136 19V131M150 19V131M164 19V131M178 19V131M192 19V131M206 19V131M94 19H206M94 33H206M94 47H206M94 61H206M94 75H206M94 89H206M94 103H206M94 117H206M94 131H206" stroke="#5a3d1c" stroke-opacity=".8" stroke-width=".8"/>
+                  <g fill="#4a3016"><circle cx="122" cy="47" r="1.7"/><circle cx="178" cy="47" r="1.7"/><circle cx="150" cy="75" r="1.7"/><circle cx="122" cy="103" r="1.7"/><circle cx="178" cy="103" r="1.7"/></g>
+                  <g><circle cx="151.3" cy="62.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="150" cy="61" r="6.5" fill="url(#kd-b)"/></g><g><circle cx="137.3" cy="76.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="136" cy="75" r="6.5" fill="url(#kd-b)"/></g><g><circle cx="165.3" cy="76.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="164" cy="75" r="6.5" fill="url(#kd-b)"/></g><g><circle cx="165.3" cy="48.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="164" cy="47" r="6.5" fill="url(#kd-b)"/></g><g><circle cx="123.3" cy="48.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="122" cy="47" r="6.5" fill="url(#kd-b)"/></g><g><circle cx="179.3" cy="104.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="178" cy="103" r="6.5" fill="url(#kd-b)"/></g><g><circle cx="137.3" cy="104.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="136" cy="103" r="6.5" fill="url(#kd-b)"/></g><g><circle cx="137.3" cy="62.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="136" cy="61" r="6.5" fill="url(#kd-w)"/></g><g><circle cx="165.3" cy="62.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="164" cy="61" r="6.5" fill="url(#kd-w)"/></g><g><circle cx="179.3" cy="76.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="178" cy="75" r="6.5" fill="url(#kd-w)"/></g><g><circle cx="151.3" cy="104.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="150" cy="103" r="6.5" fill="url(#kd-w)"/></g><g><circle cx="123.3" cy="90.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="122" cy="89" r="6.5" fill="url(#kd-w)"/></g>
+                  <g class="kd-capt"><circle cx="151.3" cy="76.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="150" cy="75" r="6.5" fill="url(#kd-w)"/></g>
+                  <circle class="kd-ghost" cx="150" cy="89" r="6.5" fill="#0a0a0a" fill-opacity=".28" stroke="#000" stroke-opacity=".55" stroke-width="1" stroke-dasharray="2 1.6"/>
+                  <g class="kd-new"><circle cx="151.3" cy="90.8" r="6.5" fill="#2a1605" fill-opacity=".35"/><circle cx="150" cy="89" r="6.5" fill="url(#kd-b)"/></g>
+                </g>
+              </svg>
+            </div>
             <div class="game-copy">
               <div><h3>Kado</h3><p>A calm, tactile game of territory, patience, and beautifully placed stones.</p></div>
               <span class="play-arrow" aria-hidden="true">↗</span>
@@ -743,7 +834,27 @@
           </a>
 
           <a class="game-card" href="dots_and_boxes.html" data-game data-icon="⊞">
-            <div class="game-art art-dots" aria-hidden="true"><span class="art-label">Pencil &amp; Paper</span></div>
+            <div class="game-art art-dots" aria-hidden="true">
+              <span class="art-label">Pencil &amp; Paper</span>
+              <svg class="card-svg" viewBox="0 0 300 150" focusable="false">
+                <g transform="rotate(-3 150 75)">
+                  <rect x="87" y="24" width="128" height="104" rx="4" fill="#d9cdb0"/>
+                  <rect x="84" y="21" width="128" height="104" rx="4" fill="#f4efdf"/>
+                  <g fill="#f7b2a8" fill-opacity=".8"><rect x="100" y="37" width="24" height="24"/><rect x="124" y="37" width="24" height="24"/></g><g fill="#9ed6dc" fill-opacity=".85"><rect x="100" y="61" width="24" height="24"/><rect x="100" y="85" width="24" height="24"/></g>
+                  <rect class="bx-target" x="148" y="61" width="24" height="24" fill="#f7b2a8" fill-opacity=".14"/>
+                  <g fill="none" stroke-width="3.4" stroke-linecap="round"><path d="M100 37H124" stroke="#ec5f50"/><path d="M124 37H148" stroke="#168aa0"/><path d="M100 37V61" stroke="#ec5f50"/><path d="M124 37V61" stroke="#ec5f50"/><path d="M148 37V61" stroke="#168aa0"/><path d="M100 61H124" stroke="#ec5f50"/><path d="M124 61H148" stroke="#ec5f50"/><path d="M100 61V85" stroke="#168aa0"/><path d="M124 61V85" stroke="#168aa0"/><path d="M100 85H124" stroke="#168aa0"/><path d="M100 85V109" stroke="#ec5f50"/><path d="M124 85V109" stroke="#168aa0"/><path d="M100 109H124" stroke="#168aa0"/><path d="M148 61H172" stroke="#ec5f50"/><path d="M148 85H172" stroke="#168aa0"/><path d="M172 61V85" stroke="#ec5f50"/><path d="M172 37H196" stroke="#168aa0"/><path d="M196 61V85" stroke="#ec5f50"/><path d="M148 109H172" stroke="#ec5f50"/><path d="M196 85V109" stroke="#168aa0"/></g>
+                  <path class="bx-preview" d="M148 85V61" stroke="#ec5f50" stroke-opacity=".85" stroke-width="3" stroke-dasharray="3 3" fill="none"/>
+                  <path class="bx-draw" d="M148 85V61" pathLength="100" stroke="#ec5f50" stroke-width="3.4" stroke-linecap="round" fill="none"/>
+                  <g fill="#172f35"><circle cx="100" cy="37" r="3"/><circle cx="100" cy="61" r="3"/><circle cx="100" cy="85" r="3"/><circle cx="100" cy="109" r="3"/><circle cx="124" cy="37" r="3"/><circle cx="124" cy="61" r="3"/><circle cx="124" cy="85" r="3"/><circle cx="124" cy="109" r="3"/><circle cx="148" cy="37" r="3"/><circle cx="148" cy="61" r="3"/><circle cx="148" cy="85" r="3"/><circle cx="148" cy="109" r="3"/><circle cx="172" cy="37" r="3"/><circle cx="172" cy="61" r="3"/><circle cx="172" cy="85" r="3"/><circle cx="172" cy="109" r="3"/><circle cx="196" cy="37" r="3"/><circle cx="196" cy="61" r="3"/><circle cx="196" cy="85" r="3"/><circle cx="196" cy="109" r="3"/></g>
+                  <g class="bx-pencil"><g transform="translate(149 86) rotate(40)">
+                      <path d="M0 0L14 -4.5L14 4.5Z" fill="#f1d6a8"/><path d="M0 0L4.5 -1.45L4.5 1.45Z" fill="#2a2a2a"/>
+                      <rect x="14" y="-4.5" width="52" height="9" fill="#f0bd4b"/><rect x="14" y="-4.5" width="52" height="3" fill="#f7d684"/><rect x="14" y="1.5" width="52" height="3" fill="#d39a33"/>
+                      <rect x="66" y="-4.7" width="7" height="9.4" fill="#c9cbc7"/><path d="M68.3 -4.7v9.4M70.6 -4.7v9.4" stroke="#9a9d99" stroke-width=".7"/>
+                      <rect x="72" y="-4.5" width="9" height="9" rx="2.2" fill="#ef8a7e"/>
+                    </g></g>
+                </g>
+              </svg>
+            </div>
             <div class="game-copy">
               <div><h3>Boxed In</h3><p>Join the dots, close the squares, and turn every clever line into another move.</p></div>
               <span class="play-arrow" aria-hidden="true">↗</span>
@@ -779,7 +890,24 @@
           </a>
 
           <a class="game-card featured" href="memory_match.html" data-game data-icon="◇">
-            <div class="game-art art-memory" aria-hidden="true"><span class="art-label">Memory</span></div>
+            <div class="game-art art-memory" aria-hidden="true">
+              <span class="art-label">Memory</span>
+              <svg class="card-svg" viewBox="0 0 300 150" focusable="false">
+                <defs>
+                  <linearGradient id="rc-back-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9b80fb"/><stop offset="1" stop-color="#6549cf"/></linearGradient>
+                  <linearGradient id="rc-face" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#31294c"/><stop offset="1" stop-color="#201a37"/></linearGradient>
+                  <radialGradient id="rc-hl" cx=".35" cy=".28" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".14"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+                  <pattern id="rc-stripe" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="6" fill="#fff" fill-opacity=".1"/></pattern>
+                  <filter id="rc-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                  <filter id="rc-blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4"/></filter>
+                  <mask id="rc-moon" maskUnits="userSpaceOnUse" x="-14" y="-14" width="28" height="28"><circle r="10.5" fill="#fff"/><circle cx="5" cy="-4" r="8.6" fill="#000"/></mask>
+                  <g id="rc-backcard"><rect x="-20" y="-27" width="40" height="54" rx="6" fill="url(#rc-back-g)" stroke="#c4b4ff" stroke-opacity=".35"/>
+                    <rect x="-15" y="-22" width="30" height="44" rx="4" fill="url(#rc-stripe)" stroke="#fff" stroke-opacity=".22"/>
+                    <path d="M0 -4.6Q0.828 -0.828 4.6 0Q0.828 0.828 0 4.6Q-0.828 0.828 -4.6 0Q-0.828 -0.828 0 -4.6Z" fill="#fff" fill-opacity=".85"/></g>
+                </defs>
+                <use href="#rc-backcard" transform="translate(52 44) rotate(-3)"/><g transform="translate(101 41) rotate(2)"><rect x="-21.5" y="-28.5" width="43" height="57" rx="7" fill="none" stroke="#ffd064" stroke-width="2.4" filter="url(#rc-blur)"/><rect x="-20" y="-27" width="40" height="54" rx="6" fill="url(#rc-face)" stroke="#ffd064" stroke-opacity=".5"/><rect x="-20" y="-27" width="40" height="54" rx="6" fill="url(#rc-hl)"/><path d="M0 -12Q2.16 -2.16 12 0Q2.16 2.16 0 12Q-2.16 2.16 -12 0Q-2.16 -2.16 0 -12Z" fill="#ffd064" filter="url(#rc-glow)"/></g><use href="#rc-backcard" transform="translate(150 44) rotate(-1)"/><use href="#rc-backcard" transform="translate(199 44) rotate(3)"/><g transform="translate(248 44) rotate(-2)"><rect x="-20" y="-27" width="40" height="54" rx="6" fill="url(#rc-face)" stroke="#5fbde8" stroke-opacity=".5"/><rect x="-20" y="-27" width="40" height="54" rx="6" fill="url(#rc-hl)"/><circle r="10.5" fill="#5fbde8" mask="url(#rc-moon)" filter="url(#rc-glow)"/></g><use href="#rc-backcard" transform="translate(52 107) rotate(2)"/><use href="#rc-backcard" transform="translate(101 107) rotate(-2)"/><g transform="translate(150 107) rotate(1)"><g class="rc-flip-back"><use href="#rc-backcard"/></g><g class="rc-flip-front"><rect x="-20" y="-27" width="40" height="54" rx="6" fill="url(#rc-face)" stroke="#5fbde8" stroke-opacity=".5"/><rect x="-20" y="-27" width="40" height="54" rx="6" fill="url(#rc-hl)"/><circle r="10.5" fill="#5fbde8" mask="url(#rc-moon)" filter="url(#rc-glow)"/></g></g><g transform="translate(199 104) rotate(-3)"><rect x="-21.5" y="-28.5" width="43" height="57" rx="7" fill="none" stroke="#ffd064" stroke-width="2.4" filter="url(#rc-blur)"/><rect x="-20" y="-27" width="40" height="54" rx="6" fill="url(#rc-face)" stroke="#ffd064" stroke-opacity=".5"/><rect x="-20" y="-27" width="40" height="54" rx="6" fill="url(#rc-hl)"/><path d="M0 -12Q2.16 -2.16 12 0Q2.16 2.16 0 12Q-2.16 2.16 -12 0Q-2.16 -2.16 0 -12Z" fill="#ffd064" filter="url(#rc-glow)"/></g><use href="#rc-backcard" transform="translate(248 107) rotate(2)"/><path class="rc-spark" d="M78 8.6Q78.612 11.388 81.4 12Q78.612 12.612 78 15.4Q77.388 12.612 74.6 12Q77.388 11.388 78 8.6Z" fill="#fff"/><path class="rc-spark" d="M73 67.6Q73.432 69.568 75.4 70Q73.432 70.432 73 72.4Q72.568 70.432 70.6 70Q72.568 69.568 73 67.6Z" fill="#fff"/><path class="rc-spark" d="M178 77.4Q178.468 79.532 180.6 80Q178.468 80.468 178 82.6Q177.532 80.468 175.4 80Q177.532 79.532 178 77.4Z" fill="#fff"/><path class="rc-spark" d="M180 132.8Q180.576 135.424 183.2 136Q180.576 136.576 180 139.2Q179.424 136.576 176.8 136Q179.424 135.424 180 132.8Z" fill="#fff"/>
+              </svg>
+            </div>
             <div class="game-copy">
               <div><h3>Recall Club</h3><p>Find every pair with fewer turns. Easy to learn, surprisingly hard to put down.</p></div>
               <span class="play-arrow" aria-hidden="true">↗</span>
@@ -788,7 +916,33 @@
           </a>
 
           <a class="game-card" href="snake.html" data-game data-icon="≈">
-            <div class="game-art art-neon" aria-hidden="true"><span class="art-label">Arcade</span></div>
+            <div class="game-art art-neon" aria-hidden="true">
+              <span class="art-label">Arcade</span>
+              <svg class="card-svg" viewBox="0 0 300 150" focusable="false">
+                <defs>
+                  <linearGradient id="nc-body" gradientUnits="userSpaceOnUse" x1="18" y1="122" x2="214" y2="66"><stop offset="0" stop-color="#4d6bff" stop-opacity=".55"/><stop offset=".55" stop-color="#4df7ff"/><stop offset="1" stop-color="#c4fff6"/></linearGradient>
+                  <linearGradient id="nc-rival" gradientUnits="userSpaceOnUse" x1="306" y1="136" x2="249" y2="128"><stop offset="0" stop-color="#ff4fb6" stop-opacity=".35"/><stop offset="1" stop-color="#ff8fd2"/></linearGradient>
+                  <linearGradient id="nc-comet" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#ffd75a" stop-opacity=".85"/><stop offset="1" stop-color="#ffd75a" stop-opacity="0"/></linearGradient>
+                  <radialGradient id="nc-head" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#f1fffd"/><stop offset="1" stop-color="#4df7ff"/></radialGradient>
+                  <radialGradient id="nc-rhead" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#ffe3f3"/><stop offset="1" stop-color="#ff4fb6"/></radialGradient>
+                  <filter id="nc-blur" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="4"/></filter>
+                </defs>
+                <circle cx="155" cy="38" r="7" fill="#4df7ff" fill-opacity=".18"/><circle cx="155" cy="38" r="2.8" fill="#c9fbff"/>
+                <circle cx="44" cy="66" r="6" fill="#9a7bff" fill-opacity=".2"/><circle cx="44" cy="66" r="2.4" fill="#c7b6ff"/>
+                <path d="M86 30.2L52 26L86 37.8Z" fill="url(#nc-comet)"/>
+                <circle cx="86" cy="34" r="9" fill="#ffd75a" fill-opacity=".2"/><circle cx="86" cy="34" r="4.4" fill="#ffd75a"/><circle cx="85" cy="33" r="1.6" fill="#fff"/>
+                <g class="nc-food"><circle cx="254" cy="42" r="10" fill="#ff4fb6" fill-opacity=".22"/><circle cx="254" cy="42" r="4.3" fill="#ff7cc8"/><circle cx="253.2" cy="41.2" r="1.7" fill="#fff"/></g>
+                <path d="M306 136C288 118 268 142 249 128" fill="none" stroke="#ff4fb6" stroke-opacity=".35" stroke-width="15" stroke-linecap="round" filter="url(#nc-blur)"/>
+                <path d="M306 136C288 118 268 142 249 128" fill="none" stroke="url(#nc-rival)" stroke-width="9" stroke-linecap="round"/>
+                <g transform="translate(247 126.6) rotate(215)"><ellipse rx="7.6" ry="6.4" fill="url(#nc-rhead)"/><circle cx="2.8" cy="-2.6" r="1.4" fill="#2a0620"/><circle cx="2.8" cy="2.6" r="1.4" fill="#2a0620"/></g>
+                <path d="M18 122C48 140 78 92 112 98S160 132 188 104S206 70 214 66" fill="none" stroke="#4df7ff" stroke-opacity=".38" stroke-width="18" stroke-linecap="round" filter="url(#nc-blur)"/>
+                <path d="M18 122C48 140 78 92 112 98S160 132 188 104S206 70 214 66" fill="none" stroke="url(#nc-body)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M18 122C48 140 78 92 112 98S160 132 188 104S206 70 214 66" fill="none" stroke="#04020f" stroke-opacity=".22" stroke-width="11" stroke-dasharray="1.2 6.5"/>
+                <path d="M18 122C48 140 78 92 112 98S160 132 188 104S206 70 214 66" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2.2" stroke-linecap="round" transform="translate(-.8 -2.4)"/>
+                <path class="nc-pulse" d="M18 122C48 140 78 92 112 98S160 132 188 104S206 70 214 66" pathLength="100" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+                <g transform="translate(216 65) rotate(-27)"><ellipse rx="9.6" ry="7.9" fill="url(#nc-head)"/><circle cx="3.6" cy="-3.3" r="1.8" fill="#0b0725"/><circle cx="3.6" cy="3.3" r="1.8" fill="#0b0725"/><circle cx="4.1" cy="-3.8" r=".6" fill="#fff"/><circle cx="4.1" cy="2.8" r=".6" fill="#fff"/></g>
+              </svg>
+            </div>
             <div class="game-copy">
               <div><h3>Neon Coil</h3><p>A luminous remix of Snake with fluid movement and an electric pulse.</p></div>
               <span class="play-arrow" aria-hidden="true">↗</span>
@@ -797,7 +951,31 @@
           </a>
 
           <a class="game-card" href="pocket_snake.html" data-game data-icon="▦">
-            <div class="game-art art-pocket" aria-hidden="true"><span class="art-label">Retro</span></div>
+            <div class="game-art art-pocket" aria-hidden="true">
+              <span class="art-label">Retro</span>
+              <svg class="card-svg" viewBox="0 0 300 150" focusable="false">
+                <defs>
+                  <linearGradient id="ps-plastic" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fbfaf7"/><stop offset=".7" stop-color="#e3e3df"/><stop offset="1" stop-color="#c3c4c0"/></linearGradient>
+                  <pattern id="ps-px" width="2" height="2" x="62" y="26" patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="#aab99a"/><rect width="1.7" height="1.7" x=".15" y=".15" fill="#a3b392"/></pattern>
+                  <filter id="ps-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+                <g transform="translate(8 0) rotate(-9 86 75)">
+                  <rect x="52" y="6" width="68" height="137" rx="20" fill="url(#ps-plastic)" stroke="#9fa19d" stroke-width="1"/>
+                  <path d="M58 24C58 15 63 10 72 9" fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="1.4" stroke-linecap="round"/>
+                  <rect x="76" y="13" width="20" height="3" rx="1.5" fill="#8e918d"/>
+                  <rect x="58" y="21" width="56" height="46" rx="6" fill="#39423d"/>
+                  <rect x="62" y="26" width="48" height="36" rx="1.5" fill="url(#ps-px)"/>
+                  <rect x="63" y="30.2" width="46" height=".8" fill="#1d2c22"/>
+                  <g fill="#1d2c22"><rect x="68.15" y="50.15" width="1.7" height="1.7"/><rect x="70.15" y="50.15" width="1.7" height="1.7"/><rect x="72.15" y="50.15" width="1.7" height="1.7"/><rect x="74.15" y="50.15" width="1.7" height="1.7"/><rect x="76.15" y="50.15" width="1.7" height="1.7"/><rect x="78.15" y="50.15" width="1.7" height="1.7"/><rect x="80.15" y="50.15" width="1.7" height="1.7"/><rect x="80.15" y="48.15" width="1.7" height="1.7"/><rect x="80.15" y="46.15" width="1.7" height="1.7"/><rect x="80.15" y="44.15" width="1.7" height="1.7"/><rect x="80.15" y="42.15" width="1.7" height="1.7"/><rect x="82.15" y="42.15" width="1.7" height="1.7"/><rect x="84.15" y="42.15" width="1.7" height="1.7"/><rect x="86.15" y="42.15" width="1.7" height="1.7"/><rect x="88.15" y="42.15" width="1.7" height="1.7"/><rect x="90.15" y="42.15" width="1.7" height="1.7"/><rect x="92.15" y="42.15" width="1.7" height="1.7"/><rect x="94.15" y="42.15" width="1.7" height="1.7"/><rect x="94.15" y="44.15" width="1.7" height="1.7"/><rect x="94.15" y="46.15" width="1.7" height="1.7"/><rect x="96.15" y="46.15" width="1.7" height="1.7"/><rect x="98.15" y="46.15" width="1.7" height="1.7"/><rect x="100.15" y="46.15" width="1.7" height="1.7"/><rect x="102.15" y="46.15" width="1.7" height="1.7"/><rect x="104.15" y="46.15" width="1.7" height="1.7"/><rect x="106.15" y="46.15" width="1.7" height="1.7"/><rect x="108.15" y="46.15" width="1.7" height="1.7"/></g>
+                  <rect x="60" y="73" width="14" height="6" rx="3" fill="#d6d6d2"/><rect x="98" y="73" width="14" height="6" rx="3" fill="#d6d6d2"/>
+                  <rect x="77" y="71" width="18" height="11" rx="5.5" fill="#1d6d98"/><rect x="79" y="72.2" width="14" height="4" rx="2" fill="#3191bb"/>
+                  <g font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="5.6" font-weight="800" fill="#4b544e" text-anchor="middle"><rect x="60.0" y="88" width="15" height="9" rx="4.5" fill="#f3f2ee" stroke="#b9bab7" stroke-width=".8"/><text x="67.5" y="94.6">1</text><rect x="78.5" y="88" width="15" height="9" rx="4.5" fill="#f3f2ee" stroke="#b9bab7" stroke-width=".8"/><text x="86.0" y="94.6">2</text><rect x="97.0" y="88" width="15" height="9" rx="4.5" fill="#f3f2ee" stroke="#b9bab7" stroke-width=".8"/><text x="104.5" y="94.6">3</text><rect x="60.0" y="100" width="15" height="9" rx="4.5" fill="#f3f2ee" stroke="#b9bab7" stroke-width=".8"/><text x="67.5" y="106.6">4</text><rect x="78.5" y="100" width="15" height="9" rx="4.5" fill="#f3f2ee" stroke="#b9bab7" stroke-width=".8"/><text x="86.0" y="106.6">5</text><rect x="97.0" y="100" width="15" height="9" rx="4.5" fill="#f3f2ee" stroke="#b9bab7" stroke-width=".8"/><text x="104.5" y="106.6">6</text><rect x="60.0" y="112" width="15" height="9" rx="4.5" fill="#f3f2ee" stroke="#b9bab7" stroke-width=".8"/><text x="67.5" y="118.6">7</text><rect x="78.5" y="112" width="15" height="9" rx="4.5" fill="#f3f2ee" stroke="#b9bab7" stroke-width=".8"/><text x="86.0" y="118.6">8</text><rect x="97.0" y="112" width="15" height="9" rx="4.5" fill="#f3f2ee" stroke="#b9bab7" stroke-width=".8"/><text x="104.5" y="118.6">9</text><rect x="60.0" y="124" width="15" height="9" rx="4.5" fill="#f3f2ee" stroke="#b9bab7" stroke-width=".8"/><text x="67.5" y="130.6">*</text><rect x="78.5" y="124" width="15" height="9" rx="4.5" fill="#f3f2ee" stroke="#b9bab7" stroke-width=".8"/><text x="86.0" y="130.6">0</text><rect x="97.0" y="124" width="15" height="9" rx="4.5" fill="#f3f2ee" stroke="#b9bab7" stroke-width=".8"/><text x="104.5" y="130.6">#</text></g>
+                </g>
+                <g fill="#b9c8a7" stroke="#5f7055" stroke-width="1" filter="url(#ps-glow)"><rect x="134.2" y="40.2" width="5.5" height="5.5" rx="1"/><rect x="144.7" y="39.7" width="6.6" height="6.6" rx="1"/><rect x="155.2" y="39.1" width="7.7" height="7.7" rx="1"/><rect x="165.6" y="38.6" width="8.8" height="8.8" rx="1"/><rect x="176.1" y="38.0" width="9.9" height="9.9" rx="1"/><rect x="176.0" y="49.0" width="10.0" height="10.0" rx="1"/><rect x="176.0" y="60.0" width="10.0" height="10.0" rx="1"/><rect x="176.0" y="71.0" width="10.0" height="10.0" rx="1"/><rect x="187.0" y="71.0" width="10.0" height="10.0" rx="1"/><rect x="198.0" y="71.0" width="10.0" height="10.0" rx="1"/><rect x="209.0" y="71.0" width="10.0" height="10.0" rx="1"/><rect x="220.0" y="71.0" width="10.0" height="10.0" rx="1"/><rect x="231.0" y="71.0" width="10.0" height="10.0" rx="1"/><rect x="231.0" y="82.0" width="10.0" height="10.0" rx="1"/><rect x="231.0" y="93.0" width="10.0" height="10.0" rx="1"/><rect x="242.0" y="93.0" width="10.0" height="10.0" rx="1"/><rect x="253" y="93" width="10" height="10" rx="1"/></g>
+                <rect x="259" y="95" width="2.6" height="2.6" fill="#1d2c22"/>
+                <g class="ps-food" fill="#e7f5cf" filter="url(#ps-glow)"><rect x="276" y="91" width="4.5" height="4.5"/><rect x="271.5" y="95.5" width="4.5" height="4.5"/><rect x="276" y="95.5" width="4.5" height="4.5"/><rect x="280.5" y="95.5" width="4.5" height="4.5"/><rect x="276" y="100" width="4.5" height="4.5"/></g>
+              </svg>
+            </div>
             <div class="game-copy">
               <div><h3>Pocket Snake</h3><p>A chunky 84 × 48 monochrome screen, satisfyingly old-school keys, and one very hungry snake.</p></div>
               <span class="play-arrow" aria-hidden="true">↗</span>
@@ -940,7 +1118,12 @@
         link.href = game.getAttribute('href');
         icon.className = 'quick-icon';
         icon.setAttribute('aria-hidden', 'true');
-        icon.textContent = game.dataset.icon || '✦';
+        const slug = game.getAttribute('href').replace(/\.html$/, '');
+        if (document.getElementById(`qi-${slug}`)) {
+          icon.innerHTML = `<svg viewBox="0 0 24 24" focusable="false"><use href="#qi-${slug}"></use></svg>`;
+        } else {
+          icon.textContent = game.dataset.icon || '✦';
+        }
         name.className = 'quick-name';
         name.textContent = game.querySelector('h3').textContent;
         link.append(icon, name);
