@@ -7,6 +7,7 @@ This repository is a collection of self-contained browser games. `index.html` is
 - Every playable game must be a self-contained `.html` file in the repository root unless there is a clear technical reason to add an asset folder.
 - Whenever a game is added, renamed, or removed, update the card collection in `index.html` in the same change. A new game is not complete until it appears on the landing page and its card link works from a GitHub Pages project URL.
 - Give every landing-page game card a `data-icon`; the above-the-fold quick-launch menu is generated from the card collection.
+- Draw each card's artwork as an inline SVG scene (`<svg class="card-svg" viewBox="0 0 300 150">`) that shows the game being played in the game's own colours, with element ids prefixed by a short game-specific prefix. Add a matching 24 × 24 `<symbol id="qi-<game file name>">` to the quick-launch sprite in `index.html`; the card's `data-icon` is the fallback. Any hover motion must sit inside `prefers-reduced-motion: no-preference`, and the still scene must be complete on its own.
 - Update the visible game count on the landing page whenever the card collection changes.
 - Keep the game list in `README.md` synchronized with the landing-page collection.
 - Use relative links. Do not use root-relative paths such as `/game.html`; the site must work when GitHub Pages serves it below `/<repository-name>/`.
