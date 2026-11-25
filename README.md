@@ -14,7 +14,7 @@ Choose a title from the quick-launch arcade menu or browse the full game library
 - **Kado** — two-player Go with multiple board sizes
 - **Boxed In** — two-player Dots and Boxes on adjustable grids
 - **Linefall** — falling-block puzzle with hold, next queue, ghost piece, and combos
-- **Recall Club** — memory matching for one or two players
+- **Recall Club** — memory matching for one to five players
 - **Neon Coil** — a glowing, free-moving Snake remix
 - **Pocket Snake** — old-school Snake on an 84 × 48 monochrome screen
 - **Conquest** — world-domination strategy on an original 49-territory map for 1–6 players against computer opponents or friends on one device

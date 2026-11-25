@@ -1,0 +1,17 @@
+name: Catalogue check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  catalogue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check landing page, README and game files agree
+        run: python3 scripts/check_catalogue.py
