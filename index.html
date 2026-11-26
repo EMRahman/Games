@@ -179,6 +179,23 @@
 
     .surprise span { color: var(--yellow); font-size: 17px; }
 
+    .online-invite {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 24px;
+      margin: 10px 0 24px;
+      padding: 16px 20px;
+      border: 1px solid rgba(92, 243, 255, .25);
+      border-radius: 12px;
+      background: rgba(92, 243, 255, .05);
+    }
+
+    .online-invite p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .online-invite strong { color: var(--ink); }
+    .online-invite a { display: inline-flex; align-items: center; min-height: 44px; color: var(--blue); font-weight: 800; }
+
     .quick-launch {
       grid-column: 1 / -1;
       min-width: 0;
@@ -616,6 +633,7 @@
     .game-card:focus-visible,
     .quick-game:focus-visible,
     .surprise:focus-visible,
+    .online-invite a:focus-visible,
     .brand:focus-visible {
       outline: 3px solid var(--orange);
       outline-offset: 4px;
@@ -728,6 +746,11 @@
           <div class="quick-grid" id="quick-grid"></div>
         </nav>
       </section>
+
+      <aside class="online-invite" aria-label="Play with friends online">
+        <p><strong>Friends far away?</strong> Play together in online rooms with Team Side Quests. Visit the repository to deploy your own copy.</p>
+        <a href="https://github.com/EMRahman/GameRooms">Explore Team Side Quests →</a>
+      </aside>
 
       <section aria-labelledby="games-title">
         <div class="collection-head">
