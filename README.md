@@ -6,6 +6,8 @@ A small, dependency-free collection of browser games built for desktop, iPhone, 
 
 ## [Play the games →](https://emrahman.github.io/Games/)
 
+Want to play with a friend or a group of friends far away? [Team Side Quests](https://github.com/EMRahman/GameRooms) brings multiplayer games into shared online rooms. Visit the repository for instructions to deploy your own copy and invite friends.
+
 Choose a title from the quick-launch arcade menu or browse the full game library:
 
 - **Northstar** — fleet-hunting sea battle for one or two players
