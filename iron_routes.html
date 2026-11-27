@@ -233,9 +233,12 @@
     .seat .kind[aria-pressed="true"] { background: rgba(232, 176, 75, .16); color: var(--brass); }
     .seat select option { background: #2a231b; color: var(--ink); }
     .counter { display: flex; align-items: center; gap: 10px; }
-    .mappick { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
-    .mappick label { position: relative; display: grid; align-content: center; gap: 4px; min-height: 56px; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: 11px; background: rgba(255, 255, 255, .04); cursor: pointer; }
+    .mappick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .mappick label { position: relative; display: grid; align-content: start; gap: 4px; min-height: 56px; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: 11px; background: rgba(255, 255, 255, .04); cursor: pointer; }
     .mappick input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .map-preview { display: block; width: 100%; aspect-ratio: 8 / 5; margin-bottom: 3px; border-radius: 6px; background: #a9c9d4; pointer-events: none; }
+    .map-preview .track { stroke-width: 1; vector-effect: non-scaling-stroke; }
+    .map-preview .dot { fill: #fffaf0; stroke: #3a2f22; stroke-width: 2; }
     .mappick b { font-size: 15px; }
     .mappick small { color: var(--muted); font: 700 10.5px/1.2 var(--mono); letter-spacing: .04em; text-transform: uppercase; }
     .mappick label.on { border-color: var(--brass); background: rgba(232, 176, 75, .14); box-shadow: 0 0 0 1px var(--brass) inset; }
@@ -1657,8 +1660,6 @@
       const routeEls = [];
       const cityEls = {};
 
-      const pts = list => list.map(([lon, lat]) => proj(lon, lat).join(',')).join(' ');
-
       function el(tag, attrs, parent) {
         const e = document.createElementNS(NS, tag);
         Object.entries(attrs || {}).forEach(([k, v]) => e.setAttribute(k, v));
@@ -1692,20 +1693,39 @@
         return { d, line };
       }
 
+      function drawMapTerrain(target, map) {
+        const { proj } = map;
+        const pts = list => list.map(([lon, lat]) => proj(lon, lat).join(',')).join(' ');
+        const g0 = el('g', { 'aria-hidden': 'true' }, target);
+        el('rect', { x: -1000, y: -1000, width: 3000, height: 3000, fill: '#a9c9d4' }, g0);
+        const [[lon0, lon1, lonStep], [lat0, lat1, latStep]] = map.grat;
+        for (let lon = lon0; lon <= lon1; lon += lonStep) { const [x] = proj(lon, 0); el('line', { class: 'grat', x1: x, y1: -1000, x2: x, y2: 2000 }, g0); }
+        for (let lat = lat0; lat <= lat1; lat += latStep) { const [, y] = proj(0, lat); el('line', { class: 'grat', x1: -1000, y1: y, x2: 2000, y2: y }, g0); }
+        map.land.forEach(l => el('polygon', { class: 'land', points: pts(l) }, g0));
+        map.seas.forEach(l => el('polygon', { class: 'sea', points: pts(l) }, g0));
+        map.lakes.forEach(l => el('polygon', { class: 'lake', points: pts(l) }, g0));
+        map.borders.forEach(b => el('polyline', { class: 'border', points: pts(b) }, g0));
+      }
+
+      function drawMapPreview(target, map) {
+        const { x, y, w, h } = map.full;
+        target.setAttribute('viewBox', `${x} ${y} ${w} ${h}`);
+        drawMapTerrain(target, map);
+        const cities = Object.fromEntries(Object.entries(map.cities).map(([key, [, lon, lat]]) => [key, map.proj(lon, lat)]));
+        map.routes.forEach(([a, b, color]) => {
+          const [x1, y1] = cities[a];
+          const [x2, y2] = cities[b];
+          el('line', { class: 'track', x1, y1, x2, y2, stroke: CARD[color].c }, target);
+        });
+        Object.values(cities).forEach(([cx, cy]) => el('circle', { class: 'dot', cx, cy, r: 6 }, target));
+      }
+
       function buildMap() {
         svg.textContent = '';
         routeEls.length = 0;
         Object.keys(cityEls).forEach(k => { delete cityEls[k]; });
         svg.setAttribute('aria-label', `Railway map of ${MAP.name}`);
-        const g0 = el('g', { 'aria-hidden': 'true' }, svg);
-        el('rect', { x: -1000, y: -1000, width: 3000, height: 3000, fill: '#a9c9d4' }, g0);
-        const [[lon0, lon1, lonStep], [lat0, lat1, latStep]] = MAP.grat;
-        for (let lon = lon0; lon <= lon1; lon += lonStep) { const [x] = proj(lon, 0); el('line', { class: 'grat', x1: x, y1: -1000, x2: x, y2: 2000 }, g0); }
-        for (let lat = lat0; lat <= lat1; lat += latStep) { const [, y] = proj(0, lat); el('line', { class: 'grat', x1: -1000, y1: y, x2: 2000, y2: y }, g0); }
-        MAP.land.forEach(l => el('polygon', { class: 'land', points: pts(l) }, g0));
-        MAP.seas.forEach(l => el('polygon', { class: 'sea', points: pts(l) }, g0));
-        MAP.lakes.forEach(l => el('polygon', { class: 'lake', points: pts(l) }, g0));
-        MAP.borders.forEach(b => el('polyline', { class: 'border', points: pts(b) }, g0));
+        drawMapTerrain(svg, MAP);
         const gr = el('g', {}, svg);
         ROUTES.forEach(r => {
           const g = el('g', { class: 'route', 'data-r': r.id }, gr);
@@ -2171,9 +2191,14 @@
       let seatMap = MAPS[prefs.map] ? prefs.map : 'na';
 
       function renderMapPick() {
-        $('#mapPick').innerHTML = Object.entries(MAPS).map(([id, m]) => `<label class="${id === seatMap ? 'on' : ''}">
+        const mapPick = $('#mapPick');
+        mapPick.innerHTML = Object.entries(MAPS).map(([id, m]) => `<label class="${id === seatMap ? 'on' : ''}">
             <input type="radio" name="map" value="${id}" ${id === seatMap ? 'checked' : ''}>
+            <svg class="map-preview" aria-hidden="true" focusable="false"></svg>
             <b>${esc(m.name)}</b><small>${Object.keys(m.cities).length} cities · ${esc(m.blurb)}</small></label>`).join('');
+        mapPick.querySelectorAll('label').forEach(label => {
+          drawMapPreview(label.querySelector('svg'), MAPS[label.querySelector('input').value]);
+        });
       }
       $('#mapPick').addEventListener('change', e => {
         if (e.target.name !== 'map') return;
