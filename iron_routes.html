@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#1b1712">
-  <meta name="description" content="Iron Routes is a cross-country railway building game for 2–5 players against computer opponents or friends sharing one device, on desktop, iPhone, and iPad.">
+  <meta name="description" content="Iron Routes is a railway building game across North America or Europe for 2–5 players against computer opponents or friends sharing one device, on desktop, iPhone, and iPad.">
   <title>Iron Routes — Railway Empire</title>
   <style>
     :root {
@@ -81,6 +81,7 @@
     /* Map art */
     .land { fill: #eadfc2; stroke: #8f7d5e; stroke-width: 1.2; }
     .lake { fill: #a9c9d4; stroke: #8fa9b2; stroke-width: .8; }
+    .sea { fill: #a9c9d4; stroke: #8f7d5e; stroke-width: 1.2; }
     .border { fill: none; stroke: #a8936c; stroke-width: 1; stroke-dasharray: 4 3; }
     .grat { stroke: rgba(80, 110, 120, .15); stroke-width: .6; }
     .route .hit { stroke: transparent; stroke-width: 16; fill: none; pointer-events: stroke; cursor: pointer; }
@@ -219,6 +220,14 @@
     .seat .kind[aria-pressed="true"] { background: rgba(232, 176, 75, .16); color: var(--brass); }
     .seat select option { background: #2a231b; color: var(--ink); }
     .counter { display: flex; align-items: center; gap: 10px; }
+    .mappick { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+    .mappick label { position: relative; display: grid; align-content: center; gap: 4px; min-height: 56px; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: 11px; background: rgba(255, 255, 255, .04); cursor: pointer; }
+    .mappick input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .mappick b { font-size: 15px; }
+    .mappick small { color: var(--muted); font: 700 10.5px/1.2 var(--mono); letter-spacing: .04em; text-transform: uppercase; }
+    .mappick label.on { border-color: var(--brass); background: rgba(232, 176, 75, .14); box-shadow: 0 0 0 1px var(--brass) inset; }
+    .mappick label.on b { color: var(--brass); }
+    .mappick label:has(input:focus-visible) { outline: 3px solid var(--brass); outline-offset: 2px; }
     .counter output { min-width: 2ch; font: 900 20px/1 var(--mono); text-align: center; }
     .curtain { text-align: center; }
     .curtain .badge { width: 64px; height: 64px; margin: 6px auto 14px; border-radius: 18px; background: var(--pc); box-shadow: 0 0 0 4px rgba(255, 255, 255, .15); }
@@ -276,6 +285,8 @@
     <form class="sheet" id="setupForm">
       <h2 id="setupTitle">New game</h2>
       <p class="lead">Claim railway routes between cities, link up your secret destination tickets, and build the longest line across the continent.</p>
+      <h3 id="mapLabel">Map</h3>
+      <div class="mappick" id="mapPick" role="radiogroup" aria-labelledby="mapLabel"></div>
       <h3>Players</h3>
       <div class="counter">
         <button class="icon-btn" type="button" id="pMinus" aria-label="Fewer players">−</button>
@@ -347,6 +358,7 @@
       </ul>
       <h3>Details</h3>
       <ul>
+        <li>Choose the North America or Europe network when you start a new game. Both use the same rules, cards and scoring.</li>
         <li>Everyone starts with 40 trains, 4 train cards, and 3 tickets, and keeps at least 2 of the tickets.</li>
         <li>If three locomotives are ever face up together, all five face-up cards are replaced.</li>
         <li>Double routes: one player can't claim both tracks. With 2 or 3 players, only one track of each pair can be used.</li>
@@ -364,6 +376,9 @@
         <div><span>date</span> 2 October 2026</div>
         <div><span>v2 prompt</span> Make all the changes to derisk as much as possible (original rail network, colours, tickets and scoring)</div>
         <div><span>v2 date</span> 2 October 2026</div>
+        <div><span>v3 prompt</span> for Iron Routes; provide an EU map</div>
+        <div><span>v3 date</span> 27 November 2026</div>
+        <div><span>v3 model</span> Claude Sonnet 5.5</div>
         <div><span>built with</span> Claude Code</div>
       </div>
       <div class="sheet-actions"><button class="btn primary grow" type="button" data-close>Got it</button></div>
@@ -377,69 +392,203 @@
       'use strict';
 
       // ---------- Map data ----------
-      // [name, longitude, latitude, label side]
-      const CITIES = {
-        VAN: ['Vancouver', -123.1, 49.3, 'l'], SEA: ['Seattle', -122.3, 47.6, 'l'], SPO: ['Spokane', -117.4, 47.7, 't'],
-        POR: ['Portland', -122.7, 45.5, 'l'], SFO: ['San Francisco', -122.4, 37.8, 'l'], LAX: ['Los Angeles', -118.2, 34.1, 'l'],
-        SDG: ['San Diego', -117.2, 32.7, 'b'], LVS: ['Las Vegas', -115.1, 36.2, 'r'], PHX: ['Phoenix', -112.1, 33.4, 'b'],
-        SLC: ['Salt Lake City', -111.9, 40.8, 'b'], BOI: ['Boise', -116.2, 43.6, 'b'], CAL: ['Calgary', -114.1, 51.0, 't'],
-        BIL: ['Billings', -108.5, 45.8, 't'], DEN: ['Denver', -105.0, 39.7, 'r'], ABQ: ['Albuquerque', -106.6, 35.1, 'r'],
-        ELP: ['El Paso', -106.4, 31.8, 'b'], SAT: ['San Antonio', -98.5, 29.4, 'b'], WIN: ['Winnipeg', -97.1, 49.9, 't'],
-        BIS: ['Bismarck', -100.8, 46.8, 't'], OMA: ['Omaha', -95.9, 41.3, 't'], KC: ['Kansas City', -94.6, 39.1, 'b'],
-        OKC: ['Oklahoma City', -97.5, 35.5, 'b'], DAL: ['Dallas', -96.8, 32.8, 'r'], HOU: ['Houston', -95.4, 29.8, 'b'],
-        MIN: ['Minneapolis', -93.3, 45.0, 't'], CHI: ['Chicago', -87.6, 41.9, 't'], STL: ['St. Louis', -90.2, 38.6, 'b'],
-        MEM: ['Memphis', -90.0, 35.1, 'l'], NOL: ['New Orleans', -90.1, 30.0, 'b'], ATL: ['Atlanta', -84.4, 33.7, 'b'],
-        NAS: ['Nashville', -86.8, 36.2, 't'], DET: ['Detroit', -83.0, 42.3, 't'], CIN: ['Cincinnati', -84.5, 39.1, 'b'],
-        TOR: ['Toronto', -79.4, 43.7, 't'], MTL: ['Montréal', -73.6, 45.5, 't'], BOS: ['Boston', -71.1, 42.4, 'r'],
-        NYC: ['New York', -74.0, 40.7, 'r'], WAS: ['Washington', -77.0, 38.9, 'r'], CHA: ['Charlotte', -80.8, 35.2, 'r'],
-        MIA: ['Miami', -80.2, 25.8, 'r'], JAX: ['Jacksonville', -81.7, 30.3, 'r']
+      // Each map lists cities as [name, longitude, latitude, label side], routes as
+      // [from, to, colour, colour of the twin track], ticket city pairs, and the
+      // coastline art (land, seas and lakes as polygons; borders as polylines).
+      const MAPS = {
+        na: {
+          name: 'North America',
+          blurb: 'Vancouver to Miami',
+          cities: {
+            VAN: ['Vancouver', -123.1, 49.3, 'l'], SEA: ['Seattle', -122.3, 47.6, 'l'], SPO: ['Spokane', -117.4, 47.7, 't'],
+            POR: ['Portland', -122.7, 45.5, 'l'], SFO: ['San Francisco', -122.4, 37.8, 'l'], LAX: ['Los Angeles', -118.2, 34.1, 'l'],
+            SDG: ['San Diego', -117.2, 32.7, 'b'], LVS: ['Las Vegas', -115.1, 36.2, 'r'], PHX: ['Phoenix', -112.1, 33.4, 'b'],
+            SLC: ['Salt Lake City', -111.9, 40.8, 'b'], BOI: ['Boise', -116.2, 43.6, 'b'], CAL: ['Calgary', -114.1, 51.0, 't'],
+            BIL: ['Billings', -108.5, 45.8, 't'], DEN: ['Denver', -105.0, 39.7, 'r'], ABQ: ['Albuquerque', -106.6, 35.1, 'r'],
+            ELP: ['El Paso', -106.4, 31.8, 'b'], SAT: ['San Antonio', -98.5, 29.4, 'b'], WIN: ['Winnipeg', -97.1, 49.9, 't'],
+            BIS: ['Bismarck', -100.8, 46.8, 't'], OMA: ['Omaha', -95.9, 41.3, 't'], KC: ['Kansas City', -94.6, 39.1, 'b'],
+            OKC: ['Oklahoma City', -97.5, 35.5, 'b'], DAL: ['Dallas', -96.8, 32.8, 'r'], HOU: ['Houston', -95.4, 29.8, 'b'],
+            MIN: ['Minneapolis', -93.3, 45.0, 't'], CHI: ['Chicago', -87.6, 41.9, 't'], STL: ['St. Louis', -90.2, 38.6, 'b'],
+            MEM: ['Memphis', -90.0, 35.1, 'l'], NOL: ['New Orleans', -90.1, 30.0, 'b'], ATL: ['Atlanta', -84.4, 33.7, 'b'],
+            NAS: ['Nashville', -86.8, 36.2, 't'], DET: ['Detroit', -83.0, 42.3, 't'], CIN: ['Cincinnati', -84.5, 39.1, 'b'],
+            TOR: ['Toronto', -79.4, 43.7, 't'], MTL: ['Montréal', -73.6, 45.5, 't'], BOS: ['Boston', -71.1, 42.4, 'r'],
+            NYC: ['New York', -74.0, 40.7, 'r'], WAS: ['Washington', -77.0, 38.9, 'r'], CHA: ['Charlotte', -80.8, 35.2, 'r'],
+            MIA: ['Miami', -80.2, 25.8, 'r'], JAX: ['Jacksonville', -81.7, 30.3, 'r']
+          },
+          proj: (lon, lat) => [Math.round((lon + 126) * 15.32 * 10) / 10, Math.round((52 - lat) * 20 * 10) / 10],
+          full: { x: -52, y: -14, w: 944, h: 618 },
+          grat: [[-125, -65, 5], [25, 50, 5]],
+          routes: [
+            ['VAN', 'SEA', 'orange'], ['SEA', 'POR', 'blue', 'red'], ['VAN', 'CAL', 'black'], ['VAN', 'SPO', 'gray'],
+            ['SEA', 'SPO', 'green', 'gray'], ['SPO', 'CAL', 'purple'], ['SPO', 'BOI', 'yellow'], ['SPO', 'BIL', 'red'],
+            ['CAL', 'BIL', 'gray'], ['CAL', 'WIN', 'orange'], ['POR', 'BOI', 'white'], ['POR', 'SFO', 'black', 'yellow'],
+            ['SFO', 'LAX', 'green', 'blue'], ['SFO', 'LVS', 'purple'], ['SFO', 'BOI', 'gray'], ['LAX', 'SDG', 'white'],
+            ['LAX', 'LVS', 'red', 'gray'], ['SDG', 'PHX', 'orange'], ['LVS', 'PHX', 'gray'], ['LVS', 'SLC', 'green'],
+            ['BOI', 'SLC', 'orange', 'gray'], ['BOI', 'BIL', 'blue'], ['SLC', 'BIL', 'black'], ['SLC', 'DEN', 'white'],
+            ['PHX', 'ABQ', 'red'], ['PHX', 'ELP', 'yellow'], ['ABQ', 'ELP', 'gray'], ['ABQ', 'DEN', 'purple', 'green'],
+            ['BIL', 'DEN', 'yellow'], ['BIL', 'BIS', 'green'], ['BIS', 'WIN', 'gray'], ['WIN', 'MIN', 'yellow'],
+            ['BIS', 'MIN', 'white'], ['BIS', 'OMA', 'gray'], ['DEN', 'OMA', 'blue'], ['DEN', 'KC', 'gray'],
+            ['ABQ', 'OKC', 'orange'], ['ELP', 'SAT', 'purple'], ['SAT', 'DAL', 'white', 'gray'], ['SAT', 'HOU', 'black'],
+            ['DAL', 'HOU', 'red'], ['DAL', 'OKC', 'yellow', 'purple'], ['OKC', 'KC', 'green'], ['KC', 'OMA', 'red', 'black'],
+            ['OMA', 'MIN', 'purple'], ['MIN', 'CHI', 'green', 'orange'], ['OMA', 'CHI', 'gray'], ['KC', 'STL', 'yellow', 'white'],
+            ['OKC', 'MEM', 'black'], ['DAL', 'MEM', 'blue'], ['HOU', 'NOL', 'purple', 'gray'], ['MEM', 'NOL', 'purple'],
+            ['MEM', 'STL', 'gray'], ['STL', 'CHI', 'blue'], ['STL', 'CIN', 'red'], ['STL', 'NAS', 'white'],
+            ['MEM', 'NAS', 'gray'], ['NOL', 'ATL', 'green'], ['NOL', 'JAX', 'gray'], ['JAX', 'MIA', 'yellow', 'green'],
+            ['ATL', 'JAX', 'white'], ['ATL', 'NAS', 'orange', 'gray'], ['ATL', 'CHA', 'purple'], ['CHA', 'JAX', 'blue'],
+            ['CHA', 'WAS', 'black', 'red'], ['NAS', 'CIN', 'yellow'], ['CIN', 'WAS', 'gray'], ['CIN', 'DET', 'purple', 'black'],
+            ['CHI', 'DET', 'white'], ['DET', 'TOR', 'gray', 'blue'], ['MIN', 'DET', 'black'], ['TOR', 'MTL', 'red'],
+            ['TOR', 'NYC', 'green'], ['MTL', 'BOS', 'white', 'orange'], ['MTL', 'NYC', 'gray'], ['BOS', 'NYC', 'purple', 'black'],
+            ['NYC', 'WAS', 'yellow', 'blue'], ['DET', 'WAS', 'orange'], ['CHI', 'CIN', 'gray'], ['NAS', 'CHA', 'gray'],
+            ['NOL', 'MIA', 'red']
+          ],
+          tickets: [
+            ['SEA', 'SAT'], ['SPO', 'ATL'], ['SFO', 'CHI'], ['SDG', 'NYC'], ['POR', 'MIA'], ['VAN', 'WAS'], ['CAL', 'DAL'],
+            ['BOI', 'NOL'], ['SLC', 'TOR'], ['LVS', 'DET'], ['PHX', 'CHA'], ['ABQ', 'BOS'], ['ELP', 'CIN'], ['DEN', 'MTL'],
+            ['BIL', 'HOU'], ['BIS', 'JAX'], ['WIN', 'NAS'], ['MIN', 'SAT'], ['OMA', 'WAS'], ['KC', 'BOS'], ['OKC', 'DET'],
+            ['DAL', 'CHA'], ['HOU', 'TOR'], ['MEM', 'MTL'], ['STL', 'JAX'], ['CHI', 'MIA'], ['CIN', 'NOL'], ['NAS', 'BOS'],
+            ['ATL', 'TOR'], ['LAX', 'DEN'], ['SFO', 'PHX'], ['VAN', 'BIL'], ['SPO', 'SLC'], ['BIS', 'KC'], ['WIN', 'CHI'],
+            ['DAL', 'STL'], ['HOU', 'ATL'], ['CHA', 'NYC'], ['LVS', 'SAT'], ['CAL', 'OMA']
+          ],
+          land: [[[-131, 53], [-55, 53], [-55, 47], [-60, 46.5], [-64, 45.5], [-66.5, 44.8], [-70, 43.6], [-70.6, 42.6], [-70, 41.8], [-71.5, 41.4], [-74, 40.6], [-74.2, 39.6], [-75.5, 38.6], [-76, 37], [-75.6, 35.3], [-77, 34.6], [-78.5, 33.8], [-80, 32.6], [-81.4, 30.8], [-81.2, 29.6], [-80.3, 28.2], [-79.9, 26.5], [-80.1, 25.2], [-81.2, 25.3], [-81.8, 26.2], [-82.7, 27.8], [-82.8, 29], [-84, 30], [-85.5, 29.7], [-86.5, 30.4], [-88, 30.4], [-89.3, 30.2], [-89.4, 29.2], [-90.5, 29.1], [-92, 29.6], [-94, 29.6], [-95, 29.2], [-96.5, 28.3], [-97.3, 27.4], [-97.4, 25.8], [-97.7, 24], [-97.9, 19], [-112, 19], [-112, 24.5], [-114.2, 28], [-115.8, 30.3], [-117.1, 32.5], [-117.6, 33.4], [-118.5, 34], [-120.6, 34.6], [-121.9, 36.6], [-122.6, 37.6], [-123, 38.3], [-123.8, 39.6], [-124.3, 40.4], [-124.2, 42], [-124, 44], [-124, 46.2], [-124.7, 48.4], [-123.3, 48.4], [-122.8, 49], [-124, 49.8], [-125.5, 50.5], [-127.5, 51], [-131, 53]]],
+          seas: [],
+          lakes: [
+            [[-92.1, 46.7], [-90, 46.6], [-87.5, 46.5], [-84.6, 46.5], [-84.8, 47.5], [-86, 48.7], [-88.5, 48.4], [-90, 47.8], [-91.5, 47.2]],
+            [[-87.8, 42.2], [-86.8, 41.7], [-86.2, 42.5], [-86.4, 44], [-85.6, 45.3], [-84.9, 45.8], [-86.5, 45.9], [-87.5, 45.2], [-87.9, 44]],
+            [[-84.5, 45.9], [-83.5, 45.4], [-82.5, 44.5], [-82.4, 43], [-81.7, 43.6], [-81.7, 44.8], [-80.2, 45], [-80.6, 45.9], [-82.5, 46.1]],
+            [[-83.4, 41.8], [-81.5, 41.6], [-79, 42.4], [-79.2, 42.9], [-81, 42.6], [-83, 42.1]],
+            [[-79.8, 43.3], [-78, 43.3], [-76.3, 43.5], [-76.3, 44.1], [-77.5, 44], [-79.4, 43.75]]
+          ],
+          borders: [
+            [[-123.3, 49], [-95.2, 49], [-95.2, 49.4], [-89.5, 48], [-84.6, 46.5], [-82.4, 45.4], [-82.5, 43], [-83.1, 42], [-79, 42.6], [-79, 43.3], [-76.5, 44.2], [-74.7, 45], [-71.5, 45], [-70, 46.5], [-69, 47.4], [-67.8, 47.1], [-67.8, 45.6], [-67, 44.8]],
+            [[-117.1, 32.5], [-114.7, 32.7], [-111, 31.3], [-108.2, 31.3], [-106.5, 31.8], [-104.5, 29.6], [-103, 29], [-101.4, 29.8], [-99.5, 27.5], [-97.2, 25.9]]
+          ]
+        },
+        eu: {
+          name: 'Europe',
+          blurb: 'Lisbon to Kyiv',
+          cities: {
+            LIS: ['Lisbon', -9.14, 38.72, 'l'], OPO: ['Porto', -8.61, 41.15, 'l'], MAD: ['Madrid', -3.70, 40.42, 'b'],
+            SVQ: ['Seville', -5.98, 37.39, 'r'], VLC: ['Valencia', -0.38, 39.47, 'r'], BCN: ['Barcelona', 2.17, 41.39, 'r'],
+            BIO: ['Bilbao', -2.93, 43.26, 't'], BOD: ['Bordeaux', -0.58, 44.84, 'l'], MRS: ['Marseille', 5.37, 43.30, 'b'],
+            LYS: ['Lyon', 4.84, 45.76, 'l'], PAR: ['Paris', 2.35, 48.86, 'l'], LON: ['London', -0.13, 51.51, 'l'],
+            EDI: ['Edinburgh', -3.19, 55.95, 't'],
+            BRU: ['Brussels', 4.35, 50.85, 'l'], AMS: ['Amsterdam', 4.90, 52.37, 't'], CGN: ['Cologne', 6.96, 50.94, 'r'],
+            HAM: ['Hamburg', 9.99, 53.55, 't'], FRA: ['Frankfurt', 8.68, 50.11, 'r'], MUC: ['Munich', 11.58, 48.14, 'b'],
+            BER: ['Berlin', 13.40, 52.52, 't'], ZRH: ['Zurich', 8.54, 47.37, 'l'], MIL: ['Milan', 9.19, 45.46, 'l'],
+            BLQ: ['Bologna', 11.34, 44.49, 'r'], ROM: ['Rome', 12.50, 41.90, 'l'], NAP: ['Naples', 14.27, 40.85, 'b'],
+            VIE: ['Vienna', 16.37, 48.21, 't'], PRG: ['Prague', 14.42, 50.08, 't'], LJU: ['Ljubljana', 14.51, 46.06, 'b'],
+            BUD: ['Budapest', 19.04, 47.50, 'r'], WAW: ['Warsaw', 21.01, 52.23, 't'], KRK: ['Kraków', 19.94, 50.06, 'r'],
+            GDN: ['Gdańsk', 18.65, 54.35, 't'], RIX: ['Riga', 24.11, 56.95, 'r'], VNO: ['Vilnius', 25.28, 54.69, 'r'],
+            CPH: ['Copenhagen', 12.57, 55.68, 'r'], OSL: ['Oslo', 10.75, 59.91, 'l'], STO: ['Stockholm', 18.07, 59.33, 'r'],
+            BEG: ['Belgrade', 20.46, 44.82, 'l'], SOF: ['Sofia', 23.32, 42.70, 'l'], BUH: ['Bucharest', 26.10, 44.43, 'r'],
+            SKG: ['Thessaloniki', 22.94, 40.64, 'l'], ATH: ['Athens', 23.73, 37.98, 'r'], IST: ['Istanbul', 28.98, 41.01, 'r'],
+            KBP: ['Kyiv', 30.52, 50.45, 't']
+          },
+          proj: (lon, lat) => [Math.round((lon + 11) * 21.824 * 10) / 10, Math.round((61 - lat) * 32 * 10) / 10],
+          full: { x: -70, y: 0, w: 1050, h: 900 },
+          grat: [[-10, 30, 5], [40, 60, 5]],
+          routes: [
+            ['LIS', 'OPO', 'yellow'], ['LIS', 'SVQ', 'purple'], ['LIS', 'MAD', 'white', 'green'], ['OPO', 'MAD', 'black'],
+            ['OPO', 'BIO', 'gray'], ['SVQ', 'MAD', 'red', 'orange'], ['SVQ', 'VLC', 'gray'], ['MAD', 'VLC', 'blue'],
+            ['MAD', 'BCN', 'yellow', 'gray'], ['MAD', 'BIO', 'green'], ['VLC', 'BCN', 'orange', 'purple'], ['BIO', 'BOD', 'black', 'gray'],
+            ['BCN', 'BOD', 'gray'], ['BCN', 'MRS', 'red'], ['BOD', 'PAR', 'blue', 'yellow'], ['BOD', 'MRS', 'white'],
+            ['MRS', 'LYS', 'green', 'black'], ['LYS', 'PAR', 'red', 'purple'], ['LYS', 'ZRH', 'orange'], ['LYS', 'MIL', 'gray'],
+            ['MRS', 'MIL', 'purple'], ['PAR', 'BRU', 'gray', 'white'], ['PAR', 'LON', 'blue', 'black'], ['PAR', 'FRA', 'green'],
+            ['LON', 'EDI', 'red', 'orange'], ['LON', 'BRU', 'purple'], ['BRU', 'AMS', 'yellow', 'red'], ['BRU', 'CGN', 'black'],
+            ['AMS', 'CGN', 'white'], ['AMS', 'HAM', 'orange'], ['CGN', 'FRA', 'purple', 'gray'], ['CGN', 'HAM', 'blue'],
+            ['HAM', 'BER', 'white', 'red'], ['HAM', 'CPH', 'gray'], ['FRA', 'BER', 'yellow'], ['FRA', 'MUC', 'black'],
+            ['FRA', 'ZRH', 'red'], ['MUC', 'ZRH', 'gray'], ['MUC', 'VIE', 'green', 'orange'], ['MUC', 'PRG', 'white'],
+            ['MUC', 'BLQ', 'blue'], ['BER', 'PRG', 'gray', 'green'], ['BER', 'WAW', 'purple', 'gray'], ['BER', 'GDN', 'orange'],
+            ['PRG', 'VIE', 'red'], ['PRG', 'KRK', 'yellow'], ['ZRH', 'MIL', 'green'], ['MIL', 'BLQ', 'white', 'blue'],
+            ['BLQ', 'ROM', 'black', 'gray'], ['BLQ', 'LJU', 'orange'], ['ROM', 'NAP', 'yellow', 'green'], ['LJU', 'VIE', 'purple'],
+            ['LJU', 'BEG', 'gray'], ['VIE', 'BUD', 'blue', 'white'], ['BUD', 'BEG', 'red'], ['BUD', 'KRK', 'green'],
+            ['BUD', 'BUH', 'black'], ['KRK', 'WAW', 'orange', 'black'], ['WAW', 'GDN', 'white'], ['WAW', 'VNO', 'blue'],
+            ['WAW', 'KBP', 'blue'], ['KRK', 'KBP', 'gray'], ['VNO', 'KBP', 'purple'], ['VNO', 'RIX', 'red', 'gray'],
+            ['RIX', 'STO', 'gray'], ['GDN', 'VNO', 'gray'], ['CPH', 'STO', 'black', 'yellow'], ['CPH', 'OSL', 'green'],
+            ['OSL', 'STO', 'white'], ['BEG', 'SOF', 'white'], ['BEG', 'SKG', 'purple'], ['BEG', 'BUH', 'gray'],
+            ['SOF', 'SKG', 'orange'], ['SOF', 'IST', 'blue', 'gray'], ['SOF', 'BUH', 'green'], ['SKG', 'ATH', 'red', 'gray'],
+            ['SKG', 'IST', 'black'], ['BUH', 'IST', 'yellow'], ['BUH', 'KBP', 'red']
+          ],
+          tickets: [
+            ['LIS', 'BER'], ['LIS', 'ROM'], ['OPO', 'PAR'], ['MAD', 'AMS'], ['SVQ', 'MIL'], ['VLC', 'ZRH'], ['BCN', 'MUC'],
+            ['BIO', 'LON'], ['BOD', 'PRG'], ['MRS', 'VIE'], ['LYS', 'HAM'], ['PAR', 'WAW'], ['PAR', 'ATH'], ['LON', 'STO'],
+            ['LON', 'ROM'], ['LON', 'BCN'], ['EDI', 'BER'], ['EDI', 'ZRH'], ['LON', 'CPH'], ['BRU', 'BUD'], ['AMS', 'KRK'],
+            ['CGN', 'NAP'], ['HAM', 'IST'], ['FRA', 'RIX'], ['MUC', 'SOF'], ['BER', 'BEG'], ['ZRH', 'ATH'], ['MIL', 'GDN'],
+            ['BLQ', 'KBP'], ['ROM', 'BUH'], ['NAP', 'VIE'], ['VIE', 'VNO'], ['PRG', 'IST'], ['LJU', 'OSL'], ['WAW', 'SKG'],
+            ['KRK', 'ATH'], ['GDN', 'BUD'], ['CPH', 'KBP'], ['OSL', 'RIX'], ['EDI', 'LIS']
+          ],
+          land: [
+            // Mainland, from Gibraltar up the Atlantic coast, round the Baltic, off the top-right edge and back along the Mediterranean.
+            [[-5.6, 36], [-6.3, 36.5], [-7.4, 37.2], [-8.9, 37], [-8.8, 38.5], [-9.5, 38.7], [-9, 39.6], [-8.7, 41], [-8.9, 42.1], [-9.3, 43], [-8.3, 43.6], [-7, 43.6], [-5.8, 43.6], [-3.8, 43.5], [-1.8, 43.4], [-1.4, 44.6], [-1.2, 46.2], [-2.2, 47.2], [-4.6, 47.9], [-4.8, 48.4], [-3.5, 48.8], [-1.6, 48.7], [-1.9, 49.7], [-1.2, 49.4], [0.2, 49.5], [1.6, 50.2], [1.6, 50.9], [2.5, 51.1], [3.6, 51.4], [4.2, 52], [4.7, 52.9], [5.6, 53.4], [7, 53.5], [8.6, 53.9], [8.7, 54.9], [8.1, 55.6], [8.2, 56.8], [9.9, 57.6], [10.6, 57.7], [10.3, 56.5], [10.9, 56.3], [10.2, 55.8], [9.6, 55.2], [10, 54.6], [11, 54], [12.3, 54.3], [13.8, 54.2], [14.5, 53.9], [16.6, 54.5], [18.5, 54.8], [18.6, 54.4], [19.9, 54.6], [21.2, 55], [21.1, 56], [21.6, 57.3], [22.6, 57.7], [23.4, 57], [24.1, 57], [24.4, 57.9], [23.6, 58.4], [23.5, 59], [24.7, 59.5], [26.5, 59.6], [28, 59.5], [29.6, 60], [28.7, 60.6], [27, 60.5], [25, 60.2], [22.9, 59.9], [21.4, 60.6], [21.4, 64], [42, 64], [42, 36.8], [36, 36.4], [34.6, 36.8], [32.8, 36.1], [31, 36.8], [30.4, 36.3], [29.1, 36.6], [28, 36.8], [27.3, 37.4], [26.4, 38.3], [26.9, 39.3], [26.1, 39.5], [26.2, 40.1], [26.1, 40.6], [25.9, 40.85], [24.4, 40.9], [23.7, 40.7], [22.9, 40.6], [22.6, 40.2], [22.9, 39.4], [23.3, 39], [24, 38.2], [23, 37.9], [23.2, 37.3], [22.8, 36.5], [22.4, 36.4], [21.7, 36.8], [21.6, 37.6], [21.1, 37.9], [21.6, 38.4], [20.8, 38.9], [20.2, 39.6], [19.4, 40.3], [19.5, 41], [19.4, 41.8], [18.5, 42.4], [17.6, 42.9], [16.4, 43.5], [15.2, 44.2], [14.4, 45.2], [13.6, 45.1], [13.7, 45.7], [12.4, 45.5], [12.3, 44.8], [12.6, 44], [13.6, 43.6], [14.2, 42.4], [15.9, 41.9], [16.9, 41.1], [18.5, 40.1], [18.4, 39.8], [17.2, 40.5], [16.5, 39.6], [17.1, 39], [16.5, 38.4], [15.6, 37.9], [15.8, 38.7], [16.1, 39.4], [15.6, 40], [14.9, 40.3], [14.3, 40.8], [13.8, 41.2], [12.4, 41.7], [11.1, 42.4], [10.5, 43], [10.2, 43.9], [9, 44.4], [8.2, 43.9], [7.3, 43.7], [6.2, 43.1], [5.3, 43.3], [4.6, 43.4], [3.5, 43.3], [3, 42.6], [3.2, 41.9], [2.2, 41.4], [0.9, 41], [0.2, 40], [-0.3, 39.5], [0.2, 38.8], [-0.5, 38.3], [-0.8, 37.6], [-1.6, 37.2], [-2.2, 36.7], [-4.4, 36.7], [-5.3, 36.1]],
+            // Scandinavian peninsula
+            [[4, 64], [5, 62], [4.9, 61], [5, 60.4], [5.3, 59.3], [5.6, 58.8], [6.6, 58.1], [8, 58.1], [9.6, 59], [10.5, 59.9], [10.7, 59.3], [11.2, 59.1], [11.6, 58.4], [11.9, 57.7], [12.6, 56.6], [12.9, 55.6], [14.2, 55.4], [14.6, 56], [16, 56.2], [16.5, 57], [16.7, 57.8], [18, 59], [18.9, 59.6], [18.3, 60.3], [17.3, 60.7], [17.4, 62], [18.5, 64]],
+            // North Africa
+            [[-12, 30], [-12, 34], [-9.8, 33.5], [-6.8, 34], [-5.9, 35.8], [-5.3, 35.9], [-4, 35.2], [-2.2, 35.1], [-0.6, 35.8], [1, 36.4], [3, 36.8], [5, 36.7], [7.8, 36.9], [9.9, 37.3], [10.4, 36.6], [11.1, 37], [10.5, 35.8], [11.1, 35.2], [10.1, 34.2], [12, 30]],
+            // Great Britain and Ireland
+            [[-5.7, 50.05], [-4.2, 50.35], [-3.4, 50.6], [-2, 50.6], [-1.1, 50.8], [0.3, 50.75], [1.4, 51.15], [1.4, 51.4], [0.6, 51.5], [1, 51.8], [1.7, 52.5], [1.7, 52.9], [0.3, 52.9], [0.1, 53.5], [-0.2, 54.1], [-1.2, 54.6], [-1.6, 55.6], [-2.1, 56], [-2.6, 56.3], [-2.5, 56.8], [-2.1, 57.15], [-1.8, 57.6], [-3.3, 57.7], [-4.2, 57.5], [-3.1, 58.6], [-5, 58.6], [-5.5, 57.8], [-5.7, 56.9], [-5.5, 56], [-4.9, 55.7], [-4.9, 54.9], [-3.5, 54.9], [-3.3, 54.4], [-3, 53.9], [-3, 53.4], [-4.6, 53.3], [-4.2, 52.9], [-4.1, 52.3], [-5.2, 51.8], [-4.2, 51.6], [-3.2, 51.4], [-2.7, 51.5], [-3.6, 51.2], [-4.6, 51], [-5.1, 50.6]],
+            [[-6, 52.2], [-6.1, 53.3], [-6, 54], [-5.5, 54.4], [-5.9, 55.2], [-7.3, 55.4], [-8.5, 54.8], [-8.6, 54.2], [-10, 54.2], [-9.6, 53.4], [-9.4, 52.6], [-10.4, 52.1], [-9.8, 51.5], [-8.2, 51.8]],
+            // Islands
+            [[10.9, 55.7], [11.8, 56], [12.5, 56.1], [12.6, 55.7], [12.2, 55.2], [11.7, 55.1], [11.2, 55.2]],
+            [[9.8, 55.5], [10.6, 55.5], [10.7, 55.1], [10.2, 55], [9.8, 55.2]],
+            [[11, 54.8], [12.1, 54.9], [12, 54.6], [11.3, 54.65]],
+            [[18.1, 57], [18.8, 57.8], [18.9, 57.3], [18.3, 56.9]],
+            [[9.4, 43], [9.5, 42.4], [9.3, 41.4], [8.8, 41.6], [8.6, 42.1], [8.7, 42.6]],
+            [[9.2, 41.2], [9.8, 40.8], [9.6, 39.2], [9, 39], [8.4, 38.9], [8.4, 39.8], [8.2, 40.6], [8.6, 41]],
+            [[12.4, 38.1], [13.4, 38.2], [15.6, 38.3], [15.1, 37.3], [15.1, 36.7], [14.4, 36.8], [12.6, 37.6]],
+            [[2.4, 39.6], [3.1, 39.9], [3.4, 39.7], [3, 39.3], [2.6, 39.5]],
+            [[23.5, 35.6], [24.3, 35.4], [26.3, 35.3], [26.1, 35], [24.7, 35], [23.6, 35.2]]
+          ],
+          seas: [
+            [[29, 41.2], [28, 41.6], [27.9, 42.6], [28, 43.2], [28.6, 43.8], [28.7, 44.4], [29.6, 45], [30.2, 45.8], [30.8, 46.5], [31.8, 46.6], [32.5, 46.1], [33.5, 46], [32.5, 45.4], [33.6, 44.5], [34.5, 44.6], [35.4, 45.3], [36.6, 45], [38, 44.4], [39.7, 43.5], [41.6, 41.6], [40, 41], [37, 41.2], [35, 42], [33, 41.9], [31.4, 41.1], [29.9, 41.2]],
+            [[35.1, 45.6], [35.5, 46.6], [37, 47.1], [39.2, 47.2], [38.2, 46.3], [36.6, 45.4]],
+            [[26.7, 40.4], [27.5, 40.9], [28.8, 41], [29.3, 40.8], [28.9, 40.4], [27.6, 40.3]]
+          ],
+          lakes: [
+            [[6.2, 46.25], [6.6, 46.5], [6.9, 46.4], [6.5, 46.35]],
+            [[9.1, 47.75], [9.6, 47.55], [9.6, 47.45], [9.2, 47.6]],
+            [[17.3, 46.75], [18.1, 47], [18.2, 46.95], [17.4, 46.7]]
+          ],
+          borders: [
+            [[-8.9, 42.1], [-8.2, 42.1], [-6.2, 41.6], [-6.9, 41], [-7, 39.7], [-7.3, 39.4], [-7, 38.9], [-7.3, 38.2], [-7.4, 37.2]],
+            [[-1.8, 43.4], [-0.7, 42.9], [0.7, 42.8], [1.7, 42.5], [3.2, 42.4]],
+            [[2.5, 51.1], [3.2, 50.7], [4.2, 50.3], [4.8, 50], [5.8, 49.5], [6.4, 49.5], [7, 49.1], [8.2, 49], [7.6, 47.6], [7, 47.4], [6.1, 46.3], [7, 45.9], [6.6, 45.1], [7.1, 44.7], [7.5, 43.8]],
+            [[3.4, 51.35], [4.4, 51.4], [5.8, 51.1], [5.9, 50.75], [6.1, 51.2], [5.9, 51.8], [6.8, 51.9], [7, 52.4], [7.2, 53.2]],
+            [[5.9, 50.75], [6.4, 50.3], [6.1, 50.1], [6.5, 49.8], [6.4, 49.5]],
+            [[8.7, 54.9], [9.9, 54.8]],
+            [[14.2, 53.9], [14.4, 53.3], [14.6, 52.6], [14.7, 52], [15, 51.1], [14.3, 51], [12.1, 50.3], [12.5, 49.9], [12.6, 49.4], [13.8, 48.8], [13.4, 48.5], [13, 47.5], [12.2, 47.6], [10.5, 47.5], [9.6, 47.5], [8.6, 47.7], [7.6, 47.6]],
+            [[7, 45.9], [8.4, 46.4], [9, 45.9], [10.1, 46.4], [10.5, 46.9], [9.6, 47.5]],
+            [[10.5, 46.9], [12.2, 47.1], [13.7, 46.5], [14.6, 46.4], [16, 46.7], [16.1, 46.85]],
+            [[13.7, 46.5], [13.6, 45.6]],
+            [[13.8, 48.8], [14.7, 48.6], [15, 49], [16.9, 48.6], [17.1, 48], [16.5, 47.5], [16.1, 46.85]],
+            [[15, 51.1], [16.3, 50.6], [17, 50.4], [18, 50], [18.9, 49.5], [20, 49.2], [21.5, 49.4], [22.6, 49.1], [23.6, 50.4], [24.1, 50.9], [23.6, 51.6], [23.2, 52.3], [23.5, 53.9], [22.8, 54.4], [19.6, 54.4]],
+            [[16.9, 48.6], [17.6, 48.8], [18.9, 49.5]],
+            [[22.8, 54.4], [22, 55], [21.2, 55.2]],
+            [[21, 56.1], [23, 56.4], [25, 56.2], [26.6, 55.7]],
+            [[24.3, 57.9], [25.5, 57.9], [27.4, 57.6]],
+            [[27.8, 59.4], [27.4, 57.6], [28.2, 56.2], [26.6, 55.7], [25.8, 54.2], [23.5, 53.9]],
+            [[23.6, 51.6], [25.5, 51.9], [28, 51.6], [30.6, 51.3], [31.8, 52.1], [34.4, 51.7], [35.4, 50.4], [38, 49.9], [40, 49.6]],
+            [[28.2, 56.2], [30.9, 55.6], [31.8, 54], [32.7, 53.3], [31.8, 52.1]],
+            [[17.1, 48], [18.8, 47.8], [20.2, 48.3], [22.1, 48.4], [22.9, 47.9], [21.6, 46.9], [21, 46.2], [20.3, 46.1], [18.9, 45.9], [17.3, 45.9], [16.6, 46.5], [16.1, 46.85]],
+            [[22.6, 49.1], [22.1, 48.4]],
+            [[22.9, 47.9], [24.9, 47.7], [26.6, 48.3], [28, 48.4], [29.2, 47.5], [30.1, 46.4], [29.7, 45.4]],
+            [[26.6, 48.3], [28.2, 46.5], [28.2, 45.5]],
+            [[20.3, 46.1], [21.4, 45.2], [22.7, 44.6], [23, 43.8], [25, 43.7], [26.1, 44], [27.3, 44.1], [28.6, 43.7]],
+            [[23, 43.8], [22.4, 43], [23, 42.3], [22.9, 41.3], [24.5, 41.6], [26.1, 41.7], [26.4, 41.9], [28, 42]],
+            [[22.9, 41.3], [21, 40.9], [20.4, 40], [20, 39.7]],
+            [[26.1, 41.7], [26.4, 41.3], [26, 40.8]],
+            [[13.6, 45.5], [15.2, 45.5], [15.7, 46], [16.6, 46.5]],
+            [[18.9, 45.9], [19.4, 45.2], [19, 44.9]],
+            [[15.7, 45.2], [16.9, 45.2], [19, 44.9], [19.4, 43.6], [18.5, 42.5]],
+            [[15.7, 45.2], [16.2, 44.2], [17.5, 43], [18.5, 42.5]],
+            [[19.2, 43.5], [20.3, 42.9], [20.1, 42.5], [19.4, 41.9]],
+            [[20.1, 42.5], [20.6, 41.9], [20.5, 41.1], [21, 40.9]],
+            [[20.6, 41.9], [21.6, 42.3], [22.4, 42.3]],
+            [[11.2, 59.1], [11.8, 59.8], [12.5, 60.5], [12.2, 61], [12, 64]],
+            [[-7.3, 55.1], [-7.6, 54.6], [-8.1, 54.4], [-7, 54.1], [-6.3, 54.1]]
+          ]
+        }
       };
-      const proj = (lon, lat) => [Math.round((lon + 126) * 15.32 * 10) / 10, Math.round((52 - lat) * 20 * 10) / 10];
-      Object.values(CITIES).forEach(c => { [c.x, c.y] = proj(c[1], c[2]); });
-
-      // [from, to, colour, colour of the twin track]
-      const ROUTE_DEFS = [
-        ['VAN', 'SEA', 'orange'], ['SEA', 'POR', 'blue', 'red'], ['VAN', 'CAL', 'black'], ['VAN', 'SPO', 'gray'],
-        ['SEA', 'SPO', 'green', 'gray'], ['SPO', 'CAL', 'purple'], ['SPO', 'BOI', 'yellow'], ['SPO', 'BIL', 'red'],
-        ['CAL', 'BIL', 'gray'], ['CAL', 'WIN', 'orange'], ['POR', 'BOI', 'white'], ['POR', 'SFO', 'black', 'yellow'],
-        ['SFO', 'LAX', 'green', 'blue'], ['SFO', 'LVS', 'purple'], ['SFO', 'BOI', 'gray'], ['LAX', 'SDG', 'white'],
-        ['LAX', 'LVS', 'red', 'gray'], ['SDG', 'PHX', 'orange'], ['LVS', 'PHX', 'gray'], ['LVS', 'SLC', 'green'],
-        ['BOI', 'SLC', 'orange', 'gray'], ['BOI', 'BIL', 'blue'], ['SLC', 'BIL', 'black'], ['SLC', 'DEN', 'white'],
-        ['PHX', 'ABQ', 'red'], ['PHX', 'ELP', 'yellow'], ['ABQ', 'ELP', 'gray'], ['ABQ', 'DEN', 'purple', 'green'],
-        ['BIL', 'DEN', 'yellow'], ['BIL', 'BIS', 'green'], ['BIS', 'WIN', 'gray'], ['WIN', 'MIN', 'yellow'],
-        ['BIS', 'MIN', 'white'], ['BIS', 'OMA', 'gray'], ['DEN', 'OMA', 'blue'], ['DEN', 'KC', 'gray'],
-        ['ABQ', 'OKC', 'orange'], ['ELP', 'SAT', 'purple'], ['SAT', 'DAL', 'white', 'gray'], ['SAT', 'HOU', 'black'],
-        ['DAL', 'HOU', 'red'], ['DAL', 'OKC', 'yellow', 'purple'], ['OKC', 'KC', 'green'], ['KC', 'OMA', 'red', 'black'],
-        ['OMA', 'MIN', 'purple'], ['MIN', 'CHI', 'green', 'orange'], ['OMA', 'CHI', 'gray'], ['KC', 'STL', 'yellow', 'white'],
-        ['OKC', 'MEM', 'black'], ['DAL', 'MEM', 'blue'], ['HOU', 'NOL', 'purple', 'gray'], ['MEM', 'NOL', 'purple'],
-        ['MEM', 'STL', 'gray'], ['STL', 'CHI', 'blue'], ['STL', 'CIN', 'red'], ['STL', 'NAS', 'white'],
-        ['MEM', 'NAS', 'gray'], ['NOL', 'ATL', 'green'], ['NOL', 'JAX', 'gray'], ['JAX', 'MIA', 'yellow', 'green'],
-        ['ATL', 'JAX', 'white'], ['ATL', 'NAS', 'orange', 'gray'], ['ATL', 'CHA', 'purple'], ['CHA', 'JAX', 'blue'],
-        ['CHA', 'WAS', 'black', 'red'], ['NAS', 'CIN', 'yellow'], ['CIN', 'WAS', 'gray'], ['CIN', 'DET', 'purple', 'black'],
-        ['CHI', 'DET', 'white'], ['DET', 'TOR', 'gray', 'blue'], ['MIN', 'DET', 'black'], ['TOR', 'MTL', 'red'],
-        ['TOR', 'NYC', 'green'], ['MTL', 'BOS', 'white', 'orange'], ['MTL', 'NYC', 'gray'], ['BOS', 'NYC', 'purple', 'black'],
-        ['NYC', 'WAS', 'yellow', 'blue'], ['DET', 'WAS', 'orange'], ['CHI', 'CIN', 'gray'], ['NAS', 'CHA', 'gray'],
-        ['NOL', 'MIA', 'red']
-      ];
-      const ROUTES = [];
-      ROUTE_DEFS.forEach(([a, b, c1, c2]) => {
-        const A = CITIES[a];
-        const B = CITIES[b];
-        const len = Math.max(1, Math.min(6, Math.round(Math.hypot(B.x - A.x, B.y - A.y) / 38)));
-        const id = ROUTES.length;
-        ROUTES.push({ id, a, b, c: c1, len, twin: c2 ? id + 1 : -1, side: c2 ? -1 : 0 });
-        if (c2) ROUTES.push({ id: id + 1, a, b, c: c2, len, twin: id, side: 1 });
-      });
       const POINTS = [0, 1, 3, 5, 8, 11, 15];
-
-      const TICKET_DEFS = [
-        ['SEA', 'SAT'], ['SPO', 'ATL'], ['SFO', 'CHI'], ['SDG', 'NYC'], ['POR', 'MIA'], ['VAN', 'WAS'], ['CAL', 'DAL'],
-        ['BOI', 'NOL'], ['SLC', 'TOR'], ['LVS', 'DET'], ['PHX', 'CHA'], ['ABQ', 'BOS'], ['ELP', 'CIN'], ['DEN', 'MTL'],
-        ['BIL', 'HOU'], ['BIS', 'JAX'], ['WIN', 'NAS'], ['MIN', 'SAT'], ['OMA', 'WAS'], ['KC', 'BOS'], ['OKC', 'DET'],
-        ['DAL', 'CHA'], ['HOU', 'TOR'], ['MEM', 'MTL'], ['STL', 'JAX'], ['CHI', 'MIA'], ['CIN', 'NOL'], ['NAS', 'BOS'],
-        ['ATL', 'TOR'], ['LAX', 'DEN'], ['SFO', 'PHX'], ['VAN', 'BIL'], ['SPO', 'SLC'], ['BIS', 'KC'], ['WIN', 'CHI'],
-        ['DAL', 'STL'], ['HOU', 'ATL'], ['CHA', 'NYC'], ['LVS', 'SAT'], ['CAL', 'OMA']
-      ];
 
       const CC = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'black', 'white'];
       const CARD = {
@@ -477,10 +626,39 @@
       const cname = k => CITIES[k][0];
       const rname = r => `${cname(r.a)}–${cname(r.b)}`;
 
+      // ---------- Active map ----------
+      let MAP_ID = '';
+      let MAP = null;
+      let proj = null;
+      let FULL = null;
+      let CITIES = {};
+      let ROUTES = [];
+      let TICKETS = [];
+      let ADJ = {};
+
+      function useMap(id) {
+        MAP_ID = MAPS[id] ? id : 'na';
+        MAP = MAPS[MAP_ID];
+        proj = MAP.proj;
+        FULL = MAP.full;
+        CITIES = MAP.cities;
+        Object.values(CITIES).forEach(c => { [c.x, c.y] = proj(c[1], c[2]); });
+        ROUTES = [];
+        MAP.routes.forEach(([a, b, c1, c2]) => {
+          const A = CITIES[a];
+          const B = CITIES[b];
+          const len = Math.max(1, Math.min(6, Math.round(Math.hypot(B.x - A.x, B.y - A.y) / 38)));
+          const id = ROUTES.length;
+          ROUTES.push({ id, a, b, c: c1, len, twin: c2 ? id + 1 : -1, side: c2 ? -1 : 0 });
+          if (c2) ROUTES.push({ id: id + 1, a, b, c: c2, len, twin: id, side: 1 });
+        });
+        ADJ = {};
+        Object.keys(CITIES).forEach(k => { ADJ[k] = []; });
+        ROUTES.forEach(r => { ADJ[r.a].push(r); ADJ[r.b].push(r); });
+        TICKETS = MAP.tickets.map(([a, b], tid) => ({ id: tid, a, b, pts: shortest(a, b, r => r.len).cost }));
+      }
+
       // ---------- Graph helpers ----------
-      const ADJ = {};
-      Object.keys(CITIES).forEach(k => { ADJ[k] = []; });
-      ROUTES.forEach(r => { ADJ[r.a].push(r); ADJ[r.b].push(r); });
       const other = (r, k) => (r.a === k ? r.b : r.a);
 
       // Shortest path with a cost function per route; returns { cost, routes }.
@@ -509,10 +687,7 @@
         return { cost: dist[to], routes };
       }
 
-      const TICKETS = TICKET_DEFS.map(([a, b], id) => {
-        const pts = shortest(a, b, r => r.len).cost;
-        return { id, a, b, pts };
-      });
+      useMap('na');
 
       // ---------- State ----------
       let S = null;
@@ -530,13 +705,14 @@
         if (S.log.length > 80) S.log.length = 80;
       }
 
-      function newGame(players) {
+      function newGame(players, mapId) {
+        switchMap(mapId);
         const deck = [];
         CC.forEach(c => { for (let i = 0; i < 12; i++) deck.push(c); });
         for (let i = 0; i < 14; i++) deck.push('loco');
         shuffle(deck);
         S = {
-          v: 1,
+          v: 1, map: MAP_ID,
           players: players.map((p, i) => ({ name: p.name, cpu: p.cpu, level: p.level, color: PCOLORS[i], trains: 40, score: 0, hand: Object.fromEntries([...CC, 'loco'].map(c => [c, 0])), tickets: [], pending: [] })),
           cur: 0, phase: 'tickets', setup: true, deck, discard: [], market: [],
           tdeck: shuffle(TICKETS.map(t => t.id)), owner: {}, final: null, over: null, log: [], curtain: false, minKeep: 2, turns: 0
@@ -959,18 +1135,6 @@
       const routeEls = [];
       const cityEls = {};
 
-      const LAND = [[-131, 53], [-55, 53], [-55, 47], [-60, 46.5], [-64, 45.5], [-66.5, 44.8], [-70, 43.6], [-70.6, 42.6], [-70, 41.8], [-71.5, 41.4], [-74, 40.6], [-74.2, 39.6], [-75.5, 38.6], [-76, 37], [-75.6, 35.3], [-77, 34.6], [-78.5, 33.8], [-80, 32.6], [-81.4, 30.8], [-81.2, 29.6], [-80.3, 28.2], [-79.9, 26.5], [-80.1, 25.2], [-81.2, 25.3], [-81.8, 26.2], [-82.7, 27.8], [-82.8, 29], [-84, 30], [-85.5, 29.7], [-86.5, 30.4], [-88, 30.4], [-89.3, 30.2], [-89.4, 29.2], [-90.5, 29.1], [-92, 29.6], [-94, 29.6], [-95, 29.2], [-96.5, 28.3], [-97.3, 27.4], [-97.4, 25.8], [-97.7, 24], [-97.9, 19], [-112, 19], [-112, 24.5], [-114.2, 28], [-115.8, 30.3], [-117.1, 32.5], [-117.6, 33.4], [-118.5, 34], [-120.6, 34.6], [-121.9, 36.6], [-122.6, 37.6], [-123, 38.3], [-123.8, 39.6], [-124.3, 40.4], [-124.2, 42], [-124, 44], [-124, 46.2], [-124.7, 48.4], [-123.3, 48.4], [-122.8, 49], [-124, 49.8], [-125.5, 50.5], [-127.5, 51], [-131, 53]];
-      const LAKES = [
-        [[-92.1, 46.7], [-90, 46.6], [-87.5, 46.5], [-84.6, 46.5], [-84.8, 47.5], [-86, 48.7], [-88.5, 48.4], [-90, 47.8], [-91.5, 47.2]],
-        [[-87.8, 42.2], [-86.8, 41.7], [-86.2, 42.5], [-86.4, 44], [-85.6, 45.3], [-84.9, 45.8], [-86.5, 45.9], [-87.5, 45.2], [-87.9, 44]],
-        [[-84.5, 45.9], [-83.5, 45.4], [-82.5, 44.5], [-82.4, 43], [-81.7, 43.6], [-81.7, 44.8], [-80.2, 45], [-80.6, 45.9], [-82.5, 46.1]],
-        [[-83.4, 41.8], [-81.5, 41.6], [-79, 42.4], [-79.2, 42.9], [-81, 42.6], [-83, 42.1]],
-        [[-79.8, 43.3], [-78, 43.3], [-76.3, 43.5], [-76.3, 44.1], [-77.5, 44], [-79.4, 43.75]]
-      ];
-      const BORDERS = [
-        [[-123.3, 49], [-95.2, 49], [-95.2, 49.4], [-89.5, 48], [-84.6, 46.5], [-82.4, 45.4], [-82.5, 43], [-83.1, 42], [-79, 42.6], [-79, 43.3], [-76.5, 44.2], [-74.7, 45], [-71.5, 45], [-70, 46.5], [-69, 47.4], [-67.8, 47.1], [-67.8, 45.6], [-67, 44.8]],
-        [[-117.1, 32.5], [-114.7, 32.7], [-111, 31.3], [-108.2, 31.3], [-106.5, 31.8], [-104.5, 29.6], [-103, 29], [-101.4, 29.8], [-99.5, 27.5], [-97.2, 25.9]]
-      ];
       const pts = list => list.map(([lon, lat]) => proj(lon, lat).join(',')).join(' ');
 
       function el(tag, attrs, parent) {
@@ -1007,13 +1171,19 @@
       }
 
       function buildMap() {
+        svg.textContent = '';
+        routeEls.length = 0;
+        Object.keys(cityEls).forEach(k => { delete cityEls[k]; });
+        svg.setAttribute('aria-label', `Railway map of ${MAP.name}`);
         const g0 = el('g', { 'aria-hidden': 'true' }, svg);
-        el('rect', { x: -300, y: -300, width: 1500, height: 1200, fill: '#a9c9d4' }, g0);
-        for (let lon = -125; lon <= -65; lon += 5) { const [x] = proj(lon, 0); el('line', { class: 'grat', x1: x, y1: -100, x2: x, y2: 700 }, g0); }
-        for (let lat = 25; lat <= 50; lat += 5) { const [, y] = proj(0, lat); el('line', { class: 'grat', x1: -100, y1: y, x2: 1000, y2: y }, g0); }
-        el('polygon', { class: 'land', points: pts(LAND) }, g0);
-        LAKES.forEach(l => el('polygon', { class: 'lake', points: pts(l) }, g0));
-        BORDERS.forEach(b => el('polyline', { class: 'border', points: pts(b) }, g0));
+        el('rect', { x: -1000, y: -1000, width: 3000, height: 3000, fill: '#a9c9d4' }, g0);
+        const [[lon0, lon1, lonStep], [lat0, lat1, latStep]] = MAP.grat;
+        for (let lon = lon0; lon <= lon1; lon += lonStep) { const [x] = proj(lon, 0); el('line', { class: 'grat', x1: x, y1: -1000, x2: x, y2: 2000 }, g0); }
+        for (let lat = lat0; lat <= lat1; lat += latStep) { const [, y] = proj(0, lat); el('line', { class: 'grat', x1: -1000, y1: y, x2: 2000, y2: y }, g0); }
+        MAP.land.forEach(l => el('polygon', { class: 'land', points: pts(l) }, g0));
+        MAP.seas.forEach(l => el('polygon', { class: 'sea', points: pts(l) }, g0));
+        MAP.lakes.forEach(l => el('polygon', { class: 'lake', points: pts(l) }, g0));
+        MAP.borders.forEach(b => el('polyline', { class: 'border', points: pts(b) }, g0));
         const gr = el('g', {}, svg);
         ROUTES.forEach(r => {
           const g = el('g', { class: 'route', 'data-r': r.id }, gr);
@@ -1063,8 +1233,17 @@
       }
 
       // ---------- Pan and zoom ----------
-      const FULL = { x: -52, y: -14, w: 944, h: 618 };
       let view = Object.assign({}, FULL);
+      let builtMap = '';
+      function switchMap(id) {
+        if (builtMap && MAPS[id] && id === MAP_ID) return;
+        useMap(id);
+        buildMap();
+        builtMap = MAP_ID;
+        view = Object.assign({}, FULL);
+        layout();
+        applyView();
+      }
       function applyView() {
         view.w = Math.max(FULL.w / 6, Math.min(FULL.w, view.w));
         view.h = view.w * FULL.h / FULL.w;
@@ -1186,7 +1365,7 @@
       function renderPanel() {
         const p = curP();
         const v = viewer();
-        $('#subInfo').textContent = S.over ? 'Game over' : S.setup ? 'Choosing tickets' : `Turn ${Math.floor(S.turns / S.players.length) + 1}`;
+        $('#subInfo').textContent = `${MAP.name} · ${S.over ? 'Game over' : S.setup ? 'Choosing tickets' : `Turn ${Math.floor(S.turns / S.players.length) + 1}`}`;
         $('#now').innerHTML = `<span class="badge" style="--pc:${p.color}" aria-hidden="true"></span>
           <div class="who"><b>${esc(p.name)}${p.cpu ? ' <span class="tag">CPU</span>' : ''}</b><small>${p.trains} trains · ${Object.values(p.hand).reduce((a, b) => a + b, 0)} cards · ${p.tickets.length} tickets</small></div>
           <div class="score">${p.score}<small>points</small></div>`;
@@ -1336,7 +1515,7 @@
         const rows = S.over.rows;
         $('#overTitle').textContent = `${P(rows[0].i).name} wins!`;
         $('#overLead').textContent = `Final scores. The longest line ran ${Math.max(...rows.map(r => r.longest))} trains.`;
-        $('#overTable').innerHTML = `<thead><tr><th>Player</th><th>Routes</th><th>Tickets</th><th>Longest</th><th>Total</th></tr></thead><tbody>${rows.map(r => `<tr><td><span class="sw" style="--pc:${P(r.i).color}"></span>${esc(P(r.i).name)}</td><td>${r.routes}</td><td>+${r.plus} / −${r.minus}</td><td>${r.longest}${r.bonus ? ' +10' : ''}</td><td>${r.total}</td></tr>`).join('')}</tbody>`;
+        $('#overTable').innerHTML = `<thead><tr><th>Player</th><th>Routes</th><th>Tickets</th><th>Longest</th><th>Total</th></tr></thead><tbody>${rows.map(r => `<tr><td><span class="sw" style="--pc:${P(r.i).color}"></span>${esc(P(r.i).name)}</td><td>${r.routes}</td><td>+${r.plus} / −${r.minus}</td><td>${r.longest}${r.bonus ? ` +${r.bonus}` : ''}</td><td>${r.total}</td></tr>`).join('')}</tbody>`;
         $('#overTickets').innerHTML = rows.map(r => {
           const p = P(r.i);
           return `<p class="section-title" style="margin:10px 0 6px">${esc(p.name)}</p><div class="tickets">${p.tickets.map(t => {
@@ -1375,6 +1554,18 @@
       // ---------- Setup ----------
       let seats = store.get(SEAT_KEY) || DEFAULT_NAMES.map((n, i) => ({ name: n, cpu: i > 0, level: 'normal' }));
       let seatCount = Math.min(5, Math.max(2, prefs.count || 3));
+      let seatMap = MAPS[prefs.map] ? prefs.map : 'na';
+
+      function renderMapPick() {
+        $('#mapPick').innerHTML = Object.entries(MAPS).map(([id, m]) => `<label class="${id === seatMap ? 'on' : ''}">
+            <input type="radio" name="map" value="${id}" ${id === seatMap ? 'checked' : ''}>
+            <b>${esc(m.name)}</b><small>${Object.keys(m.cities).length} cities · ${esc(m.blurb)}</small></label>`).join('');
+      }
+      $('#mapPick').addEventListener('change', e => {
+        if (e.target.name !== 'map') return;
+        seatMap = e.target.value;
+        $('#mapPick').querySelectorAll('label').forEach(l => l.classList.toggle('on', l.querySelector('input').checked));
+      });
 
       function renderSeats() {
         $('#pCount').textContent = seatCount;
@@ -1388,6 +1579,8 @@
       }
       function openSetup() {
         clearTimeout(timer);
+        if (S && MAPS[S.map]) seatMap = S.map;
+        renderMapPick();
         renderSeats();
         $('#setupCancel').hidden = !S || !!S.over;
         ['#curtain', '#ticketSheet', '#overSheet'].forEach(s => { $(s).hidden = true; });
@@ -1419,8 +1612,9 @@
         }));
         store.set(SEAT_KEY, seats);
         prefs.count = seatCount;
+        prefs.map = seatMap;
         store.set(PREFS, prefs);
-        newGame(players);
+        newGame(players, seatMap);
         sel = -1;
         hiTicket = -1;
         overShown = false;
@@ -1505,18 +1699,18 @@
       if (window.visualViewport) window.visualViewport.addEventListener('resize', layout);
 
       // ---------- Boot ----------
-      buildMap();
-      layout();
-      applyView();
       const saved = store.get(STORE);
-      if (saved && saved.v === 1 && saved.players && !saved.over) {
+      const resume = saved && saved.v === 1 && saved.players && !saved.over;
+      switchMap(resume ? saved.map || 'na' : prefs.map || 'na');
+      if (resume) {
         S = saved;
+        S.map = MAP_ID;
         if (!curP().cpu && humans() > 1) S.curtain = true;
         finish();
       } else {
         openSetup();
       }
-      console.info('Iron Routes — Railway Empire | Prompt: Suggest another 2 games in the current collection. How about a property-trading game? Or a railway route-building game? (paraphrased to remove third-party brand names) | Date: 2 October 2026 | v2 prompt: Make all the changes to derisk as much as possible (original rail network, colours, tickets and scoring) | v2 date: 2 October 2026 | Built with Claude Code');
+      console.info('Iron Routes — Railway Empire | Prompt: Suggest another 2 games in the current collection. How about a property-trading game? Or a railway route-building game? (paraphrased to remove third-party brand names) | Date: 2 October 2026 | v2 prompt: Make all the changes to derisk as much as possible (original rail network, colours, tickets and scoring) | v2 date: 2 October 2026 | v3 prompt: for Iron Routes; provide an EU map | v3 date: 27 November 2026 | v3 model: Claude Sonnet 5.5 | Built with Claude Code');
     })();
   </script>
 </body>
