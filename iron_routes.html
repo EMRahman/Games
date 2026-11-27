@@ -100,9 +100,8 @@
     .city text { font: 700 10.5px var(--sans); fill: #2b2218; paint-order: stroke; stroke: rgba(250, 244, 230, .9); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
     .city.hi text { font-weight: 900; fill: #7a3d00; }
     .city .station { stroke: #2c241b; stroke-width: 1.5; pointer-events: none; }
-    .city .city-target { display: none; fill: transparent; }
-    #map.station-pick .city-target { display: initial; cursor: pointer; }
-    #map.station-pick .route * { pointer-events: none; }
+    .station-targets { display: none; fill: transparent; cursor: crosshair; }
+    #map.station-pick .station-targets { display: initial; }
     .city.selected .dot { fill: #ffcf3f; stroke: #7a3d00; stroke-width: 3; }
 
     /* ---------- Panel ---------- */
@@ -635,6 +634,7 @@
       const SEAT_KEY = 'iron-routes-seats-v1';
       const STATION_LIMIT = 3;
       const STATION_POINTS = 3;
+      const STATION_TARGET_SIZE = 44;
 
       // ---------- Helpers ----------
       const $ = s => document.querySelector(s);
@@ -1362,7 +1362,6 @@
         Object.entries(CITIES).forEach(([k, c]) => {
           const g = el('g', { class: 'city', 'data-city': k }, gc);
           el('circle', { class: 'dot', cx: c.x, cy: c.y, r: 6 }, g);
-          el('circle', { class: 'city-target', cx: c.x, cy: c.y, r: 14, 'aria-hidden': 'true' }, g);
           el('path', { class: 'station', d: 'M-7 -1L0 -7L7 -1V6H-7Z M-2 6V1H2V6',
             transform: `translate(${c.x} ${c.y})`, 'aria-hidden': 'true', hidden: '' }, g);
           const side = c[3];
@@ -1374,6 +1373,7 @@
           t.textContent = c[0];
           cityEls[k] = g;
         });
+        el('rect', { class: 'station-targets', x: -1000, y: -1000, width: 3000, height: 3000, 'aria-hidden': 'true' }, svg);
       }
 
       function renderMap(done) {
@@ -1506,13 +1506,36 @@
       $('#zOut').addEventListener('click', () => zoomCenter(1.4));
       $('#zFit').addEventListener('click', () => { view = Object.assign({}, FULL); applyView(); });
 
+      function stationCityAt(x, y) {
+        const matrix = svg.getScreenCTM();
+        if (!matrix) return null;
+        const bounds = svg.getBoundingClientRect();
+        const point = svg.createSVGPoint();
+        const half = STATION_TARGET_SIZE / 2;
+        let nearest = null;
+        let distance = Infinity;
+        // At fit-to-map zoom several city targets can overlap. Pick the closest visible marker.
+        for (const [key, city] of Object.entries(CITIES)) {
+          point.x = city.x;
+          point.y = city.y;
+          const center = point.matrixTransform(matrix);
+          if (center.x < bounds.left || center.x > bounds.right || center.y < bounds.top || center.y > bounds.bottom) continue;
+          const dx = center.x - x;
+          const dy = center.y - y;
+          if (Math.abs(dx) > half || Math.abs(dy) > half) continue;
+          const candidate = dx * dx + dy * dy;
+          if (candidate < distance) { nearest = key; distance = candidate; }
+        }
+        return nearest;
+      }
+
       svg.addEventListener('click', e => {
         if (dragged) { dragged = false; return; }
         if (!S || S.phase === 'tunnel') return;
         if (stationCity !== null && myTurn() && S.phase === 'turn') {
-          const city = e.target.closest('[data-city]');
+          const city = stationCityAt(e.clientX, e.clientY);
           if (city) {
-            stationCity = city.dataset.city;
+            stationCity = city;
             render();
             $('#stationCity').focus();
           }
