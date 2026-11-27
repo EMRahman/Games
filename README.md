@@ -23,7 +23,7 @@ Choose a title from the quick-launch arcade menu or browse the full game library
 
 No installation, account, build step, or external dependency is required. Each game is a self-contained HTML file with mouse, keyboard, and touch support where appropriate.
 
-Want to play these with a friend or three? Try [Team Side Quests](https://github.com/EMRahman/GameRooms)!
+Want to play these with a friend or three? Try [Team Side Quests](https://emrahman.github.io/GameRooms/)!
 
 ## Run locally
 
