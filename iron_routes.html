@@ -92,11 +92,17 @@
     .route.blocked { opacity: .28; }
     .route.sel .out { stroke: #ffcf3f; stroke-width: 12; }
     .route.hint .out { stroke: #ffe39a; stroke-width: 10.5; }
-    .city circle { fill: #fffaf0; stroke: #3a2f22; stroke-width: 2; }
-    .city.hi circle { fill: #ffcf3f; stroke: #7a3d00; stroke-width: 2.5; }
-    .city.done circle { fill: #8fd6a5; }
+    .route .bore { display: none; fill: none; stroke-width: 2.5; stroke-dasharray: 2 3; pointer-events: none; }
+    .route.tunnel .bore { display: initial; }
+    .city .dot { fill: #fffaf0; stroke: #3a2f22; stroke-width: 2; }
+    .city.hi .dot { fill: #ffcf3f; stroke: #7a3d00; stroke-width: 2.5; }
+    .city.done .dot { fill: #8fd6a5; }
     .city text { font: 700 10.5px var(--sans); fill: #2b2218; paint-order: stroke; stroke: rgba(250, 244, 230, .9); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
     .city.hi text { font-weight: 900; fill: #7a3d00; }
+    .city .station { stroke: #2c241b; stroke-width: 1.5; pointer-events: none; }
+    .station-targets { display: none; fill: transparent; cursor: crosshair; }
+    #map.station-pick .station-targets { display: initial; }
+    .city.selected .dot { fill: #ffcf3f; stroke: #7a3d00; stroke-width: 3; }
 
     /* ---------- Panel ---------- */
     .panel {
@@ -162,6 +168,9 @@
     .claim-box { padding: 12px; border: 1px solid var(--brass); border-radius: 12px; background: rgba(232, 176, 75, .08); }
     .claim-box h3 { margin: 0 0 4px; font: 800 14px/1.3 var(--sans); }
     .claim-box p { margin: 0 0 8px; color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .claim-box select { width: 100%; min-height: 44px; margin-bottom: 8px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--panel-2); font-size: 16px; }
+    .tunnel-cards { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; padding: 0; list-style: none; }
+    .tunnel-cards li { padding: 5px 8px; border: 1px solid var(--line-strong); border-radius: 6px; font-size: 13px; }
     .pay-btn { display: inline-flex; align-items: center; gap: 6px; }
     .pip { display: inline-block; width: 14px; height: 14px; border-radius: 4px; background: var(--cc); box-shadow: 0 0 0 1px rgba(0, 0, 0, .4); vertical-align: -2px; }
     .pip.loco { background: conic-gradient(#d83a3a, #f2cf2e, #2f9e57, #2f6fdb, #8c55d6, #d83a3a); }
@@ -185,6 +194,10 @@
     .rlist { display: grid; gap: 5px; }
     .rrow { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 255, 255, .03); text-align: left; font-size: 13px; }
     .rrow .len { margin-left: auto; color: var(--muted); font: 700 11px var(--mono); }
+    @media (pointer: coarse) {
+      .market { grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); }
+      .speed button { min-height: 44px; }
+    }
 
     /* ---------- Overlays ---------- */
     .overlay {
@@ -231,7 +244,9 @@
     .counter output { min-width: 2ch; font: 900 20px/1 var(--mono); text-align: center; }
     .curtain { text-align: center; }
     .curtain .badge { width: 64px; height: 64px; margin: 6px auto 14px; border-radius: 18px; background: var(--pc); box-shadow: 0 0 0 4px rgba(255, 255, 255, .15); }
+    .results-scroll { overflow-x: auto; }
     .results { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .results td:first-child { overflow-wrap: anywhere; }
     .results th, .results td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: right; }
     .results th:first-child, .results td:first-child { text-align: left; }
     .results th { color: var(--muted); font: 800 10px/1.2 var(--mono); letter-spacing: .06em; text-transform: uppercase; }
@@ -330,7 +345,7 @@
     <div class="sheet">
       <h2 id="overTitle"></h2>
       <p class="lead" id="overLead"></p>
-      <table class="results" id="overTable"></table>
+      <div class="results-scroll"><table class="results" id="overTable"></table></div>
       <h3>Destination tickets</h3>
       <div id="overTickets"></div>
       <div class="sheet-actions">
@@ -348,17 +363,19 @@
       <ul>
         <li><strong>Draw train cards.</strong> Take two cards, from the five face-up cards or the face-down deck. A face-up locomotive is wild, but taking one uses your whole turn, and it can't be your second card.</li>
         <li><strong>Claim a route.</strong> Tap a route on the map. Pay as many cards of its colour as it has spaces. Grey routes take any one colour. Locomotives can stand in for any colour.</li>
+        <li><strong>Attempt a tunnel.</strong> Tracks with dashed centres are tunnels. Choose your base payment, then reveal up to three cards from the deck. Each card matching your chosen colour and each locomotive adds one card to the cost. If your base payment is all locomotives, only revealed locomotives count and only locomotives cover the extra cost. You can abandon the attempt and keep your payment cards. Either way, the revealed cards go to the discard pile and your turn ends.</li>
+        <li><strong>Build a station.</strong> Choose a city without a station. Your first, second and third stations cost one, two and three cards of a single colour respectively. Locomotives are wild.</li>
         <li><strong>Draw destination tickets.</strong> Draw three tickets and keep at least one.</li>
       </ul>
       <h3>Scoring</h3>
       <ul>
         <li>Routes score as you claim them: 1, 3, 5, 8, 11 or 15 points for 1 to 6 spaces.</li>
-        <li>At the end, each ticket whose two cities you've joined with your own routes adds its value. Each unfinished ticket subtracts it.</li>
-        <li>The longest continuous line earns a 12-point bonus. Ties all score it.</li>
+        <li>At the end, each ticket whose cities are connected adds its value. Each unfinished ticket subtracts its value. A station can borrow one opponent’s track touching its city. The game picks the tracks that give you the best ticket score, using the same track from each station across all of your tickets.</li>
+        <li>Each unbuilt station is worth 3 points. Your own tracks count toward the 12-point bonus for the longest continuous line. Ties all score it.</li>
       </ul>
       <h3>Details</h3>
       <ul>
-        <li>Choose the North America or Europe network when you start a new game. Both use the same rules, cards and scoring.</li>
+        <li>New games on either map include tunnels and stations.</li>
         <li>Everyone starts with 40 trains, 4 train cards, and 3 tickets, and keeps at least 2 of the tickets.</li>
         <li>If three locomotives are ever face up together, all five face-up cards are replaced.</li>
         <li>Double routes: one player can't claim both tracks. With 2 or 3 players, only one track of each pair can be used.</li>
@@ -370,7 +387,7 @@
         <li>Computers' cards and tickets stay hidden. Use the speed buttons during their turns.</li>
       </ul>
       <h3>Controls</h3>
-      <p>Drag to pan and pinch, use the mouse wheel, or use the + and − buttons to zoom. Tap a ticket to highlight its cities. You can also claim from the <em>Routes you can claim</em> list. Keyboard: <kbd>D</kbd> draws from the deck, <kbd>1</kbd>–<kbd>5</kbd> take a face-up card, <kbd>T</kbd> draws tickets, <kbd>Esc</kbd> clears a selection. The game saves on this device after every move.</p>
+      <p>Drag to pan and pinch, use the mouse wheel, or use the + and − buttons to zoom. Tap a ticket to highlight its cities. You can select tracks from the <em>Routes you can claim</em> list. Choose <em>Build station</em> to pick a city from the map or the city list. Press <kbd>D</kbd> to draw from the deck, <kbd>1</kbd>–<kbd>5</kbd> to take a face-up card, <kbd>T</kbd> to draw tickets, or <kbd>Esc</kbd> to clear a selection. The game saves on this device after every move.</p>
       <div class="credits">
         <div><span>prompt</span> Suggest another 2 games in the current collection. How about a property-trading game? Or a railway route-building game? (paraphrased to remove third-party brand names)</div>
         <div><span>date</span> 2 October 2026</div>
@@ -418,6 +435,7 @@
           proj: (lon, lat) => [Math.round((lon + 126) * 15.32 * 10) / 10, Math.round((52 - lat) * 20 * 10) / 10],
           full: { x: -52, y: -14, w: 944, h: 618 },
           grat: [[-125, -65, 5], [25, 50, 5]],
+          tunnels: ['VAN-CAL', 'SEA-SPO', 'SFO-LVS', 'BOI-SLC', 'SLC-DEN', 'ABQ-DEN', 'BIL-DEN', 'CHA-WAS', 'TOR-NYC'],
           routes: [
             ['VAN', 'SEA', 'orange'], ['SEA', 'POR', 'blue', 'red'], ['VAN', 'CAL', 'black'], ['VAN', 'SPO', 'gray'],
             ['SEA', 'SPO', 'green', 'gray'], ['SPO', 'CAL', 'purple'], ['SPO', 'BOI', 'yellow'], ['SPO', 'BIL', 'red'],
@@ -487,6 +505,7 @@
           proj: (lon, lat) => [Math.round((lon + 11) * 21.824 * 10) / 10, Math.round((61 - lat) * 32 * 10) / 10],
           full: { x: -70, y: 0, w: 1050, h: 900 },
           grat: [[-10, 30, 5], [40, 60, 5]],
+          tunnels: ['BIO-BOD', 'BCN-BOD', 'LYS-ZRH', 'LYS-MIL', 'PAR-LON', 'MUC-ZRH', 'MUC-BLQ', 'ZRH-MIL', 'LJU-VIE', 'OSL-STO', 'BEG-SOF'],
           routes: [
             ['LIS', 'OPO', 'yellow'], ['LIS', 'SVQ', 'purple'], ['LIS', 'MAD', 'white', 'green'], ['OPO', 'MAD', 'black'],
             ['OPO', 'BIO', 'gray'], ['SVQ', 'MAD', 'red', 'orange'], ['SVQ', 'VLC', 'gray'], ['MAD', 'VLC', 'blue'],
@@ -613,6 +632,9 @@
       const STORE = 'iron-routes-save-v2';
       const PREFS = 'iron-routes-prefs-v1';
       const SEAT_KEY = 'iron-routes-seats-v1';
+      const STATION_LIMIT = 3;
+      const STATION_POINTS = 3;
+      const STATION_TARGET_SIZE = 44;
 
       // ---------- Helpers ----------
       const $ = s => document.querySelector(s);
@@ -649,8 +671,9 @@
           const B = CITIES[b];
           const len = Math.max(1, Math.min(6, Math.round(Math.hypot(B.x - A.x, B.y - A.y) / 38)));
           const id = ROUTES.length;
-          ROUTES.push({ id, a, b, c: c1, len, twin: c2 ? id + 1 : -1, side: c2 ? -1 : 0 });
-          if (c2) ROUTES.push({ id: id + 1, a, b, c: c2, len, twin: id, side: 1 });
+          const tunnel = MAP.tunnels.includes(`${a}-${b}`);
+          ROUTES.push({ id, a, b, c: c1, len, tunnel, twin: c2 ? id + 1 : -1, side: c2 ? -1 : 0 });
+          if (c2) ROUTES.push({ id: id + 1, a, b, c: c2, len, tunnel, twin: id, side: 1 });
         });
         ADJ = {};
         Object.keys(CITIES).forEach(k => { ADJ[k] = []; });
@@ -694,11 +717,14 @@
       let prefs = Object.assign({ speed: 'normal' }, store.get(PREFS) || {});
       let timer = null;
       let sel = -1;
+      let stationCity = null;
       let hiTicket = -1;
 
       const P = i => S.players[i];
       const curP = () => S.players[S.cur];
       const humans = () => S.players.filter(p => !p.cpu).length;
+      // Earlier saves lack stations and continue with their original rules.
+      const isTunnel = r => !!S.stations && r.tunnel;
 
       function log(text, pid = -1) {
         S.log.unshift({ text, c: pid >= 0 ? P(pid).color : '' });
@@ -715,7 +741,8 @@
           v: 1, map: MAP_ID,
           players: players.map((p, i) => ({ name: p.name, cpu: p.cpu, level: p.level, color: PCOLORS[i], trains: 40, score: 0, hand: Object.fromEntries([...CC, 'loco'].map(c => [c, 0])), tickets: [], pending: [] })),
           cur: 0, phase: 'tickets', setup: true, deck, discard: [], market: [],
-          tdeck: shuffle(TICKETS.map(t => t.id)), owner: {}, final: null, over: null, log: [], curtain: false, minKeep: 2, turns: 0
+          tdeck: shuffle(TICKETS.map(t => t.id)), owner: {}, stations: {}, tunnel: null,
+          final: null, over: null, log: [], curtain: false, minKeep: 2, turns: 0
         };
         S.players.forEach(p => { for (let i = 0; i < 4; i++) p.hand[S.deck.pop()]++; });
         refillMarket();
@@ -773,6 +800,7 @@
         }
         p.hand[card]++;
         p.lastDraw = card;
+        stationCity = null;
         if (S.phase === 'turn' && !(src !== 'deck' && card === 'loco') && cardsAvailable()) S.phase = 'draw2';
         else endTurn();
       }
@@ -793,17 +821,29 @@
         return '';
       }
 
-      function payOptions(pid, r) {
+      function payOptions(pid, { c: color, len }, reserved) {
+        if (!len) return [{ c: color, n: 0, loco: 0, main: true }];
         const h = P(pid).hand;
+        const locos = h.loco - (reserved?.loco || 0);
         const opts = [];
-        const colors = r.c === 'gray' ? CC : [r.c];
+        const colors = color === 'gray' ? CC : color === 'loco' ? [] : [color];
         // Every legal split of coloured cards and locomotives; `main` marks the one using the most coloured cards.
         colors.forEach(c => {
-          const most = Math.min(h[c], r.len);
-          for (let use = most; use >= 1 && h.loco >= r.len - use; use--) opts.push({ c, n: use, loco: r.len - use, main: use === most });
+          const most = Math.min(h[c] - (reserved?.c === c ? reserved.n : 0), len);
+          for (let use = most; use >= 1 && locos >= len - use; use--) opts.push({ c, n: use, loco: len - use, main: use === most });
         });
-        if (h.loco >= r.len) opts.push({ c: r.c === 'gray' ? 'loco' : r.c, n: 0, loco: r.len, main: !opts.length });
+        if (locos >= len) opts.push({ c: color === 'gray' ? 'loco' : color, n: 0, loco: len, main: !opts.length });
         return opts;
+      }
+
+      function spend({ c, n, loco }) {
+        const h = curP().hand;
+        if (n) {
+          h[c] -= n;
+          for (let i = 0; i < n; i++) S.discard.push(c);
+        }
+        h.loco -= loco;
+        for (let i = 0; i < loco; i++) S.discard.push('loco');
       }
 
       function blockedFor(pid, r) {
@@ -819,30 +859,90 @@
       function claim(rid, opt) {
         const r = ROUTES[rid];
         const pid = S.cur;
-        const p = curP();
         if (S.phase !== 'turn' || claimReason(pid, r)) return false;
         const valid = payOptions(pid, r).find(o => o.c === opt.c && o.n === opt.n && o.loco === opt.loco);
         if (!valid) return false;
-        if (valid.n) { p.hand[valid.c] -= valid.n; for (let i = 0; i < valid.n; i++) S.discard.push(valid.c); }
-        if (valid.loco) { p.hand.loco -= valid.loco; for (let i = 0; i < valid.loco; i++) S.discard.push('loco'); }
-        S.owner[rid] = pid;
+        if (isTunnel(r)) {
+          const cards = range(3).map(drawFromDeck).filter(Boolean);
+          S.tunnel = { rid, base: valid, cards };
+          S.phase = 'tunnel';
+          const shown = cards.map(c => CARD[c].n.toLowerCase()).join(', ');
+          const extra = tunnelSurcharge();
+          log(`${curP().name} attempts ${rname(r)}. ${shown ? `Revealed ${shown}.` : 'The deck is empty.'} The tunnel needs ${extra} extra card${extra === 1 ? '' : 's'}.`, pid);
+        } else {
+          spend(valid);
+          completeClaim(r);
+        }
+        return true;
+      }
+
+      function completeClaim(r) {
+        const pid = S.cur;
+        const p = curP();
+        S.owner[r.id] = pid;
         p.trains -= r.len;
         p.score += POINTS[r.len];
         log(`${p.name} claims ${rname(r)} (${r.len}) for ${POINTS[r.len]} point${POINTS[r.len] > 1 ? 's' : ''}.`, pid);
-        if (sel === rid) sel = -1;
+        endTurn();
+      }
+
+      function tunnelSurcharge() {
+        const { base, cards } = S.tunnel;
+        return cards.filter(c => c === 'loco' || (base.n && c === base.c)).length;
+      }
+
+      function tunnelPayments() {
+        const { base } = S.tunnel;
+        return payOptions(S.cur, { c: base.n ? base.c : 'loco', len: tunnelSurcharge() }, base);
+      }
+
+      function resolveTunnel(index) {
+        if (S.phase !== 'tunnel') return false;
+        const { rid, base, cards } = S.tunnel;
+        const extra = index === null ? null : tunnelPayments()[index];
+        if (index !== null && !extra) return false;
+        S.discard.push(...cards);
+        S.tunnel = null;
+        const r = ROUTES[rid];
+        if (extra) {
+          spend(base);
+          spend(extra);
+          completeClaim(r);
+        } else {
+          log(`${curP().name} abandons the ${rname(r)} tunnel and keeps their payment cards.`, S.cur);
+          endTurn();
+        }
+        return true;
+      }
+
+      // ---------- Stations ----------
+      const stationCities = pid => Object.keys(S.stations || {}).filter(city => S.stations[city] === pid);
+      const stationsLeft = pid => S.stations ? STATION_LIMIT - stationCities(pid).length : 0;
+      const stationPayments = pid => {
+        const left = stationsLeft(pid);
+        return left > 0 ? payOptions(pid, { c: 'gray', len: STATION_LIMIT - left + 1 }) : [];
+      };
+
+      function buildStation(city, opt) {
+        if (S.phase !== 'turn' || !S.stations || !CITIES[city] || S.stations[city] !== undefined) return false;
+        const valid = stationPayments(S.cur).find(o => o.c === opt.c && o.n === opt.n && o.loco === opt.loco);
+        if (!valid) return false;
+        spend(valid);
+        S.stations[city] = S.cur;
+        log(`${curP().name} builds a station in ${cname(city)}.`, S.cur);
         endTurn();
         return true;
       }
 
       // ---------- Tickets ----------
-      function connected(pid, a, b) {
+      function connected(pid, a, b, borrowed) {
         const seen = new Set([a]);
         const stack = [a];
         while (stack.length) {
           const u = stack.pop();
           if (u === b) return true;
           ADJ[u].forEach(r => {
-            if (S.owner[r.id] !== pid) return;
+            if (S.owner[r.id] !== pid && !borrowed.some(track => track.id === r.id)) return;
             const v = other(r, u);
             if (!seen.has(v)) { seen.add(v); stack.push(v); }
           });
@@ -850,10 +950,51 @@
         return false;
       }
 
-      const ticketDone = (pid, t) => connected(pid, TICKETS[t].a, TICKETS[t].b);
+      function ticketConnections(pid, cities = stationCities(pid)) {
+        const tickets = P(pid).tickets.map(id => TICKETS[id]);
+        const done = tickets.filter(t => connected(pid, t.a, t.b, []));
+        let best = { done: new Set(done.map(t => t.id)), points: done.reduce((sum, t) => sum + t.pts, 0), borrowed: [] };
+        if (!cities.length || done.length === tickets.length) return best;
+        const unfinished = tickets.filter(t => !best.done.has(t.id));
+        const options = cities.map(city => {
+          const neighbours = new Set();
+          return ADJ[city].filter(r => {
+            const owner = S.owner[r.id];
+            const next = other(r, city);
+            if (owner === undefined || owner === pid || neighbours.has(next)) return false;
+            neighbours.add(next);
+            return true;
+          });
+        });
+        const base = best;
+        const borrowed = [];
+        // Test one fixed assignment per station against all of the player's tickets.
+        function search(index) {
+          if (index === cities.length) {
+            if (!borrowed.length) return;
+            const newDone = unfinished.filter(t => connected(pid, t.a, t.b, borrowed));
+            const points = base.points + newDone.reduce((sum, t) => sum + t.pts, 0);
+            const count = base.done.size + newDone.length;
+            if (points < best.points || (points === best.points && (count < best.done.size ||
+              (count === best.done.size && borrowed.length >= best.borrowed.length)))) return;
+            best = { done: new Set([...base.done, ...newDone.map(t => t.id)]), points, borrowed: borrowed.slice() };
+            return;
+          }
+          search(index + 1);
+          options[index].forEach(r => {
+            if (borrowed.some(track => track.id === r.id)) return;
+            borrowed.push({ city: cities[index], id: r.id });
+            search(index + 1);
+            borrowed.pop();
+          });
+        }
+        search(0);
+        return best;
+      }
 
       function drawTickets() {
         if (S.phase !== 'turn' || !S.tdeck.length) return;
+        stationCity = null;
         const p = curP();
         p.pending = S.tdeck.splice(0, 3);
         S.minKeep = 1;
@@ -904,6 +1045,7 @@
         S.cur = (S.cur + 1) % n;
         S.phase = 'turn';
         sel = -1;
+        stationCity = null;
         S.curtain = !curP().cpu && humans() > 1;
         // A player with no possible move passes.
         if (!canAct(S.cur)) {
@@ -915,7 +1057,7 @@
       function canAct(pid) {
         if (cardsAvailable() || S.market.length) return true;
         if (S.tdeck.length) return true;
-        return ROUTES.some(r => !claimReason(pid, r));
+        return stationPayments(pid).length > 0 || ROUTES.some(r => !claimReason(pid, r));
       }
 
       function longestPath(pid) {
@@ -939,15 +1081,19 @@
 
       function gameOver() {
         const rows = S.players.map((p, i) => {
-          const done = p.tickets.filter(t => ticketDone(i, t));
-          const lost = p.tickets.filter(t => !ticketDone(i, t));
-          const plus = done.reduce((s, t) => s + TICKETS[t].pts, 0);
-          const minus = lost.reduce((s, t) => s + TICKETS[t].pts, 0);
-          return { i, routes: p.score, plus, minus, done: done.length, longest: longestPath(i), bonus: 0 };
+          const { done, points, borrowed } = ticketConnections(i);
+          const minus = p.tickets.filter(t => !done.has(t)).reduce((s, t) => s + TICKETS[t].pts, 0);
+          return {
+            i, routes: p.score, plus: points, minus, completed: [...done], borrowed,
+            stationPoints: stationsLeft(i) * STATION_POINTS, longest: longestPath(i), bonus: 0
+          };
         });
         const maxLen = Math.max(...rows.map(r => r.longest));
-        rows.forEach(r => { if (maxLen > 0 && r.longest === maxLen) r.bonus = 12; r.total = r.routes + r.plus - r.minus + r.bonus; });
-        rows.sort((x, y) => (y.total - x.total) || (y.done - x.done) || (y.longest - x.longest));
+        rows.forEach(r => {
+          if (maxLen > 0 && r.longest === maxLen) r.bonus = 12;
+          r.total = r.routes + r.plus - r.minus + r.bonus + r.stationPoints;
+        });
+        rows.sort((x, y) => (y.total - x.total) || (y.completed.length - x.completed.length) || (y.longest - x.longest));
         S.over = { rows };
         S.phase = 'over';
         S.curtain = false;
@@ -955,30 +1101,32 @@
       }
 
       // ---------- Computer players ----------
-      function costFn(pid) {
+      function costFn(pid, borrowed) {
         return r => {
-          if (S.owner[r.id] === pid) return 0;
+          if (S.owner[r.id] === pid || borrowed.some(track => track.id === r.id)) return 0;
           if (blockedFor(pid, r)) return Infinity;
-          return r.len;
+          return r.len + (isTunnel(r) ? 0.75 : 0);
         };
       }
 
       function plan(pid) {
         const p = P(pid);
         const need = new Map();
+        const connections = ticketConnections(pid);
+        const cost = costFn(pid, connections.borrowed);
         let open = 0;
         p.tickets.forEach(t => {
           const T = TICKETS[t];
-          if (connected(pid, T.a, T.b)) return;
-          const path = shortest(T.a, T.b, costFn(pid));
+          if (connections.done.has(t)) return;
+          const path = shortest(T.a, T.b, cost);
           if (path.cost === Infinity || path.cost > p.trains + 4) return;
           open++;
           path.routes.forEach(r => {
-            if (S.owner[r.id] === pid) return;
+            if (cost(r) === 0) return;
             need.set(r.id, (need.get(r.id) || 0) + T.pts / Math.max(1, path.cost));
           });
         });
-        return { need, open };
+        return { need, open, connections };
       }
 
       function deficits(pid, needIds) {
@@ -1012,8 +1160,9 @@
         const p = P(pid);
         const lvl = p.level;
         const min = Math.min(S.minKeep, p.pending.length);
-        const fn = costFn(pid);
-        let budget = p.trains - p.tickets.reduce((s, t) => s + (ticketDone(pid, t) ? 0 : shortest(TICKETS[t].a, TICKETS[t].b, fn).cost || 0), 0);
+        const { done, borrowed } = ticketConnections(pid);
+        const fn = costFn(pid, borrowed);
+        let budget = p.trains - p.tickets.reduce((s, t) => s + (done.has(t) ? 0 : shortest(TICKETS[t].a, TICKETS[t].b, fn).cost), 0);
         const scored = p.pending.map(id => {
           const T = TICKETS[id];
           const c = shortest(T.a, T.b, fn).cost;
@@ -1062,10 +1211,23 @@
       function cpuTurn(pid) {
         const p = P(pid);
         const lvl = p.level;
-        const { need, open } = plan(pid);
+        const { need, open, connections } = plan(pid);
         const needIds = [...need.keys()];
         const claimable = ids => ids.map(id => ROUTES[id]).filter(r => !claimReason(pid, r));
         const endgame = S.final || S.players.some((q, i) => i !== pid && q.trains <= (lvl === 'hard' ? 8 : 5)) || p.trains <= 6;
+
+        const stationPay = stationPayments(pid).sort((a, b) => a.loco - b.loco || p.hand[b.c] - p.hand[a.c])[0];
+        if (stationPay && connections.done.size < p.tickets.length) {
+          const cities = stationCities(pid);
+          let bestCity = '';
+          let bestGain = STATION_POINTS;
+          Object.keys(CITIES).forEach(city => {
+            if (S.stations[city] !== undefined || !ADJ[city].some(r => S.owner[r.id] !== undefined && S.owner[r.id] !== pid)) return;
+            const gain = 2 * (ticketConnections(pid, [...cities, city]).points - connections.points);
+            if (gain > bestGain) { bestCity = city; bestGain = gain; }
+          });
+          if (bestCity) { buildStation(bestCity, stationPay); return; }
+        }
 
         // 1. Claim routes on the planned network, longest/most valuable first.
         let opts = claimable(needIds).sort((a, b) => (need.get(b.id) * 2 + b.len) - (need.get(a.id) * 2 + a.len));
@@ -1107,6 +1269,7 @@
         const before = sig();
         if (S.phase === 'tickets') keepTickets(cpuChooseTickets(pid));
         else if (S.phase === 'draw2') cpuDraw(pid, true);
+        else if (S.phase === 'tunnel') resolveTunnel(tunnelPayments().length ? 0 : null);
         else if (S.phase === 'turn') cpuTurn(pid);
         // Never let a computer stall on a move that changed nothing.
         if (!S.over && sig() === before) {
@@ -1190,14 +1353,17 @@
           const { d, line } = routeGeom(r);
           el('path', { class: 'out', d }, g);
           el('path', { class: 'car', d, stroke: CARD[r.c].c }, g);
-          const hit = el('path', { class: 'hit', d: line, role: 'button', tabindex: -1, 'aria-label': `${rname(r)}, ${r.len} ${r.c === 'gray' ? 'grey' : r.c}` }, g);
+          if (r.tunnel) el('path', { class: 'bore', d }, g);
+          const hit = el('path', { class: 'hit', d: line, role: 'button', tabindex: -1 }, g);
           hit.dataset.r = r.id;
           routeEls[r.id] = g;
         });
         const gc = el('g', {}, svg);
         Object.entries(CITIES).forEach(([k, c]) => {
-          const g = el('g', { class: 'city' }, gc);
-          el('circle', { cx: c.x, cy: c.y, r: 6 }, g);
+          const g = el('g', { class: 'city', 'data-city': k }, gc);
+          el('circle', { class: 'dot', cx: c.x, cy: c.y, r: 6 }, g);
+          el('path', { class: 'station', d: 'M-7 -1L0 -7L7 -1V6H-7Z M-2 6V1H2V6',
+            transform: `translate(${c.x} ${c.y})`, 'aria-hidden': 'true', hidden: '' }, g);
           const side = c[3];
           const t = el('text', {
             x: c.x + (side === 'l' ? -10 : side === 'r' ? 10 : 0),
@@ -1207,27 +1373,39 @@
           t.textContent = c[0];
           cityEls[k] = g;
         });
+        el('rect', { class: 'station-targets', x: -1000, y: -1000, width: 3000, height: 3000, 'aria-hidden': 'true' }, svg);
       }
 
-      function renderMap() {
+      function renderMap(done) {
+        svg.classList.toggle('station-pick', stationCity !== null && myTurn() && S.phase === 'turn');
         ROUTES.forEach(r => {
           const g = routeEls[r.id];
           const o = S.owner[r.id];
+          const color = o !== undefined ? P(o).color : CARD[r.c].c;
           g.classList.toggle('claimed', o !== undefined);
-          g.querySelector('.car').setAttribute('stroke', o !== undefined ? P(o).color : CARD[r.c].c);
+          g.querySelector('.car').setAttribute('stroke', color);
+          g.classList.toggle('tunnel', isTunnel(r));
+          if (r.tunnel) g.querySelector('.bore').setAttribute('stroke', color === CARD.black.c ? '#fffaf0' : '#2c241b');
+          g.querySelector('.hit').setAttribute('aria-label', `${rname(r)}, ${r.len} ${r.c === 'gray' ? 'grey' : r.c}${isTunnel(r) ? ', tunnel' : ''}`);
           const twinLocked = o === undefined && r.twin >= 0 && S.owner[r.twin] !== undefined && S.players.length <= 3;
           g.classList.toggle('blocked', twinLocked);
-          g.classList.toggle('sel', sel === r.id);
+          g.classList.toggle('sel', (S.tunnel ? S.tunnel.rid : sel) === r.id);
         });
         const view = viewer();
         const hiCities = new Set();
         const doneCities = new Set();
         if (hiTicket >= 0) { hiCities.add(TICKETS[hiTicket].a); hiCities.add(TICKETS[hiTicket].b); }
         if (S.phase === 'tickets' && view >= 0 && view === S.cur) P(view).pending.forEach(t => { hiCities.add(TICKETS[t].a); hiCities.add(TICKETS[t].b); });
-        if (hiTicket >= 0 && view >= 0 && ticketDone(view, hiTicket)) { doneCities.add(TICKETS[hiTicket].a); doneCities.add(TICKETS[hiTicket].b); }
+        if (done.has(hiTicket)) { doneCities.add(TICKETS[hiTicket].a); doneCities.add(TICKETS[hiTicket].b); }
         Object.keys(CITIES).forEach(k => {
-          cityEls[k].classList.toggle('hi', hiCities.has(k));
-          cityEls[k].classList.toggle('done', doneCities.has(k));
+          const g = cityEls[k];
+          const owner = S.stations?.[k];
+          const marker = g.querySelector('.station');
+          marker.toggleAttribute('hidden', owner === undefined);
+          if (owner !== undefined) marker.setAttribute('fill', P(owner).color);
+          g.classList.toggle('hi', hiCities.has(k));
+          g.classList.toggle('done', doneCities.has(k));
+          g.classList.toggle('selected', k === stationCity);
         });
         $('#finalBanner').hidden = !S.final || !!S.over;
       }
@@ -1328,10 +1506,43 @@
       $('#zOut').addEventListener('click', () => zoomCenter(1.4));
       $('#zFit').addEventListener('click', () => { view = Object.assign({}, FULL); applyView(); });
 
+      function stationCityAt(x, y) {
+        const matrix = svg.getScreenCTM();
+        if (!matrix) return null;
+        const bounds = svg.getBoundingClientRect();
+        const point = svg.createSVGPoint();
+        const half = STATION_TARGET_SIZE / 2;
+        let nearest = null;
+        let distance = Infinity;
+        // At fit-to-map zoom several city targets can overlap. Pick the closest visible marker.
+        for (const [key, city] of Object.entries(CITIES)) {
+          point.x = city.x;
+          point.y = city.y;
+          const center = point.matrixTransform(matrix);
+          if (center.x < bounds.left || center.x > bounds.right || center.y < bounds.top || center.y > bounds.bottom) continue;
+          const dx = center.x - x;
+          const dy = center.y - y;
+          if (Math.abs(dx) > half || Math.abs(dy) > half) continue;
+          const candidate = dx * dx + dy * dy;
+          if (candidate < distance) { nearest = key; distance = candidate; }
+        }
+        return nearest;
+      }
+
       svg.addEventListener('click', e => {
         if (dragged) { dragged = false; return; }
+        if (!S || S.phase === 'tunnel') return;
+        if (stationCity !== null && myTurn() && S.phase === 'turn') {
+          const city = stationCityAt(e.clientX, e.clientY);
+          if (city) {
+            stationCity = city;
+            render();
+            $('#stationCity').focus();
+          }
+          return;
+        }
         const hit = e.target.closest('[data-r]');
-        if (!hit || !S) { if (sel >= 0) { sel = -1; render(); } return; }
+        if (!hit) { if (sel >= 0) { sel = -1; render(); } return; }
         const id = +hit.dataset.r;
         sel = sel === id ? -1 : id;
         render();
@@ -1362,7 +1573,41 @@
         return parts.join(' + ');
       }
 
-      function renderPanel() {
+      function paymentButtons(opts, action, label) {
+        const btn = (op, i) => `<button class="btn${op.main ? ' primary' : ''} pay-btn grow" type="button" data-act="${action}" data-o="${i}">${label}${op.n || op.loco ? ` · ${payLabel(op)}` : ''}</button>`;
+        const extra = opts.map((op, i) => (op.main ? '' : btn(op, i))).join('');
+        return `<div class="row">${opts.map((op, i) => (op.main ? btn(op, i) : '')).join('')}</div>` +
+          (extra ? `<details class="more"><summary>More ways to pay</summary><div class="row">${extra}</div></details>` : '');
+      }
+
+      function tunnelBox() {
+        const { rid, cards } = S.tunnel;
+        const extra = tunnelSurcharge();
+        const opts = tunnelPayments();
+        return `<div class="claim-box"><h3 tabindex="-1">${esc(rname(ROUTES[rid]))} tunnel</h3>
+          ${cards.length ? `<ul class="tunnel-cards" aria-label="Revealed cards">${cards.map(c => `<li>${CARD[c].n}</li>`).join('')}</ul>` : '<p>No cards left to reveal.</p>'}
+          <p>${extra ? `${extra} extra card${extra === 1 ? '' : 's'} required.` : 'No extra cards required.'} ${opts.length ? '' : 'You can’t cover the extra cost.'}</p>
+          ${opts.length ? paymentButtons(opts, 'finishtunnel', extra ? 'Pay extra and claim' : 'Claim tunnel') : ''}
+          <div class="row" style="margin-top:8px"><button class="btn grow" type="button" data-act="abandontunnel">Abandon attempt</button></div></div>`;
+      }
+
+      function stationBox() {
+        const left = stationsLeft(S.cur);
+        const len = STATION_LIMIT - left + 1;
+        const owner = S.stations[stationCity];
+        const opts = stationPayments(S.cur);
+        const cities = Object.keys(CITIES).sort((a, b) => cname(a).localeCompare(cname(b)));
+        return `<div class="claim-box"><h3 tabindex="-1">Build a station</h3>
+          <p>Borrow one opponent’s track from this city for your tickets. Pick a city on the map or from the list.</p>
+          <select id="stationCity" aria-label="Station city"><option value="">Choose a city</option>
+          ${cities.map(k => `<option value="${k}"${k === stationCity ? ' selected' : ''}>${esc(cname(k))}${S.stations[k] === undefined ? '' : ' (has a station)'}</option>`).join('')}</select>
+          <p>${left} left · costs ${len} card${len === 1 ? '' : 's'} of one colour · each unbuilt station is worth ${STATION_POINTS} points</p>
+          ${owner !== undefined ? `<p>${esc(P(owner).name)} already has a station here.</p>` :
+            !opts.length ? '<p>You need more cards to build a station.</p>' : stationCity ? paymentButtons(opts, 'buildstation', 'Build station') : ''}
+          <div class="row" style="margin-top:8px"><button class="btn grow" type="button" data-act="unsel">Cancel</button></div></div>`;
+      }
+
+      function renderPanel(done) {
         const p = curP();
         const v = viewer();
         $('#subInfo').textContent = `${MAP.name} · ${S.over ? 'Game over' : S.setup ? 'Choosing tickets' : `Turn ${Math.floor(S.turns / S.players.length) + 1}`}`;
@@ -1385,14 +1630,16 @@
         } else if (S.phase === 'tickets') {
           instr = `Choose which destination tickets to keep (at least ${Math.min(S.minKeep, p.pending.length)}).`;
           acts = '<button class="btn primary" type="button" data-act="tickets">Choose tickets</button>';
+        } else if (S.phase === 'tunnel') {
+          instr = 'Review the revealed cards, then finish or abandon the tunnel.';
         } else if (S.phase === 'draw2') {
           instr = 'Take one more train card. A face-up locomotive can’t be your second card.';
         } else {
-          instr = 'Draw 2 train cards, claim a route by tapping it on the map, or draw destination tickets.';
+          instr = 'Draw train cards or destination tickets, or pick a track on the map.';
         }
 
         // Market
-        if (!S.over && !S.setup) {
+        if (!S.over && !S.setup && S.phase !== 'tunnel') {
           const can = mine && (S.phase === 'turn' || S.phase === 'draw2');
           let m = '<div class="market" role="group" aria-label="Face-up train cards and deck">';
           for (let k = 0; k < 5; k++) {
@@ -1400,7 +1647,11 @@
             m += c ? cardHTML(c, `data-act="take" data-k="${k}" ${can && canTakeMarket(k) ? '' : 'disabled'} aria-label="Take face-up ${CARD[c].n} card (${k + 1})"`) : '<button class="tcard empty" type="button" disabled>Empty</button>';
           }
           m += `<button class="tcard deck" type="button" data-act="take" data-k="deck" ${can && (S.deck.length || S.discard.length) ? '' : 'disabled'} aria-label="Draw from the deck"><span class="sym" aria-hidden="true">▤</span>Deck<span class="n">${S.deck.length}</span></button></div>`;
-          if (mine && S.phase === 'turn') m += `<div class="row" style="margin-top:8px"><button class="btn grow" type="button" data-act="drawtickets" ${S.tdeck.length ? '' : 'disabled'}>Draw destination tickets (${S.tdeck.length} left)</button></div>`;
+          if (mine && S.phase === 'turn') {
+            const left = stationsLeft(S.cur);
+            m += `<div class="row" style="margin-top:8px"><button class="btn grow" type="button" data-act="drawtickets" ${S.tdeck.length ? '' : 'disabled'}>Draw destination tickets (${S.tdeck.length} left)</button>
+              ${left ? `<button class="btn grow" type="button" data-act="pickstation">Build station (${left} left)</button>` : ''}</div>`;
+          }
           acts = m + acts;
         }
         $('#instruction').innerHTML = instr;
@@ -1408,20 +1659,20 @@
 
         // Selected route
         let box = '';
-        if (sel >= 0 && !S.over) {
+        if (mine && S.phase === 'tunnel') box = tunnelBox();
+        else if (mine && S.phase === 'turn' && stationCity !== null) box = stationBox();
+        else if (sel >= 0 && !S.over && S.phase !== 'tunnel') {
           const r = ROUTES[sel];
           const o = S.owner[r.id];
           const col = r.c === 'gray' ? 'Grey (any one colour)' : CARD[r.c].n;
-          box = `<div class="claim-box"><h3>${esc(rname(r))}</h3><p>${r.len} space${r.len > 1 ? 's' : ''} · ${col} · worth ${POINTS[r.len]} point${POINTS[r.len] > 1 ? 's' : ''}${r.twin >= 0 ? ' · double route' : ''}${o !== undefined ? ` · claimed by ${esc(P(o).name)}` : ''}</p>`;
+          const tunnel = isTunnel(r);
+          box = `<div class="claim-box"><h3 tabindex="-1">${esc(rname(r))}</h3><p>${r.len} space${r.len > 1 ? 's' : ''} · ${col} · worth ${POINTS[r.len]} point${POINTS[r.len] > 1 ? 's' : ''}${tunnel ? ' · tunnel' : ''}${r.twin >= 0 ? ' · double route' : ''}${o !== undefined ? ` · claimed by ${esc(P(o).name)}` : ''}</p>`;
           if (o === undefined && mine && S.phase === 'turn') {
             const why = claimReason(S.cur, r);
             if (why) box += `<p>${esc(why)}</p>`;
             else {
-              const opts = payOptions(S.cur, r);
-              const btn = (op, i, cls) => `<button class="btn ${cls} pay-btn grow" type="button" data-act="claim" data-o="${i}">Claim: ${payLabel(op)}</button>`;
-              const extra = opts.map((op, i) => (op.main ? '' : btn(op, i, ''))).join('');
-              box += `<div class="row">${opts.map((op, i) => (op.main ? btn(op, i, 'primary') : '')).join('')}</div>`;
-              if (extra) box += `<details class="more"><summary>More ways to pay</summary><div class="row">${extra}</div></details>`;
+              if (tunnel) box += '<p>Revealed cards can increase the cost.</p>';
+              box += paymentButtons(payOptions(S.cur, r), 'claim', tunnel ? 'Attempt tunnel' : 'Claim');
             }
           }
           box += '<div class="row" style="margin-top:8px"><button class="btn grow" type="button" data-act="unsel">Clear selection</button></div></div>';
@@ -1438,12 +1689,12 @@
           }).join('')}</div>`;
           hand += `<p class="section-title">${v === S.cur ? 'Your tickets' : esc(me.name) + '’s tickets'} · tap to highlight</p><div class="tickets">${me.tickets.length ? me.tickets.map(t => {
             const T = TICKETS[t];
-            const done = ticketDone(v, t);
-            return `<button class="ticket${done ? ' done' : ''}${hiTicket === t ? ' sel' : ''}" type="button" data-act="hiticket" data-t="${t}"><span><b>${esc(cname(T.a))} → ${esc(cname(T.b))}</b><small>${done ? 'Complete ✓' : 'Not connected yet'}</small></span><span class="pts">${T.pts}</span></button>`;
+            const complete = done.has(t);
+            return `<button class="ticket${complete ? ' done' : ''}${hiTicket === t ? ' sel' : ''}" type="button" data-act="hiticket" data-t="${t}"><span><b>${esc(cname(T.a))} → ${esc(cname(T.b))}</b><small>${complete ? 'Complete ✓' : 'Not connected yet'}</small></span><span class="pts">${T.pts}</span></button>`;
           }).join('') : '<p class="instruction" style="font-size:13px;color:var(--muted)">No tickets yet.</p>'}</div>`;
           if (v === S.cur && mine && S.phase === 'turn') {
             const can = ROUTES.filter(r => !claimReason(v, r)).sort((a, b) => b.len - a.len);
-            hand += `<details class="more"${can.length ? '' : ' hidden'}><summary>Routes you can claim (${can.length})</summary><div class="rlist">${can.map(r => `<button class="rrow" type="button" data-act="selroute" data-r="${r.id}"><span class="pip" style="--cc:${CARD[r.c].c}"></span>${esc(rname(r))}<span class="len">${r.len} · ${POINTS[r.len]} pts</span></button>`).join('')}</div></details>`;
+            hand += `<details class="more"${can.length ? '' : ' hidden'}><summary>Routes you can claim (${can.length})</summary><div class="rlist">${can.map(r => `<button class="rrow" type="button" data-act="selroute" data-r="${r.id}"><span class="pip" style="--cc:${CARD[r.c].c}"></span>${esc(rname(r))}<span class="len">${isTunnel(r) ? 'Tunnel · ' : ''}${r.len} · ${POINTS[r.len]} pts</span></button>`).join('')}</div></details>`;
           }
         }
         $('#handWrap').innerHTML = hand;
@@ -1466,8 +1717,10 @@
 
       function render() {
         if (!S) return;
-        renderMap();
-        renderPanel();
+        const v = viewer();
+        const done = v < 0 ? new Set() : ticketConnections(v).done;
+        renderMap(done);
+        renderPanel(done);
         const cur = $('#curtain');
         if (S.curtain && !S.over) {
           $('#curtainTitle').textContent = `${curP().name}'s turn`;
@@ -1515,12 +1768,14 @@
         const rows = S.over.rows;
         $('#overTitle').textContent = `${P(rows[0].i).name} wins!`;
         $('#overLead').textContent = `Final scores. The longest line ran ${Math.max(...rows.map(r => r.longest))} trains.`;
-        $('#overTable').innerHTML = `<thead><tr><th>Player</th><th>Routes</th><th>Tickets</th><th>Longest</th><th>Total</th></tr></thead><tbody>${rows.map(r => `<tr><td><span class="sw" style="--pc:${P(r.i).color}"></span>${esc(P(r.i).name)}</td><td>${r.routes}</td><td>+${r.plus} / −${r.minus}</td><td>${r.longest}${r.bonus ? ` +${r.bonus}` : ''}</td><td>${r.total}</td></tr>`).join('')}</tbody>`;
+        $('#overTable').innerHTML = `<thead><tr><th>Player</th><th>Routes</th><th>Tickets</th><th>Longest</th>${S.stations ? '<th>Stations</th>' : ''}<th>Total</th></tr></thead><tbody>${rows.map(r => `<tr><td><span class="sw" style="--pc:${P(r.i).color}"></span>${esc(P(r.i).name)}</td><td>${r.routes}</td><td>+${r.plus} / −${r.minus}</td><td>${r.longest}${r.bonus ? ` +${r.bonus}` : ''}</td>${S.stations ? `<td>${r.stationPoints}</td>` : ''}<td>${r.total}</td></tr>`).join('')}</tbody>`;
         $('#overTickets').innerHTML = rows.map(r => {
           const p = P(r.i);
-          return `<p class="section-title" style="margin:10px 0 6px">${esc(p.name)}</p><div class="tickets">${p.tickets.map(t => {
+          const borrowed = r.borrowed.map(({ city, id }) => `${esc(cname(city))} station uses ${esc(rname(ROUTES[id]))}`);
+          return `<p class="section-title" style="margin:10px 0 6px">${esc(p.name)}</p>
+            ${borrowed.length ? `<p>${borrowed.join(' · ')}</p>` : ''}<div class="tickets">${p.tickets.map(t => {
             const T = TICKETS[t];
-            const ok = ticketDone(r.i, t);
+            const ok = r.completed.includes(t);
             return `<div class="ticket ${ok ? 'done' : 'lost'}"><span><b>${esc(cname(T.a))} → ${esc(cname(T.b))}</b><small>${ok ? 'Complete' : 'Missed'}</small></span><span class="pts">${ok ? '+' : '−'}${T.pts}</span></div>`;
           }).join('') || '<p class="instruction">No tickets.</p>'}</div>`;
         }).join('');
@@ -1616,6 +1871,7 @@
         store.set(PREFS, prefs);
         newGame(players, seatMap);
         sel = -1;
+        stationCity = null;
         hiTicket = -1;
         overShown = false;
         peeking = false;
@@ -1628,6 +1884,20 @@
 
       // ---------- Events ----------
       function act(fn) { fn(); finish(); }
+
+      function revealHand() {
+        S.curtain = false;
+        peeking = false;
+        finish();
+        if (S.phase === 'tunnel') $('#claimBox h3')?.focus();
+      }
+
+      $('#claimBox').addEventListener('change', e => {
+        if (e.target.id !== 'stationCity') return;
+        stationCity = e.target.value;
+        render();
+        $('#stationCity').focus();
+      });
 
       document.addEventListener('click', e => {
         const closer = e.target.closest('[data-close]');
@@ -1644,19 +1914,48 @@
             if (mine && sel >= 0) {
               const opt = payOptions(S.cur, ROUTES[sel])[+b.dataset.o];
               if (opt) act(() => claim(sel, opt));
+              if (S.phase === 'tunnel') $('#claimBox h3')?.focus();
             }
             break;
-          case 'unsel': sel = -1; render(); break;
-          case 'selroute': sel = +b.dataset.r; render(); break;
+          case 'finishtunnel': if (mine) act(() => resolveTunnel(+b.dataset.o)); break;
+          case 'abandontunnel': if (mine) act(() => resolveTunnel(null)); break;
+          case 'pickstation':
+            if (mine && S.phase === 'turn' && stationsLeft(S.cur)) {
+              sel = -1;
+              stationCity = '';
+              render();
+              $('#stationCity').focus();
+            }
+            break;
+          case 'buildstation':
+            if (mine && stationCity) {
+              const opt = stationPayments(S.cur)[+b.dataset.o];
+              if (opt) act(() => buildStation(stationCity, opt));
+            }
+            break;
+          case 'unsel': {
+            const closingStation = stationCity !== null;
+            sel = -1;
+            stationCity = null;
+            render();
+            if (closingStation) $('[data-act="pickstation"]')?.focus();
+            break;
+          }
+          case 'selroute':
+            stationCity = null;
+            sel = +b.dataset.r;
+            render();
+            $('#claimBox h3')?.focus();
+            break;
           case 'hiticket': hiTicket = hiTicket === +b.dataset.t ? -1 : +b.dataset.t; render(); break;
-          case 'curtain': S.curtain = false; peeking = false; finish(); break;
+          case 'curtain': revealHand(); break;
           case 'speed': prefs.speed = b.dataset.v; store.set(PREFS, prefs); render(); tick(); break;
           case 'newgame': openSetup(); break;
           case 'results': renderOver(); openSheet($('#overSheet')); break;
           default:
         }
       });
-      $('#curtainGo').addEventListener('click', () => { if (S) { S.curtain = false; peeking = false; finish(); } });
+      $('#curtainGo').addEventListener('click', () => { if (S) revealHand(); });
       $('#btnHelp').addEventListener('click', () => openSheet($('#helpSheet')));
       $('#btnNew').addEventListener('click', openSetup);
       $('#overNew').addEventListener('click', () => { closeSheet($('#overSheet')); openSetup(); });
@@ -1669,7 +1968,14 @@
           if (open) { closeSheet(open); return; }
           if (!$('#overSheet').hidden) { closeSheet($('#overSheet')); return; }
           if (setupOpen() && S && !S.over) { closeSheet($('#setup')); render(); tick(); return; }
-          if (sel >= 0 || hiTicket >= 0) { sel = -1; hiTicket = -1; render(); }
+          if (sel >= 0 || hiTicket >= 0 || stationCity !== null) {
+            const closingStation = stationCity !== null;
+            sel = -1;
+            stationCity = null;
+            hiTicket = -1;
+            render();
+            if (closingStation) $('[data-act="pickstation"]')?.focus();
+          }
           return;
         }
         if (!S || /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
