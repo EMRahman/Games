@@ -380,7 +380,7 @@
       <h3>Details</h3>
       <ul>
         <li>New games on every map include tunnels and stations.</li>
-        <li>Everyone starts with 40 trains, 4 train cards, and 3 tickets, and keeps at least 2 of the tickets.</li>
+        <li>Everyone starts with 40 trains (fewer on maps with less track, as shown when you pick a map), 4 train cards, and 3 tickets, and keeps at least 2 of the tickets.</li>
         <li>If three locomotives are ever face up together, all five face-up cards are replaced.</li>
         <li>Double routes: one player can't claim both tracks. With 2 or 3 players, only one track of each pair can be used.</li>
         <li>When a player ends a turn with 2 or fewer trains, everyone, including that player, gets one last turn.</li>
@@ -421,6 +421,9 @@
         <div><span>v10 prompt</span> Iron Routes: Provide a map for the UK</div>
         <div><span>v10 date</span> 28 November 2026</div>
         <div><span>v10 model</span> Claude Sonnet 5.5</div>
+        <div><span>v11 prompt</span> Iron Routes: check there's 20 to 45 cities. smaller maps/countries on the lower end; larger maps on the higher end like continents</div>
+        <div><span>v11 date</span> 28 November 2026</div>
+        <div><span>v11 model</span> Claude Sonnet 5.5</div>
         <div><span>built with</span> Claude Code</div>
       </div>
       <div class="sheet-actions"><button class="btn primary grow" type="button" data-close>Got it</button></div>
@@ -1270,71 +1273,63 @@
         asia: {
           name: 'Asia',
           blurb: 'Aktobe to Busan',
-          // Revision 2 dropped the Middle East and island cities; older saves of the first layout don't resume.
-          rev: 2,
+          // Revision 3 cut the map down to 45 cities; older saves of the previous layout don't resume.
+          rev: 3,
           cities: {
-            HFE: ['Hefei', 117.23, 31.82, 'r'], TNA: ['Jinan', 117.00, 36.65, 'r'], AKX: ['Aktobe', 57.17, 50.28, 'b'],
-            NUK: ['Nukus', 59.61, 42.46, 'l'], ASH: ['Ashgabat', 58.38, 37.96, 'r'], UFA: ['Ufa', 55.97, 54.74, 't'],
-            TAS: ['Tashkent', 69.24, 41.31, 'r'], ALA: ['Almaty', 76.89, 43.24, 't'], AST: ['Astana', 71.43, 51.13, 'b'],
-            OMS: ['Omsk', 73.37, 54.99, 't'], NOV: ['Novosibirsk', 82.92, 55.03, 't'], IRK: ['Irkutsk', 104.30, 52.29, 't'],
-            UUD: ['Ulan-Ude', 107.58, 51.83, 't'], CHT: ['Chita', 113.50, 52.03, 't'], KHV: ['Khabarovsk', 135.07, 48.48, 't'],
-            USR: ['Ussuriysk', 131.95, 43.80, 't'], HRB: ['Harbin', 126.53, 45.80, 't'], ULN: ['Ulaanbaatar', 106.91, 47.92, 'l'],
-            URC: ['Ürümqi', 87.62, 43.83, 't'], LHW: ['Lanzhou', 103.83, 36.06, 'l'], XIY: ['Xi’an', 108.94, 34.34, 't'],
-            CTU: ['Chengdu', 104.07, 30.57, 'l'], LXA: ['Lhasa', 91.13, 29.65, 't'], PEK: ['Beijing', 116.40, 39.90, 'l'],
-            SHE: ['Shenyang', 123.43, 41.81, 't'], WUH: ['Wuhan', 114.31, 30.59, 'b'], CAN: ['Guangzhou', 113.26, 23.13, 'r'],
-            KMG: ['Kunming', 102.83, 24.88, 'b'], PYO: ['Pyongyang', 125.76, 39.03, 'l'], SEL: ['Seoul', 126.98, 37.57, 'b'],
-            BUS: ['Busan', 129.08, 35.18, 'b'], KBL: ['Kabul', 69.18, 34.53, 'r'], KHI: ['Karachi', 67.01, 24.86, 'l'],
-            LHE: ['Lahore', 74.36, 31.52, 'l'], DEL: ['Delhi', 77.21, 28.61, 'b'], AMD: ['Ahmedabad', 72.57, 23.02, 'l'],
-            PNQ: ['Pune', 73.86, 18.52, 'l'], HYD: ['Hyderabad', 78.49, 17.39, 'r'], BLR: ['Bengaluru', 77.59, 12.97, 'l'],
-            MAA: ['Chennai', 80.27, 13.08, 'r'], CCU: ['Kolkata', 88.36, 22.57, 'l'], DAC: ['Dhaka', 90.41, 23.81, 'r'],
-            KTM: ['Kathmandu', 85.32, 27.72, 't'], MDL: ['Mandalay', 96.08, 21.97, 't'], RGN: ['Yangon', 96.16, 16.87, 'b'],
-            BKK: ['Bangkok', 100.50, 13.76, 'l'], VTE: ['Vientiane', 102.63, 17.97, 'r'], HAN: ['Hanoi', 105.85, 21.03, 'l'],
-            SGN: ['Ho Chi Minh City', 106.63, 10.82, 'r'], CCN: ['Changchun', 125.32, 43.88, 'r'], VNS: ['Varanasi', 82.97, 25.32, 't'],
-            SMK: ['Samarkand', 66.96, 39.65, 'l'], CGO: ['Zhengzhou', 113.63, 34.75, 'r'], CSX: ['Changsha', 112.94, 28.23, 'r']
+            AKX: ['Aktobe', 57.17, 50.28, 't'], ASH: ['Ashgabat', 58.38, 37.96, 'l'], TAS: ['Tashkent', 69.24, 41.31, 'r'],
+            ALA: ['Almaty', 76.89, 43.24, 't'], AST: ['Astana', 71.43, 51.13, 'r'], OMS: ['Omsk', 73.37, 54.99, 't'],
+            NOV: ['Novosibirsk', 82.92, 55.03, 'l'], IRK: ['Irkutsk', 104.30, 52.29, 'b'], UUD: ['Ulan-Ude', 107.58, 51.83, 't'],
+            CHT: ['Chita', 113.50, 52.03, 't'], KHV: ['Khabarovsk', 135.07, 48.48, 't'], HRB: ['Harbin', 126.53, 45.80, 'b'],
+            ULN: ['Ulaanbaatar', 106.91, 47.92, 'r'], URC: ['Ürümqi', 87.62, 43.83, 'b'], LHW: ['Lanzhou', 103.83, 36.06, 'l'],
+            XIY: ['Xi’an', 108.94, 34.34, 't'], CTU: ['Chengdu', 104.07, 30.57, 'r'], LXA: ['Lhasa', 91.13, 29.65, 't'],
+            PEK: ['Beijing', 116.40, 39.90, 'l'], SHE: ['Shenyang', 123.43, 41.81, 'b'], WUH: ['Wuhan', 114.31, 30.59, 'r'],
+            CAN: ['Guangzhou', 113.26, 23.13, 'r'], KMG: ['Kunming', 102.83, 24.88, 'l'], PYO: ['Pyongyang', 125.76, 39.03, 'l'],
+            SEL: ['Seoul', 126.98, 37.57, 'l'], BUS: ['Busan', 129.08, 35.18, 'b'], KBL: ['Kabul', 69.18, 34.53, 'l'],
+            KHI: ['Karachi', 67.01, 24.86, 'l'], LHE: ['Lahore', 74.36, 31.52, 'r'], DEL: ['Delhi', 77.21, 28.61, 'l'],
+            AMD: ['Ahmedabad', 72.57, 23.02, 'r'], HYD: ['Hyderabad', 78.49, 17.39, 'l'], BLR: ['Bengaluru', 77.59, 12.97, 'l'],
+            MAA: ['Chennai', 80.27, 13.08, 'r'], CCU: ['Kolkata', 88.36, 22.57, 'b'], DAC: ['Dhaka', 90.41, 23.81, 'r'],
+            KTM: ['Kathmandu', 85.32, 27.72, 'r'], MDL: ['Mandalay', 96.08, 21.97, 'l'], RGN: ['Yangon', 96.16, 16.87, 'b'],
+            BKK: ['Bangkok', 100.50, 13.76, 'l'], VTE: ['Vientiane', 102.63, 17.97, 'r'], HAN: ['Hanoi', 105.85, 21.03, 'r'],
+            SGN: ['Ho Chi Minh City', 106.63, 10.82, 'r'], VNS: ['Varanasi', 82.97, 25.32, 'r'], CGO: ['Zhengzhou', 113.63, 34.75, 'r']
           },
           proj: (lon, lat) => [Math.round((lon - 50) * 130) / 10, Math.round((60 - lat) * 170) / 10],
+          unit: 35,
           full: { x: 20, y: 30, w: 1140, h: 880 },
           grat: [[50, 140, 10], [10, 60, 10]],
+          // Tracks that bend round water pass through these points (longitude, latitude).
+          bends: {
+            'CAN-CTU': [[112.94, 28.23]], 'HRB-PYO': [[125.32, 43.88]], 'VTE-SGN': [[104.45, 16.77]], 'MDL-HAN': [[98.63, 21.95]],
+            'MDL-VTE': [[97.83, 20.65]], 'HRB-SHE': [[124.61, 45.32], [123.68, 44.13]], 'WUH-XIY': [[110.64, 31.64]], 'NOV-OMS': [[78.13, 56.47]],
+            'ASH-TAS': [[60.67, 40.79], [65.02, 42.13]], 'BKK-SGN': [[102.92, 13.58], [104.21, 11]], 'HYD-MAA': [[79.87, 16.3], [78.89, 14.17]],
+            'AKX-ASH': [[55.6, 46.47], [56.08, 41.54]], 'CAN-WUH': [[115.72, 25.19], [116.14, 28.18]], 'KMG-MDL': [[99.07, 23.94]],
+            'CTU-LHW': [[102.51, 33.28]], 'DAC-LXA': [[92.3, 26.62]], 'KHI-LHE': [[71.56, 27.63]], 'CCU-HYD': [[84.38, 22.15], [82.47, 17.81]]
+          },
           tunnels: [
-            'KMG-HAN', 'KBL-LHE', 'KBL-SMK', 'DAC-KTM', 'CTU-KMG', 'KMG-MDL', 'ALA-URC', 'LXA-MDL',
-            'KBL-KHI', 'CTU-LXA', 'LXA-KMG', 'TAS-LHE', 'LHW-LXA'
+            'KMG-HAN', 'DAC-KTM', 'CTU-KMG', 'ALA-URC', 'KBL-KHI', 'KBL-LHE', 'CTU-LXA'
           ],
           routes: [
-            ['HFE', 'WUH', 'orange'], ['HFE', 'CGO', 'red'], ['TNA', 'PEK', 'orange'], ['TNA', 'CGO', 'white'],
-            ['NOV', 'IRK', 'orange'], ['PYO', 'SEL', 'yellow'], ['CCU', 'DAC', 'blue'], ['BLR', 'MAA', 'yellow'],
-            ['HRB', 'CCN', 'yellow'], ['SHE', 'CCN', 'black'], ['SEL', 'BUS', 'black'], ['KTM', 'VNS', 'green'],
-            ['XIY', 'CGO', 'gray', 'orange'], ['LHE', 'DEL', 'gray', 'blue'], ['PNQ', 'HYD', 'gray', 'red'], ['UUD', 'ULN', 'black'],
-            ['AST', 'OMS', 'orange'], ['WUH', 'CGO', 'blue', 'green'], ['LHW', 'XIY', 'blue'], ['HYD', 'BLR', 'green'],
-            ['KMG', 'HAN', 'green'], ['BKK', 'VTE', 'purple', 'white'], ['UUD', 'CHT', 'white', 'purple'], ['AKX', 'UFA', 'green'],
-            ['NUK', 'ASH', 'white'], ['USR', 'HRB', 'green'], ['DAC', 'MDL', 'black'], ['PYO', 'CCN', 'orange'],
-            ['CCU', 'VNS', 'gray'], ['KBL', 'LHE', 'yellow'], ['MDL', 'RGN', 'red'], ['CAN', 'CSX', 'black', 'blue'],
-            ['XIY', 'CTU', 'red', 'white'], ['KBL', 'SMK', 'white'], ['LHW', 'CTU', 'black'], ['DEL', 'VNS', 'orange', 'purple'],
-            ['DAC', 'KTM', 'yellow'], ['XIY', 'WUH', 'purple'], ['PEK', 'CGO', 'purple', 'yellow'], ['PEK', 'SHE', 'blue'],
-            ['CTU', 'KMG', 'gray'], ['KMG', 'MDL', 'purple'], ['TAS', 'ALA', 'gray'], ['PNQ', 'BLR', 'orange'],
-            ['DEL', 'KTM', 'red'], ['NUK', 'SMK', 'black'], ['MDL', 'VTE', 'yellow'], ['CHT', 'ULN', 'blue'],
-            ['DEL', 'AMD', 'white'], ['ASH', 'SMK', 'purple'], ['KHV', 'HRB', 'orange'], ['CTU', 'CSX', 'yellow'],
-            ['AMD', 'HYD', 'black'], ['MDL', 'HAN', 'white'], ['VTE', 'SGN', 'red'], ['CAN', 'KMG', 'white'],
-            ['ALA', 'URC', 'blue'], ['AMD', 'VNS', 'yellow'], ['KMG', 'CSX', 'red'], ['LXA', 'MDL', 'gray'],
-            ['HYD', 'VNS', 'blue'], ['KHI', 'DEL', 'black'], ['ASH', 'KBL', 'orange'], ['AST', 'NOV', 'purple', 'yellow'],
-            ['KBL', 'KHI', 'green'], ['CTU', 'LXA', 'orange'], ['TAS', 'AST', 'green'], ['LXA', 'KMG', 'black'],
-            ['LHW', 'PEK', 'white'], ['TAS', 'LHE', 'purple'], ['ULN', 'PEK', 'green'], ['AKX', 'AST', 'white'],
-            ['LHW', 'LXA', 'purple'], ['CHT', 'HRB', 'black'], ['NOV', 'URC', 'gray'], ['ULN', 'LHW', 'red'],
-            ['CHT', 'PEK', 'gray'], ['NUK', 'AST', 'blue'], ['UFA', 'OMS', 'red'], ['URC', 'LHW', 'green'],
-            ['ULN', 'URC', 'yellow']
+            ['NOV', 'IRK', 'gray'], ['PYO', 'SEL', 'orange'], ['CCU', 'DAC', 'red', 'black'], ['BLR', 'MAA', 'yellow'], ['SEL', 'BUS', 'yellow'],
+            ['KTM', 'VNS', 'white', 'green'], ['LHE', 'DEL', 'white', 'orange'], ['UUD', 'ULN', 'orange', 'purple'], ['LHW', 'XIY', 'gray'],
+            ['HYD', 'BLR', 'blue'], ['KMG', 'HAN', 'red'], ['CCU', 'VNS', 'blue'], ['MDL', 'RGN', 'black'], ['DAC', 'KTM', 'blue'],
+            ['PEK', 'SHE', 'black'], ['CTU', 'KMG', 'orange', 'yellow'], ['TAS', 'ALA', 'yellow'], ['KHV', 'HRB', 'yellow', 'blue'],
+            ['AMD', 'HYD', 'orange'], ['CAN', 'KMG', 'purple'], ['ALA', 'URC', 'purple'], ['HYD', 'VNS', 'gray'], ['ASH', 'KBL', 'black'],
+            ['KBL', 'KHI', 'blue'], ['TAS', 'AST', 'purple', 'black'], ['AKX', 'AST', 'orange'], ['CHT', 'HRB', 'gray'],
+            ['NOV', 'URC', 'blue', 'green'], ['ULN', 'LHW', 'black'], ['URC', 'LHW', 'red'], ['ULN', 'URC', 'white'], ['CAN', 'CTU', 'green'],
+            ['AST', 'OMS', 'green'], ['WUH', 'CGO', 'green', 'orange'], ['UUD', 'CHT', 'white', 'red'], ['DAC', 'MDL', 'white'],
+            ['KBL', 'LHE', 'red', 'purple'], ['XIY', 'CTU', 'black', 'purple'], ['PEK', 'CGO', 'white', 'red'], ['DEL', 'AMD', 'blue'],
+            ['ULN', 'PEK', 'gray'], ['HRB', 'PYO', 'red'], ['VTE', 'SGN', 'white'], ['BKK', 'VTE', 'black', 'green'], ['DEL', 'VNS', 'yellow', 'red'],
+            ['MDL', 'HAN', 'yellow'], ['MDL', 'VTE', 'purple'], ['CTU', 'LXA', 'blue'], ['AMD', 'KHI', 'gray'], ['HRB', 'SHE', 'orange'],
+            ['KTM', 'LXA', 'purple'], ['WUH', 'XIY', 'red'], ['NOV', 'OMS', 'black'], ['ASH', 'TAS', 'red'], ['BKK', 'SGN', 'orange'],
+            ['HYD', 'MAA', 'white'], ['AKX', 'ASH', 'yellow'], ['HAN', 'VTE', 'orange'], ['CGO', 'XIY', 'yellow', 'blue'], ['CAN', 'WUH', 'yellow'],
+            ['KBL', 'TAS', 'white', 'orange'], ['KMG', 'MDL', 'green'], ['CTU', 'LHW', 'white'], ['DAC', 'LXA', 'green'], ['KHI', 'LHE', 'green'],
+            ['CCU', 'HYD', 'purple']
           ],
           tickets: [
-            ['AKX', 'ALA'], ['AKX', 'KBL'], ['UFA', 'NOV'], ['UFA', 'TAS'], ['NUK', 'LHE'], ['NUK', 'URC'],
-            ['ASH', 'DEL'], ['ASH', 'AST'], ['SMK', 'KHI'], ['SMK', 'OMS'], ['TAS', 'LXA'], ['TAS', 'PNQ'],
-            ['AST', 'ULN'], ['AST', 'KBL'], ['OMS', 'URC'], ['OMS', 'IRK'], ['NOV', 'PEK'], ['NOV', 'KTM'],
-            ['IRK', 'LHW'], ['IRK', 'HRB'], ['ALA', 'DEL'], ['ALA', 'CTU'], ['URC', 'XIY'], ['URC', 'CCU'],
-            ['UUD', 'SEL'], ['CHT', 'USR'], ['CHT', 'TNA'], ['ULN', 'CAN'], ['ULN', 'KHV'], ['KHV', 'BUS'],
-            ['USR', 'PEK'], ['HRB', 'HFE'], ['CCN', 'CGO'], ['SHE', 'WUH'], ['PYO', 'XIY'], ['SEL', 'CSX'],
-            ['BUS', 'TNA'], ['PEK', 'KMG'], ['PEK', 'HAN'], ['CGO', 'LXA'], ['TNA', 'CTU'], ['HFE', 'CAN'],
-            ['HFE', 'LHW'], ['WUH', 'BKK'], ['CSX', 'MDL'], ['CAN', 'SGN'], ['XIY', 'DAC'], ['LHW', 'KTM'],
-            ['CTU', 'VTE'], ['KMG', 'RGN'], ['LXA', 'PNQ'], ['KBL', 'CCU'], ['KHI', 'HYD'], ['LHE', 'MAA'],
-            ['AMD', 'DAC'], ['DEL', 'RGN'], ['PNQ', 'VNS'], ['HYD', 'MDL'], ['BLR', 'KTM'], ['MAA', 'CCU'],
-            ['VNS', 'KMG'], ['KTM', 'HAN'], ['DAC', 'BKK'], ['MDL', 'SGN'], ['RGN', 'HAN'], ['VTE', 'CAN'],
-            ['HAN', 'SGN'], ['BKK', 'CSX'], ['UFA', 'BUS'], ['AKX', 'SGN'], ['KHI', 'PEK']
+            ['XIY', 'CAN'], ['AST', 'DEL'], ['SEL', 'DEL'], ['AKX', 'IRK'], ['NOV', 'DAC'], ['MAA', 'VTE'], ['WUH', 'KHI'], ['LHW', 'HYD'],
+            ['ALA', 'BKK'], ['ALA', 'CGO'], ['WUH', 'VNS'], ['ASH', 'UUD'], ['OMS', 'MDL'], ['LHE', 'BKK'], ['KHV', 'LXA'], ['CHT', 'PYO'],
+            ['BLR', 'RGN'], ['BUS', 'HAN'], ['ULN', 'VNS'], ['NOV', 'SHE'], ['SHE', 'CCU'], ['AMD', 'HAN'], ['KHV', 'SEL'], ['PEK', 'SGN'],
+            ['PYO', 'CCU'], ['IRK', 'AMD'], ['ULN', 'KMG'], ['CHT', 'MDL'], ['UUD', 'HYD'], ['URC', 'KHI'], ['ASH', 'CGO'], ['TAS', 'HRB'],
+            ['CTU', 'KTM'], ['OMS', 'KBL'], ['HRB', 'LXA'], ['AKX', 'TAS'], ['AST', 'CAN'], ['LHW', 'DAC'], ['XIY', 'BUS'], ['URC', 'VTE']
           ],
           // Coastlines, lakes and borders simplified from Natural Earth 1:50m vectors (public domain).
           land: [
@@ -1960,84 +1955,63 @@
         sa: {
           name: 'South America',
           blurb: 'Cartagena to Punta Arenas',
-          // Revision 2 bends tracks round water and drops sea crossings and Tierra del Fuego; older saves of the first layout don't resume.
-          rev: 2,
+          // Revision 3 cut the map down to 42 cities; older saves of the previous layout don't resume.
+          rev: 3,
           cities: {
-            CTG: ['Cartagena', -75.48, 10.39, 'l'], MDE: ['Medellín', -75.57, 6.25, 'l'], BOG: ['Bogotá', -74.07, 4.71, 'r'],
-            CLO: ['Cali', -76.53, 3.45, 'l'], MCB: ['Maracaibo', -71.64, 10.65, 't'], CCS: ['Caracas', -66.90, 10.48, 't'],
-            PZO: ['Puerto Ordaz', -62.71, 8.30, 't'], GEO: ['Georgetown', -58.16, 6.80, 't'], PBM: ['Paramaribo', -55.17, 5.85, 'b'],
-            CAY: ['Cayenne', -52.33, 4.94, 'r'], BVB: ['Boa Vista', -60.67, 2.82, 'l'], MAO: ['Manaus', -60.02, -3.12, 'r'],
-            BEL: ['Belém', -48.49, -1.46, 't'], SLZ: ['São Luís', -44.30, -2.53, 't'], FOR: ['Fortaleza', -38.54, -3.72, 't'],
-            REC: ['Recife', -34.88, -8.05, 'r'], SSA: ['Salvador', -38.50, -12.97, 'r'], BSB: ['Brasília', -47.88, -15.79, 't'],
-            BHO: ['Belo Horizonte', -43.94, -19.92, 'r'], RIO: ['Rio de Janeiro', -43.17, -22.91, 'r'], SPO: ['São Paulo', -46.63, -23.55, 't'],
-            CWB: ['Curitiba', -49.27, -25.43, 'r'], POA: ['Porto Alegre', -51.23, -30.03, 'r'], CGR: ['Campo Grande', -54.62, -20.47, 'r'],
-            CGB: ['Cuiabá', -56.10, -15.60, 'l'], PVH: ['Porto Velho', -63.90, -8.76, 'r'], RBR: ['Rio Branco', -67.81, -9.97, 't'],
-            UIO: ['Quito', -78.47, -0.18, 'l'], GYE: ['Guayaquil', -79.90, -2.17, 'l'], IQT: ['Iquitos', -73.25, -3.75, 'r'],
-            TRU: ['Trujillo', -79.03, -8.11, 'l'], LIM: ['Lima', -77.04, -12.05, 'l'], CUZ: ['Cusco', -71.97, -13.52, 'b'],
-            LPB: ['La Paz', -68.15, -16.50, 'l'], SCZ: ['Santa Cruz', -63.18, -17.78, 'r'], UYU: ['Uyuni', -66.83, -20.46, 'l'],
-            ANF: ['Antofagasta', -70.40, -23.65, 'l'], SAL: ['Salta', -65.41, -24.79, 'r'], ASU: ['Asunción', -57.58, -25.26, 'l'],
-            POS: ['Posadas', -55.90, -27.37, 'r'], COR: ['Córdoba', -64.18, -31.42, 't'], MDZ: ['Mendoza', -68.83, -32.89, 't'],
-            SCL: ['Santiago', -70.67, -33.45, 'l'], CCP: ['Concepción', -73.05, -36.83, 'l'], NQN: ['Neuquén', -68.06, -38.95, 'r'],
-            BUE: ['Buenos Aires', -58.38, -34.60, 'b'], MVD: ['Montevideo', -56.16, -34.90, 'r'], BBL: ['Bahía Blanca', -62.27, -38.72, 'r'],
-            PMC: ['Puerto Montt', -72.94, -41.47, 'l'], CRD: ['Comodoro Rivadavia', -67.48, -45.86, 'r'], PUQ: ['Punta Arenas', -70.91, -53.16, 'l']
+            CTG: ['Cartagena', -75.48, 10.39, 'l'], BOG: ['Bogotá', -74.07, 4.71, 'r'], CLO: ['Cali', -76.53, 3.45, 'l'],
+            MCB: ['Maracaibo', -71.64, 10.65, 't'], CCS: ['Caracas', -66.90, 10.48, 't'], PZO: ['Puerto Ordaz', -62.71, 8.30, 'l'],
+            GEO: ['Georgetown', -58.16, 6.80, 'r'], CAY: ['Cayenne', -52.33, 4.94, 'r'], BVB: ['Boa Vista', -60.67, 2.82, 'l'],
+            MAO: ['Manaus', -60.02, -3.12, 'r'], BEL: ['Belém', -48.49, -1.46, 't'], FOR: ['Fortaleza', -38.54, -3.72, 't'],
+            REC: ['Recife', -34.88, -8.05, 'r'], SSA: ['Salvador', -38.50, -12.97, 'r'], BSB: ['Brasília', -47.88, -15.79, 'r'],
+            BHO: ['Belo Horizonte', -43.94, -19.92, 'r'], RIO: ['Rio de Janeiro', -43.17, -22.91, 'r'], SPO: ['São Paulo', -46.63, -23.55, 'l'],
+            CWB: ['Curitiba', -49.27, -25.43, 'r'], POA: ['Porto Alegre', -51.23, -30.03, 'r'], CGR: ['Campo Grande', -54.62, -20.47, 'l'],
+            CGB: ['Cuiabá', -56.10, -15.60, 't'], PVH: ['Porto Velho', -63.90, -8.76, 'r'], RBR: ['Rio Branco', -67.81, -9.97, 'l'],
+            UIO: ['Quito', -78.47, -0.18, 'l'], IQT: ['Iquitos', -73.25, -3.75, 'l'], LIM: ['Lima', -77.04, -12.05, 'l'],
+            CUZ: ['Cusco', -71.97, -13.52, 'b'], LPB: ['La Paz', -68.15, -16.50, 'l'], SCZ: ['Santa Cruz', -63.18, -17.78, 'r'],
+            ANF: ['Antofagasta', -70.40, -23.65, 'l'], SAL: ['Salta', -65.41, -24.79, 'l'], ASU: ['Asunción', -57.58, -25.26, 'r'],
+            COR: ['Córdoba', -64.18, -31.42, 'r'], MDZ: ['Mendoza', -68.83, -32.89, 't'], SCL: ['Santiago', -70.67, -33.45, 'l'],
+            NQN: ['Neuquén', -68.06, -38.95, 'l'], BUE: ['Buenos Aires', -58.38, -34.60, 'r'], PMC: ['Puerto Montt', -72.94, -41.47, 'l'],
+            CRD: ['Comodoro Rivadavia', -67.48, -45.86, 'r'], PUQ: ['Punta Arenas', -70.91, -53.16, 'l'], BBL: ['Bahía Blanca', -62.27, -38.72, 'b']
           },
           proj: (lon, lat) => [Math.round((lon + 82) * 150) / 10, Math.round((13 - lat) * 120) / 10],
+          unit: 26,
           full: { x: -45, y: -28, w: 855, h: 900 },
           grat: [[-85, -25, 10], [-50, 10, 10]],
           tunnels: [
-            'MDE-BOG', 'BOG-PZO', 'CLO-UIO', 'UIO-IQT', 'TRU-IQT', 'LIM-CUZ', 'CUZ-LPB', 'LPB-UYU',
-            'UYU-ANF', 'UYU-SAL', 'MDZ-SCL', 'CCP-NQN', 'PMC-PUQ'
+            'CLO-UIO', 'UIO-IQT', 'LIM-CUZ', 'MDZ-SCL', 'LPB-SAL', 'CUZ-LPB'
           ],
           // Tracks that bend round water pass through these points (longitude, latitude).
           bends: {
-            'CTG-MDE': [[-74.91, 8.92]], 'CTG-MCB': [[-73.55, 10.27]], 'MCB-CCS': [[-68.1, 9.77]],
-            'MCB-BOG': [[-72.54, 10.1]], 'CCS-PZO': [[-64.88, 9.16]], 'GEO-PBM': [[-57.26, 4.97], [-55.97, 5.07]],
-            'PBM-CAY': [[-54.28, 5.05]], 'GYE-TRU': [[-79.25, -3.86]], 'MAO-BEL': [[-49.48, -3.36]],
-            'BEL-BSB': [[-47.99, -8.61]], 'SLZ-FOR': [[-42.38, -3.69]], 'SLZ-SSA': [[-41.24, -7.61]],
-            'FOR-REC': [[-38.54, -5.1]], 'REC-SSA': [[-37.49, -10.49]], 'SSA-BSB': [[-43.24, -14.14]],
-            'SSA-BHO': [[-39.47, -13.14]], 'BSB-BHO': [[-45.13, -17.69]], 'RIO-SPO': [[-44.12, -22.33]],
-            'POA-MVD': [[-53.94, -31.44]], 'TRU-LIM': [[-77.96, -8.36], [-76.76, -10.73]], 'LIM-CUZ': [[-75.73, -12.17]],
-            'CUZ-LPB': [[-68.98, -14.97]], 'LPB-ANF': [[-69.88, -22.67]], 'ANF-SCL': [[-69.63, -24.66]],
-            'ASU-COR': [[-61, -28.14]], 'POS-BUE': [[-56.96, -31.08]], 'SCL-CCP': [[-72, -36.48]],
-            'CCP-PMC': [[-72.8, -39.14]], 'BBL-CRD': [[-66.06, -40.94]], 'PMC-PUQ': [[-70.68, -42.69]],
-            'CRD-PUQ': [[-69.37, -49.38]]
+            'MCB-CCS': [[-68.1, 9.77]], 'BEL-BSB': [[-47.99, -8.61]], 'FOR-REC': [[-38.54, -5.1]], 'REC-SSA': [[-37.49, -10.49]],
+            'BSB-BHO': [[-45.13, -17.69]], 'LIM-CUZ': [[-75.73, -12.17]], 'LPB-ANF': [[-69.88, -22.67]], 'CTG-CLO': [[-74.91, 8.92]],
+            'CTG-MCB': [[-73.55, 10.27]], 'CCS-PZO': [[-64.88, 9.16]], 'SSA-BHO': [[-39.47, -13.14]], 'RIO-SPO': [[-44.12, -22.33]],
+            'CUZ-LPB': [[-68.98, -14.97]], 'ANF-SCL': [[-69.63, -24.66]], 'CRD-PUQ': [[-69.37, -49.38]], 'BEL-FOR': [[-46.98, -2.03], [-43.76, -4.14]],
+            'BUE-POA': [[-55.17, -31.42]], 'PMC-SCL': [[-72.45, -37.18]], 'ANF-SAL': [[-69.04, -23.19], [-67.55, -23.53]],
+            'LPB-RBR': [[-67.46, -13.28]], 'BBL-COR': [[-64.39, -35.55]], 'CGR-CWB': [[-52.74, -24.29]],
+            'BSB-CGR': [[-49.34, -18.46], [-53.16, -17.8]]
           },
           routes: [
-            ['CTG', 'MDE', 'green', 'gray'], ['CTG', 'MCB', 'yellow'], ['MCB', 'CCS', 'black'], ['MCB', 'BOG', 'orange'],
-            ['MDE', 'BOG', 'purple'], ['MDE', 'CLO', 'red'], ['BOG', 'CLO', 'yellow'], ['BOG', 'PZO', 'black'],
-            ['CCS', 'PZO', 'green'], ['PZO', 'GEO', 'blue'], ['PZO', 'BVB', 'orange'], ['GEO', 'PBM', 'green'],
-            ['GEO', 'BVB', 'purple'], ['PBM', 'CAY', 'gray'], ['CAY', 'MAO', 'black'], ['BVB', 'MAO', 'white'],
-            ['CLO', 'UIO', 'blue', 'gray'], ['BOG', 'IQT', 'white'], ['UIO', 'GYE', 'red'], ['UIO', 'IQT', 'green'],
-            ['GYE', 'TRU', 'yellow'], ['TRU', 'IQT', 'orange'], ['IQT', 'RBR', 'purple'], ['IQT', 'MAO', 'red', 'gray'],
-            ['MAO', 'BEL', 'blue'], ['MAO', 'PVH', 'yellow'], ['MAO', 'CGB', 'green'], ['BEL', 'SLZ', 'red'],
-            ['BEL', 'BSB', 'white', 'green'], ['SLZ', 'FOR', 'gray'], ['SLZ', 'SSA', 'purple'], ['FOR', 'REC', 'blue', 'white'],
-            ['REC', 'SSA', 'black'], ['SSA', 'BSB', 'orange'], ['SSA', 'BHO', 'red'], ['BSB', 'BHO', 'yellow'],
-            ['BSB', 'CGB', 'gray'], ['BSB', 'SPO', 'black'], ['BHO', 'SPO', 'green'], ['BHO', 'RIO', 'white'],
-            ['RIO', 'SPO', 'orange'], ['SPO', 'CWB', 'red'], ['CWB', 'POA', 'yellow'], ['CWB', 'POS', 'green'],
-            ['POA', 'POS', 'blue'], ['POA', 'MVD', 'white', 'red'], ['TRU', 'LIM', 'blue', 'gray'], ['LIM', 'IQT', 'yellow'],
-            ['LIM', 'CUZ', 'black', 'white'], ['CUZ', 'IQT', 'green'], ['CUZ', 'RBR', 'red'], ['CUZ', 'LPB', 'orange'],
-            ['LPB', 'RBR', 'gray'], ['RBR', 'PVH', 'blue'], ['PVH', 'SCZ', 'white'], ['PVH', 'CGB', 'orange'],
-            ['CGB', 'SCZ', 'purple'], ['CGB', 'CGR', 'red'], ['CGR', 'SPO', 'white'], ['SCZ', 'CGR', 'gray'],
-            ['SCZ', 'LPB', 'purple'], ['LPB', 'UYU', 'blue'], ['LPB', 'ANF', 'yellow'], ['SCZ', 'UYU', 'green'],
-            ['UYU', 'ANF', 'gray'], ['UYU', 'SAL', 'red'], ['SCZ', 'ASU', 'orange', 'black'], ['ANF', 'SAL', 'purple'],
-            ['SAL', 'ASU', 'blue'], ['CGR', 'ASU', 'yellow'], ['CGR', 'POS', 'black'], ['ASU', 'POS', 'gray'],
-            ['ANF', 'SCL', 'red', 'gray'], ['SAL', 'MDZ', 'yellow'], ['SAL', 'COR', 'orange'], ['ASU', 'COR', 'purple'],
-            ['POS', 'BUE', 'white'], ['COR', 'BUE', 'blue', 'orange'], ['BUE', 'BBL', 'green'], ['COR', 'BBL', 'white'],
-            ['COR', 'MDZ', 'blue'], ['MDZ', 'SCL', 'black'], ['MDZ', 'NQN', 'purple'], ['SCL', 'CCP', 'yellow', 'green'],
-            ['CCP', 'NQN', 'orange'], ['CCP', 'PMC', 'red'], ['NQN', 'PMC', 'blue'], ['NQN', 'BBL', 'black'],
-            ['NQN', 'CRD', 'white'], ['BBL', 'CRD', 'orange'], ['PMC', 'PUQ', 'black'], ['CRD', 'PUQ', 'yellow']
+            ['MCB', 'CCS', 'orange'], ['BOG', 'CLO', 'yellow'], ['PZO', 'GEO', 'green'], ['PZO', 'BVB', 'blue'], ['GEO', 'BVB', 'purple', 'orange'],
+            ['BVB', 'MAO', 'white'], ['CLO', 'UIO', 'green', 'red'], ['BOG', 'IQT', 'blue'], ['UIO', 'IQT', 'white'], ['MAO', 'PVH', 'blue', 'yellow'],
+            ['BEL', 'BSB', 'red', 'white'], ['FOR', 'REC', 'black', 'purple'], ['REC', 'SSA', 'red'], ['BSB', 'BHO', 'black'],
+            ['BSB', 'CGB', 'yellow'], ['BSB', 'SPO', 'orange'], ['BHO', 'RIO', 'orange'], ['SPO', 'CWB', 'red'], ['CWB', 'POA', 'blue', 'white'],
+            ['LIM', 'CUZ', 'green', 'yellow'], ['CUZ', 'RBR', 'purple'], ['RBR', 'PVH', 'red', 'white'], ['PVH', 'SCZ', 'purple'],
+            ['CGB', 'CGR', 'gray'], ['CGR', 'SPO', 'green'], ['SCZ', 'LPB', 'black'], ['LPB', 'ANF', 'gray'], ['BUE', 'BBL', 'blue'],
+            ['COR', 'MDZ', 'black', 'yellow'], ['MDZ', 'SCL', 'orange'], ['MDZ', 'NQN', 'red', 'white'], ['NQN', 'PMC', 'yellow'],
+            ['NQN', 'CRD', 'green', 'orange'], ['CTG', 'CLO', 'orange'], ['LPB', 'SAL', 'white'], ['CTG', 'MCB', 'purple'], ['CCS', 'PZO', 'white'],
+            ['CAY', 'MAO', 'gray'], ['IQT', 'RBR', 'orange', 'black'], ['PVH', 'CGB', 'orange'], ['SSA', 'BHO', 'purple'], ['RIO', 'SPO', 'blue'],
+            ['LIM', 'IQT', 'red'], ['CUZ', 'LPB', 'red'], ['CGB', 'SCZ', 'green'], ['ANF', 'SCL', 'blue', 'yellow'], ['CGR', 'ASU', 'purple', 'black'],
+            ['SAL', 'COR', 'orange', 'blue'], ['SAL', 'ASU', 'red'], ['COR', 'BUE', 'purple', 'green'], ['NQN', 'BBL', 'purple'],
+            ['CRD', 'PUQ', 'gray'], ['BEL', 'FOR', 'gray'], ['BUE', 'POA', 'black'], ['PMC', 'SCL', 'black'], ['ANF', 'SAL', 'black'],
+            ['ASU', 'POA', 'green'], ['LPB', 'RBR', 'yellow'], ['SAL', 'SCZ', 'gray'], ['BBL', 'COR', 'white'], ['CGR', 'CWB', 'yellow'],
+            ['BSB', 'CGR', 'blue']
           ],
           tickets: [
-            ['CTG', 'CCS'], ['CTG', 'UIO'], ['MDE', 'PZO'], ['BOG', 'MAO'], ['CLO', 'LIM'], ['MCB', 'GEO'],
-            ['CCS', 'IQT'], ['PZO', 'BEL'], ['GEO', 'MAO'], ['PBM', 'BSB'], ['CAY', 'SLZ'], ['BVB', 'PVH'],
-            ['MAO', 'FOR'], ['BEL', 'REC'], ['SLZ', 'BHO'], ['FOR', 'RIO'], ['REC', 'BSB'], ['SSA', 'SPO'],
-            ['BSB', 'POS'], ['BHO', 'POA'], ['RIO', 'MVD'], ['SPO', 'BUE'], ['CWB', 'ASU'], ['POA', 'COR'],
-            ['CGR', 'SAL'], ['CGB', 'LPB'], ['PVH', 'LIM'], ['RBR', 'UYU'], ['UIO', 'CUZ'], ['GYE', 'IQT'],
-            ['IQT', 'LPB'], ['TRU', 'ANF'], ['LIM', 'SCZ'], ['CUZ', 'SAL'], ['LPB', 'SCL'], ['SCZ', 'BUE'],
-            ['UYU', 'MDZ'], ['ANF', 'CCP'], ['SAL', 'MVD'], ['ASU', 'BBL'], ['POS', 'CWB'], ['COR', 'NQN'],
-            ['MDZ', 'PMC'], ['SCL', 'BUE'], ['CCP', 'CRD'], ['NQN', 'PUQ'], ['BUE', 'CRD'], ['MVD', 'BBL'],
-            ['CTG', 'SSA'], ['GYE', 'RIO'], ['CAY', 'ASU'], ['SPO', 'PUQ'], ['BVB', 'SCL'], ['LIM', 'PUQ'],
-            ['BEL', 'PUQ'], ['MVD', 'BOG']
+            ['BVB', 'UIO'], ['REC', 'CWB'], ['CAY', 'POA'], ['SSA', 'ASU'], ['CTG', 'LPB'], ['BVB', 'MDZ'], ['CWB', 'SCL'], ['SCZ', 'CRD'],
+            ['BEL', 'RBR'], ['MAO', 'ASU'], ['BEL', 'NQN'], ['PMC', 'PUQ'], ['FOR', 'CGB'], ['CCS', 'MDZ'], ['CGR', 'LIM'], ['PZO', 'CAY'],
+            ['BOG', 'SPO'], ['BOG', 'CGB'], ['CLO', 'CRD'], ['LPB', 'COR'], ['GEO', 'SCL'], ['SPO', 'BBL'], ['REC', 'LIM'], ['MCB', 'IQT'],
+            ['CCS', 'UIO'], ['REC', 'POA'], ['MAO', 'BBL'], ['ANF', 'NQN'], ['IQT', 'CRD'], ['SSA', 'BUE'], ['MCB', 'BUE'], ['BHO', 'COR'],
+            ['CLO', 'CUZ'], ['BSB', 'SAL'], ['GEO', 'BSB'], ['FOR', 'RIO'], ['SPO', 'PMC'], ['RIO', 'PUQ'], ['CTG', 'PVH'], ['PZO', 'BHO']
           ],
           // Coastlines, lakes and borders simplified from Natural Earth 1:50m vectors (public domain).
           land: [
@@ -2316,75 +2290,56 @@
         me: {
           name: 'Middle East',
           blurb: 'Izmir to Muscat',
+          // Revision 2 cut the map down to 36 cities; older saves of the previous layout don't resume.
+          rev: 2,
           cities: {
-            BRS: ['Bursa', 29.06, 40.18, 'l'], IZM: ['İzmir', 27.14, 38.42, 'l'], ANK: ['Ankara', 32.86, 39.93, 't'],
-            ANT: ['Antalya', 30.71, 36.90, 'b'], KON: ['Konya', 32.48, 37.87, 'b'], KYS: ['Kayseri', 35.49, 38.73, 'l'],
-            ADA: ['Adana', 35.32, 37.00, 'b'], SAM: ['Samsun', 36.33, 41.29, 't'], TZX: ['Trabzon', 39.72, 41.00, 't'],
-            ERZ: ['Erzurum', 41.27, 39.90, 't'], DIY: ['Diyarbakır', 40.23, 37.91, 't'], TBS: ['Tbilisi', 44.79, 41.72, 't'],
-            EVN: ['Yerevan', 44.51, 40.18, 'r'], BAK: ['Baku', 49.87, 40.41, 'r'], ALP: ['Aleppo', 37.16, 36.20, 'l'],
-            DAM: ['Damascus', 36.29, 33.51, 'l'], BEY: ['Beirut', 35.50, 33.89, 'l'], AMM: ['Amman', 35.93, 31.95, 'l'],
-            JRS: ['Jerusalem', 35.21, 31.77, 'l'], AQJ: ['Aqaba', 35.00, 29.53, 't'], DEZ: ['Deir ez-Zor', 40.14, 35.33, 'b'],
-            CAI: ['Cairo', 31.24, 30.04, 't'], ALY: ['Alexandria', 29.92, 31.20, 't'], LXR: ['Luxor', 32.64, 25.69, 'b'],
-            MOS: ['Mosul', 43.13, 36.34, 'r'], BGD: ['Baghdad', 44.37, 33.30, 'l'], BSR: ['Basra', 47.78, 30.51, 'r'],
-            KWI: ['Kuwait City', 47.98, 29.38, 'r'], TBZ: ['Tabriz', 46.29, 38.08, 'b'], THR: ['Tehran', 51.39, 35.69, 't'],
-            MHD: ['Mashhad', 59.61, 36.30, 't'], ISF: ['Isfahan', 51.67, 32.65, 'l'], SHZ: ['Shiraz', 52.58, 29.59, 'b'],
-            AWZ: ['Ahvaz', 48.67, 31.32, 't'], KER: ['Kerman', 57.08, 30.28, 't'], BND: ['Bandar Abbas', 56.27, 27.18, 'b'],
-            ZAH: ['Zahedan', 60.86, 29.50, 'r'], TUU: ['Tabuk', 36.57, 28.38, 'b'], HAS: ['Ha’il', 41.69, 27.52, 'b'],
-            MED: ['Medina', 39.61, 24.47, 'l'], JED: ['Jeddah', 39.17, 21.54, 'b'], RUH: ['Riyadh', 46.68, 24.71, 'b'],
-            HOF: ['Hofuf', 49.59, 25.38, 'r'], DMM: ['Dammam', 50.10, 26.43, 'r'], AHB: ['Abha', 42.50, 18.22, 'l'],
-            SAH: ['Sana’a', 44.21, 15.35, 'l'], ADE: ['Aden', 45.03, 12.79, 'b'], SLL: ['Salalah', 54.09, 17.02, 'b'],
-            DXB: ['Dubai', 55.27, 25.20, 't'], NZW: ['Nizwa', 57.53, 22.93, 't'], MCT: ['Muscat', 58.40, 23.59, 't'],
-            ESK: ['Eskişehir', 30.52, 39.78, 'b'], SVS: ['Sivas', 37.02, 39.75, 'b'], GZT: ['Gaziantep', 37.38, 37.07, 't'],
-            HMS: ['Homs', 36.72, 34.73, 'l'], SUZ: ['Suez', 32.55, 29.97, 'b'], NJF: ['Najaf', 44.33, 32.00, 'b'],
-            SYN: ['Seiyun', 48.79, 15.94, 'r'], SKR: ['Sakarya', 30.40, 40.78, 't'], GNJ: ['Ganja', 46.36, 40.68, 't'],
-            LIW: ['Liwa', 53.78, 23.14, 'b'], ALN: ['Al Ain', 55.76, 24.21, 'b']
+            IZM: ['İzmir', 27.14, 38.42, 'l'], ANK: ['Ankara', 32.86, 39.93, 'b'], ANT: ['Antalya', 30.71, 36.90, 'b'],
+            ADA: ['Adana', 35.32, 37.00, 'b'], SAM: ['Samsun', 36.33, 41.29, 't'], ERZ: ['Erzurum', 41.27, 39.90, 'r'],
+            DIY: ['Diyarbakır', 40.23, 37.91, 'r'], TBS: ['Tbilisi', 44.79, 41.72, 't'], BAK: ['Baku', 49.87, 40.41, 'r'],
+            ALP: ['Aleppo', 37.16, 36.20, 'l'], DAM: ['Damascus', 36.29, 33.51, 'r'], BEY: ['Beirut', 35.50, 33.89, 'l'],
+            AMM: ['Amman', 35.93, 31.95, 'r'], JRS: ['Jerusalem', 35.21, 31.77, 'l'], CAI: ['Cairo', 31.24, 30.04, 't'],
+            LXR: ['Luxor', 32.64, 25.69, 'b'], MOS: ['Mosul', 43.13, 36.34, 't'], BGD: ['Baghdad', 44.37, 33.30, 'l'],
+            BSR: ['Basra', 47.78, 30.51, 'r'], TBZ: ['Tabriz', 46.29, 38.08, 'l'], THR: ['Tehran', 51.39, 35.69, 'l'],
+            MHD: ['Mashhad', 59.61, 36.30, 't'], ISF: ['Isfahan', 51.67, 32.65, 'l'], SHZ: ['Shiraz', 52.58, 29.59, 'l'],
+            KER: ['Kerman', 57.08, 30.28, 'r'], BND: ['Bandar Abbas', 56.27, 27.18, 'b'], TUU: ['Tabuk', 36.57, 28.38, 'r'],
+            MED: ['Medina', 39.61, 24.47, 'r'], JED: ['Jeddah', 39.17, 21.54, 'b'], RUH: ['Riyadh', 46.68, 24.71, 'l'],
+            DMM: ['Dammam', 50.10, 26.43, 'r'], SAH: ['Sana’a', 44.21, 15.35, 'l'], ADE: ['Aden', 45.03, 12.79, 'b'],
+            DXB: ['Dubai', 55.27, 25.20, 't'], MCT: ['Muscat', 58.40, 23.59, 't'], DEZ: ['Deir ez-Zor', 40.14, 35.33, 'r']
           },
           proj: (lon, lat) => [Math.round((lon - 25) * 310) / 10, Math.round((43.5 - lat) * 360) / 10],
+          unit: 43,
+          // Fewer cities means less track, so each player starts with fewer trains.
+          trains: 35,
           full: { x: 0, y: 0, w: 1180, h: 1150 },
           grat: [[25, 60, 5], [15, 40, 5]],
+          // Tracks that bend round water pass through these points (longitude, latitude).
+          bends: {
+            'DMM-RUH': [[47.16, 25.29]], 'TBS-TBZ': [[44.51, 40.18]], 'MCT-DXB': [[57.53, 22.93]], 'MED-BSR': [[41.69, 27.52]],
+            'DAM-JRS': [[35.76, 33.21]], 'CAI-TUU': [[34.43, 30.75], [36.1, 28.51]], 'IZM-ADA': [[30.81, 38.38]], 'IZM-ANT': [[27.69, 37.82]],
+            'ANK-IZM': [[27.98, 39.25]], 'DXB-RUH': [[53.99, 23.13]], 'ADA-ALP': [[36.52, 37.08]], 'BSR-DMM': [[47.43, 28.85], [48.36, 27.21]],
+            'MOS-TBZ': [[45, 36.52], [45.94, 37.05]]
+          },
           tunnels: [
-            'ANT-KON', 'KON-ADA', 'TZX-ERZ', 'ERZ-EVN', 'ERZ-TBS', 'TBS-EVN', 'BEY-DAM', 'BGD-THR',
-            'AWZ-ISF', 'AWZ-SHZ', 'AHB-SAH', 'NZW-MCT', 'SVS-TZX', 'GNJ-TBZ'
+            'ERZ-TBS', 'BEY-DAM', 'RUH-SAH', 'TBS-TBZ', 'MCT-DXB', 'BGD-SHZ', 'IZM-ADA'
           ],
           routes: [
-            ['BRS', 'IZM', 'orange'], ['IZM', 'ANT', 'green'], ['IZM', 'KON', 'white'], ['ANK', 'KON', 'purple', 'black'],
-            ['ANK', 'KYS', 'red'], ['ANK', 'SAM', 'green'], ['ANT', 'KON', 'orange'], ['KON', 'ADA', 'blue'],
-            ['KYS', 'ADA', 'black'], ['KYS', 'SAM', 'gray'], ['KYS', 'DIY', 'orange'], ['TZX', 'ERZ', 'gray'],
-            ['ERZ', 'DIY', 'white'], ['ERZ', 'EVN', 'black'], ['ERZ', 'TBS', 'yellow'], ['TBS', 'EVN', 'gray'],
-            ['EVN', 'TBZ', 'green'], ['DIY', 'MOS', 'red'], ['DIY', 'ALP', 'blue'], ['ALP', 'DEZ', 'purple'],
-            ['DIY', 'DEZ', 'black'], ['BEY', 'DAM', 'black'], ['DAM', 'AMM', 'yellow'], ['DAM', 'JRS', 'purple'],
-            ['CAI', 'ALY', 'gray', 'white'], ['CAI', 'LXR', 'yellow'], ['AMM', 'TUU', 'gray'], ['AQJ', 'TUU', 'green'],
-            ['DAM', 'DEZ', 'gray'], ['DEZ', 'MOS', 'yellow'], ['MOS', 'BGD', 'white', 'blue'], ['BGD', 'AWZ', 'green', 'black'],
-            ['BSR', 'AWZ', 'purple'], ['TBZ', 'THR', 'purple', 'white'], ['BGD', 'THR', 'yellow'], ['THR', 'ISF', 'green', 'blue'],
-            ['THR', 'MHD', 'black'], ['AWZ', 'ISF', 'white'], ['AWZ', 'SHZ', 'gray'], ['ISF', 'SHZ', 'orange'],
-            ['ISF', 'KER', 'gray'], ['SHZ', 'KER', 'green'], ['SHZ', 'BND', 'black'], ['KER', 'BND', 'red'],
-            ['KER', 'ZAH', 'black'], ['MHD', 'ZAH', 'green'], ['MHD', 'KER', 'purple'], ['BND', 'ZAH', 'orange'],
-            ['TUU', 'MED', 'blue'], ['TUU', 'HAS', 'red'], ['AMM', 'HAS', 'blue'], ['HAS', 'MED', 'orange'],
-            ['HAS', 'RUH', 'yellow'], ['HAS', 'KWI', 'purple'], ['MED', 'JED', 'yellow'], ['MED', 'RUH', 'black'],
-            ['JED', 'RUH', 'white'], ['AHB', 'RUH', 'gray'], ['AHB', 'SAH', 'orange'], ['SAH', 'ADE', 'black', 'green'],
-            ['KWI', 'RUH', 'red'], ['RUH', 'HOF', 'green', 'blue'], ['NZW', 'MCT', 'yellow', 'red'], ['NZW', 'SLL', 'blue'],
-            ['BRS', 'ESK', 'black'], ['ESK', 'ANK', 'blue'], ['ESK', 'KON', 'red'], ['ESK', 'IZM', 'gray'],
-            ['SAM', 'SVS', 'orange'], ['SVS', 'ERZ', 'red'], ['SVS', 'KYS', 'white'], ['SVS', 'TZX', 'yellow'],
-            ['GZT', 'ALP', 'white'], ['GZT', 'DIY', 'yellow'], ['KYS', 'GZT', 'purple'], ['ALP', 'HMS', 'red'],
-            ['HMS', 'BEY', 'green'], ['HMS', 'DAM', 'orange', 'white'], ['HMS', 'DEZ', 'blue'], ['CAI', 'SUZ', 'black', 'purple'],
-            ['SUZ', 'JRS', 'gray'], ['SUZ', 'AQJ', 'red'], ['ALY', 'LXR', 'orange'], ['BGD', 'NJF', 'orange'],
-            ['NJF', 'HAS', 'white'], ['DMM', 'RUH', 'purple'], ['DXB', 'ALN', 'red'], ['ALN', 'NZW', 'white'],
-            ['SKR', 'ESK', 'green'], ['SKR', 'BRS', 'yellow'], ['SKR', 'ANK', 'orange', 'gray'], ['SKR', 'SAM', 'blue'],
-            ['SAH', 'SYN', 'purple'], ['RUH', 'LIW', 'orange'], ['LIW', 'ALN', 'yellow'], ['LIW', 'NZW', 'purple'],
-            ['BSR', 'HAS', 'green'], ['NJF', 'AWZ', 'yellow'], ['SYN', 'AHB', 'red'], ['TBS', 'GNJ', 'purple'],
-            ['GNJ', 'BAK', 'white'], ['GNJ', 'TBZ', 'gray'], ['AMM', 'NJF', 'red']
+            ['ANK', 'SAM', 'black'], ['ERZ', 'DIY', 'purple', 'black'], ['ERZ', 'TBS', 'white'], ['DIY', 'MOS', 'yellow'], ['DIY', 'ALP', 'white'],
+            ['ALP', 'DEZ', 'green'], ['DIY', 'DEZ', 'red'], ['BEY', 'DAM', 'green', 'orange'], ['CAI', 'LXR', 'white', 'black'],
+            ['DAM', 'DEZ', 'purple'], ['DEZ', 'MOS', 'blue'], ['MOS', 'BGD', 'red', 'green'], ['THR', 'ISF', 'white', 'purple'],
+            ['THR', 'MHD', 'yellow', 'blue'], ['ISF', 'SHZ', 'yellow'], ['SHZ', 'BND', 'green'], ['KER', 'BND', 'orange', 'black'],
+            ['MHD', 'KER', 'red'], ['TUU', 'MED', 'green', 'purple'], ['MED', 'JED', 'black'], ['SAH', 'ADE', 'red', 'white'],
+            ['DMM', 'RUH', 'orange'], ['RUH', 'SAH', 'green'], ['TBS', 'TBZ', 'green'], ['TBS', 'BAK', 'red'], ['MCT', 'DXB', 'blue', 'yellow'],
+            ['ALP', 'DAM', 'red'], ['BGD', 'SHZ', 'white'], ['MED', 'BSR', 'gray'], ['ANK', 'DIY', 'orange'], ['TBZ', 'THR', 'orange', 'red'],
+            ['SHZ', 'KER', 'purple'], ['JED', 'RUH', 'gray'], ['DAM', 'JRS', 'black'], ['DAM', 'AMM', 'white'], ['CAI', 'TUU', 'yellow'],
+            ['AMM', 'TUU', 'blue'], ['IZM', 'ADA', 'black'], ['IZM', 'ANT', 'orange'], ['ANK', 'IZM', 'blue'], ['DXB', 'RUH', 'purple'],
+            ['ADA', 'ALP', 'gray'], ['BSR', 'DMM', 'yellow'], ['ERZ', 'SAM', 'blue'], ['MOS', 'TBZ', 'gray']
           ],
           tickets: [
-            ['SKR', 'BAK'], ['IZM', 'CAI'], ['BRS', 'BGD'], ['ESK', 'JED'], ['SKR', 'THR'], ['SKR', 'DIY'],
-            ['BRS', 'ADA'], ['IZM', 'ERZ'], ['IZM', 'DAM'], ['ANK', 'EVN'], ['ANK', 'AMM'], ['ANT', 'ALP'],
-            ['KON', 'MOS'], ['KYS', 'TBZ'], ['SAM', 'BEY'], ['TZX', 'BGD'], ['ERZ', 'ISF'], ['DIY', 'KWI'],
-            ['TBS', 'THR'], ['TBS', 'MOS'], ['EVN', 'DAM'], ['BAK', 'SHZ'], ['GZT', 'AQJ'], ['ALP', 'RUH'],
-            ['BEY', 'BSR'], ['DAM', 'MED'], ['JRS', 'BGD'], ['JRS', 'RUH'], ['AMM', 'SAH'], ['CAI', 'HAS'],
-            ['CAI', 'JED'], ['ALY', 'AMM'], ['LXR', 'TUU'], ['SUZ', 'DEZ'], ['AQJ', 'KWI'], ['DEZ', 'THR'],
-            ['MOS', 'AWZ'], ['BGD', 'MHD'], ['BGD', 'DMM'], ['NJF', 'AHB'], ['BSR', 'KER'], ['TBZ', 'BND'],
-            ['THR', 'ZAH'], ['ISF', 'BSR'], ['SHZ', 'MHD'], ['TUU', 'RUH'], ['HAS', 'ADE'], ['MED', 'DXB'],
-            ['JED', 'SLL'], ['RUH', 'MCT'], ['KWI', 'ALN'], ['DMM', 'NZW'], ['HOF', 'SAH'], ['AHB', 'DMM'],
-            ['SYN', 'DXB'], ['ESK', 'HMS'], ['ALN', 'SLL'], ['CAI', 'MCT'], ['BRS', 'ADE'], ['ALY', 'BAK']
+            ['TUU', 'SAH'], ['LXR', 'MED'], ['ERZ', 'BAK'], ['AMM', 'RUH'], ['ANT', 'BEY'], ['THR', 'JED'], ['DMM', 'MCT'], ['ERZ', 'JED'],
+            ['MED', 'ADE'], ['BAK', 'DAM'], ['JRS', 'BSR'], ['MHD', 'SHZ'], ['DXB', 'DEZ'], ['MOS', 'RUH'], ['DAM', 'CAI'], ['RUH', 'ADE'],
+            ['ALP', 'ADE'], ['ADA', 'DMM'], ['SAM', 'DEZ'], ['ALP', 'KER'], ['IZM', 'JRS'], ['DIY', 'DMM'], ['ADA', 'TUU'], ['ANK', 'LXR'],
+            ['IZM', 'CAI'], ['ANK', 'TBZ'], ['BGD', 'BND'], ['BEY', 'BND'], ['BSR', 'DXB'], ['MOS', 'MHD'], ['ANT', 'BGD'], ['SAM', 'BND'],
+            ['CAI', 'ISF'], ['SAH', 'MCT'], ['MOS', 'KER'], ['TBS', 'ISF'], ['AMM', 'JED'], ['DIY', 'THR'], ['BSR', 'TBZ'], ['TBS', 'SHZ']
           ],
           // Coastlines, lakes and borders simplified from Natural Earth 1:50m vectors (public domain).
           land: [
@@ -2581,79 +2536,56 @@
         au: {
           name: 'Australia',
           blurb: 'Perth to Brisbane',
+          // Revision 2 cut the map down to 32 cities; older saves of the previous layout don't resume.
+          rev: 2,
           cities: {
-            PER: ['Perth', 115.86, -31.95, 'l'], BUN: ['Bunbury', 115.64, -33.33, 'l'], ALB: ['Albany', 117.88, -35.02, 'b'],
-            GER: ['Geraldton', 114.61, -28.78, 'l'], CAR: ['Carnarvon', 113.66, -24.88, 'l'], KAL: ['Kalgoorlie', 121.47, -30.75, 't'],
-            ESP: ['Esperance', 121.89, -33.78, 'b'], MEK: ['Meekatharra', 118.49, -26.59, 'b'], NEW: ['Newman', 119.73, -23.36, 'l'],
-            KTA: ['Karratha', 116.85, -20.74, 't'], PHE: ['Port Hedland', 118.61, -20.31, 't'], BME: ['Broome', 122.24, -17.96, 'l'],
-            FIT: ['Fitzroy Crossing', 125.59, -18.20, 'b'], HCQ: ['Halls Creek', 127.67, -18.23, 't'], KNX: ['Kununurra', 128.74, -15.77, 't'],
-            WAR: ['Warburton', 126.58, -26.13, 't'], FOR: ['Forrest', 128.10, -30.85, 'b'], DRW: ['Darwin', 130.97, -12.44, 't'],
-            KTR: ['Katherine', 132.26, -14.47, 'r'], TCA: ['Tennant Creek', 134.19, -19.65, 't'], ASP: ['Alice Springs', 133.88, -23.70, 'l'],
-            AYQ: ['Yulara', 130.98, -25.24, 't'], CPD: ['Coober Pedy', 134.72, -29.01, 'l'], TAR: ['Tarcoola', 134.57, -30.71, 'b'],
-            PAG: ['Port Augusta', 137.77, -32.49, 'l'], ADL: ['Adelaide', 138.60, -34.93, 'b'], MGB: ['Mount Gambier', 140.78, -37.83, 'b'],
-            BHQ: ['Broken Hill', 141.47, -31.95, 'r'], MQL: ['Mildura', 142.16, -34.21, 'b'], BDO: ['Birdsville', 139.35, -25.90, 'b'],
-            ISA: ['Mount Isa', 139.49, -20.73, 't'], LRE: ['Longreach', 144.25, -23.44, 'b'], NRM: ['Normanton', 141.08, -17.67, 't'],
-            HGD: ['Hughenden', 144.20, -20.85, 't'], CNS: ['Cairns', 145.77, -16.92, 'r'], TSV: ['Townsville', 146.82, -19.26, 't'],
-            MKY: ['Mackay', 149.19, -21.14, 'r'], ROK: ['Rockhampton', 150.51, -23.38, 't'], EMD: ['Emerald', 148.16, -23.53, 't'],
-            BDB: ['Bundaberg', 152.35, -24.87, 't'], CTL: ['Charleville', 146.24, -26.40, 't'], ROM: ['Roma', 148.79, -26.57, 'b'],
-            TWB: ['Toowoomba', 151.95, -27.56, 't'], BNE: ['Brisbane', 153.03, -27.47, 'r'], GFN: ['Grafton', 152.94, -29.69, 'r'],
-            TMW: ['Tamworth', 150.93, -31.09, 'r'], MOR: ['Moree', 149.84, -29.47, 't'], NTL: ['Newcastle', 151.78, -32.93, 'b'],
-            SYD: ['Sydney', 151.21, -33.87, 'r'], DBO: ['Dubbo', 148.60, -32.25, 'l'], BRK: ['Bourke', 145.94, -30.09, 'b'],
-            CBR: ['Canberra', 149.13, -35.28, 'r'], WGA: ['Wagga Wagga', 147.37, -35.12, 'b'], ABX: ['Albury', 146.92, -36.08, 'r'],
-            MEL: ['Melbourne', 144.96, -37.81, 'b'], BAL: ['Ballarat', 143.85, -37.56, 'l'], BDG: ['Bendigo', 144.28, -36.76, 'l'],
-            SAL: ['Sale', 147.06, -38.10, 'b'], MRA: ['Moora', 116.00, -30.64, 'l'], PET: ['Peterborough', 138.84, -32.97, 'r'],
-            BDT: ['Bordertown', 140.77, -36.31, 'l'], BLO: ['Biloela', 150.51, -24.40, 'b'], GYM: ['Gympie', 152.67, -26.19, 'r'],
-            CTW: ['Charters Towers', 146.26, -20.08, 'r'], MBR: ['Marble Bar', 119.74, -21.17, 'r']
+            PER: ['Perth', 115.86, -31.95, 'l'], ALB: ['Albany', 117.88, -35.02, 'b'], GER: ['Geraldton', 114.61, -28.78, 'l'],
+            KAL: ['Kalgoorlie', 121.47, -30.75, 't'], ESP: ['Esperance', 121.89, -33.78, 'b'], NEW: ['Newman', 119.73, -23.36, 'r'],
+            PHE: ['Port Hedland', 118.61, -20.31, 't'], BME: ['Broome', 122.24, -17.96, 'l'], HCQ: ['Halls Creek', 127.67, -18.23, 'b'],
+            KNX: ['Kununurra', 128.74, -15.77, 'l'], DRW: ['Darwin', 130.97, -12.44, 't'], KTR: ['Katherine', 132.26, -14.47, 'r'],
+            TCA: ['Tennant Creek', 134.19, -19.65, 'l'], ASP: ['Alice Springs', 133.88, -23.70, 'r'], AYQ: ['Yulara', 130.98, -25.24, 'r'],
+            CPD: ['Coober Pedy', 134.72, -29.01, 'r'], PAG: ['Port Augusta', 137.77, -32.49, 'l'], ADL: ['Adelaide', 138.60, -34.93, 'b'],
+            BHQ: ['Broken Hill', 141.47, -31.95, 't'], ISA: ['Mount Isa', 139.49, -20.73, 'l'], LRE: ['Longreach', 144.25, -23.44, 'l'],
+            CNS: ['Cairns', 145.77, -16.92, 'r'], TSV: ['Townsville', 146.82, -19.26, 'r'], ROK: ['Rockhampton', 150.51, -23.38, 'r'],
+            CTL: ['Charleville', 146.24, -26.40, 'l'], BNE: ['Brisbane', 153.03, -27.47, 'r'], SYD: ['Sydney', 151.21, -33.87, 'r'],
+            DBO: ['Dubbo', 148.60, -32.25, 'l'], CBR: ['Canberra', 149.13, -35.28, 'r'], MEL: ['Melbourne', 144.96, -37.81, 'l'],
+            MQL: ['Mildura', 142.16, -34.21, 'r'], FOR: ['Forrest', 128.10, -30.85, 'b']
           },
           proj: (lon, lat) => [Math.round((lon - 111) * 270) / 10, Math.round((-9 - lat) * 310) / 10],
+          unit: 41,
+          // Fewer cities means less track, so each player starts with fewer trains.
+          trains: 37,
           full: { x: 0, y: 0, w: 1202, h: 1101 },
           grat: [[115, 155, 5], [-40, -10, 5]],
+          // Tracks that bend round water pass through these points (longitude, latitude).
+          bends: {
+            'MEL-CBR': [[147.06, -38.1]], 'ISA-CNS': [[141.08, -17.67]], 'KAL-AYQ': [[126.58, -26.13]], 'ISA-TSV': [[144.2, -20.85], [146.26, -20.08]],
+            'ESP-KAL': [[121.87, -31.84]], 'CNS-TSV': [[145.56, -17.75], [145.74, -19.04]], 'HCQ-KNX': [[127.92, -16.91]],
+            'ADL-PAG': [[139.03, -33.49]], 'ALB-ESP': [[118.77, -33.88], [120.37, -33.38]], 'ROK-TSV': [[148.19, -21.64]],
+            'BME-NEW': [[122.22, -21.1]], 'ISA-LRE': [[141.56, -22.5]], 'CBR-DBO': [[148.17, -33.86]], 'CTL-ROK': [[147, -24.94], [149.75, -24.84]],
+            'ASP-CPD': [[134.91, -26.28]]
+          },
           tunnels: [
-            'KTA-NEW', 'ASP-TCA', 'ABX-SAL', 'SAL-CBR', 'DBO-SYD', 'SYD-TMW', 'NTL-TMW', 'TMW-GFN',
-            'GFN-TWB', 'TWB-BNE', 'EMD-MKY', 'CNS-HGD'
+            'ASP-TCA', 'MEL-CBR', 'BNE-CTL', 'DBO-BNE', 'DBO-SYD'
           ],
           routes: [
-            ['PER', 'MRA', 'blue'], ['PER', 'ALB', 'purple'], ['PER', 'KAL', 'gray', 'black'], ['BUN', 'ALB', 'blue', 'green'],
-            ['GER', 'MEK', 'blue', 'purple'], ['MRA', 'MEK', 'white'], ['ALB', 'KAL', 'red'], ['ESP', 'KAL', 'purple', 'white'],
-            ['ESP', 'FOR', 'red'], ['KAL', 'FOR', 'yellow'], ['KAL', 'WAR', 'blue'], ['MEK', 'WAR', 'black'],
-            ['NEW', 'WAR', 'yellow'], ['MEK', 'NEW', 'green'], ['CAR', 'MEK', 'gray'], ['CAR', 'KTA', 'green'],
-            ['KTA', 'NEW', 'blue'], ['PHE', 'NEW', 'red'], ['PHE', 'MBR', 'green'], ['MBR', 'NEW', 'gray'],
-            ['MBR', 'FIT', 'white'], ['BME', 'FIT', 'yellow'], ['FIT', 'HCQ', 'orange'], ['FIT', 'KNX', 'gray'],
-            ['HCQ', 'KTR', 'yellow'], ['HCQ', 'TCA', 'purple'], ['KNX', 'KTR', 'orange'], ['KTR', 'DRW', 'black', 'purple'],
-            ['WAR', 'AYQ', 'green'], ['WAR', 'FOR', 'gray'], ['FOR', 'TAR', 'white'], ['TAR', 'CPD', 'orange'],
-            ['CPD', 'ASP', 'red'], ['AYQ', 'ASP', 'gray'], ['CPD', 'AYQ', 'purple'], ['ASP', 'TCA', 'orange'],
-            ['TCA', 'KTR', 'green'], ['TCA', 'ISA', 'blue'], ['ASP', 'ISA', 'green'], ['ASP', 'BDO', 'black'],
-            ['CPD', 'BDO', 'green'], ['BDO', 'ISA', 'purple'], ['BDO', 'LRE', 'blue'], ['BDO', 'CTL', 'orange'],
-            ['BDO', 'BHQ', 'gray'], ['CPD', 'PAG', 'blue'], ['PAG', 'PET', 'red'], ['PET', 'ADL', 'orange'],
-            ['PET', 'BHQ', 'black', 'green'], ['ADL', 'MQL', 'purple', 'black'], ['BDT', 'MGB', 'yellow'], ['BDT', 'MQL', 'gray'],
-            ['BDT', 'BAL', 'black'], ['BHQ', 'MQL', 'red'], ['BHQ', 'BRK', 'orange'], ['MQL', 'BDG', 'white'],
-            ['MQL', 'WGA', 'orange'], ['MGB', 'BAL', 'red'], ['BAL', 'MEL', 'white'], ['BAL', 'BDG', 'yellow'],
-            ['BDG', 'MEL', 'black', 'purple'], ['MEL', 'SAL', 'red'], ['MEL', 'ABX', 'green', 'blue'], ['BDG', 'ABX', 'orange'],
-            ['ABX', 'WGA', 'white'], ['WGA', 'CBR', 'blue'], ['ABX', 'SAL', 'yellow'], ['SAL', 'CBR', 'orange'],
-            ['CBR', 'SYD', 'purple'], ['WGA', 'DBO', 'gray'], ['CBR', 'DBO', 'red', 'white'], ['DBO', 'SYD', 'black', 'yellow'],
-            ['DBO', 'BRK', 'green'], ['DBO', 'TMW', 'blue'], ['SYD', 'TMW', 'gray'], ['NTL', 'TMW', 'white', 'yellow'],
-            ['NTL', 'GFN', 'black'], ['TMW', 'GFN', 'purple'], ['TMW', 'MOR', 'black'], ['MOR', 'TWB', 'purple'],
-            ['MOR', 'DBO', 'orange'], ['MOR', 'BRK', 'yellow'], ['GFN', 'BNE', 'yellow'], ['GFN', 'TWB', 'red'],
-            ['TWB', 'BNE', 'black', 'white'], ['TWB', 'ROM', 'orange'], ['ROM', 'CTL', 'red'], ['CTL', 'BRK', 'purple'],
-            ['CTL', 'LRE', 'black'], ['ROM', 'EMD', 'blue'], ['EMD', 'LRE', 'orange'], ['EMD', 'ROK', 'gray'],
-            ['ROK', 'BLO', 'blue', 'yellow'], ['BLO', 'BDB', 'white'], ['BDB', 'GYM', 'blue'], ['GYM', 'TWB', 'yellow'],
-            ['GYM', 'ROM', 'white'], ['EMD', 'MKY', 'white'], ['MKY', 'CTW', 'gray'], ['CTW', 'TSV', 'blue', 'green'],
-            ['CTW', 'HGD', 'orange'], ['CTW', 'EMD', 'yellow'], ['HGD', 'ISA', 'red'], ['HGD', 'LRE', 'green'],
-            ['HGD', 'NRM', 'white'], ['ISA', 'NRM', 'gray'], ['CNS', 'NRM', 'red'], ['CNS', 'HGD', 'yellow'],
-            ['BLO', 'EMD', 'black']
+            ['PER', 'ALB', 'yellow'], ['PHE', 'NEW', 'black', 'purple'], ['HCQ', 'TCA', 'purple'], ['KTR', 'DRW', 'yellow', 'white'],
+            ['AYQ', 'ASP', 'blue', 'white'], ['ASP', 'TCA', 'gray'], ['TCA', 'KTR', 'blue'], ['TCA', 'ISA', 'black'], ['ASP', 'ISA', 'green'],
+            ['CPD', 'PAG', 'orange'], ['ADL', 'MQL', 'orange', 'green'], ['BHQ', 'MQL', 'blue', 'red'], ['CBR', 'SYD', 'blue'], ['CTL', 'LRE', 'red'],
+            ['MQL', 'MEL', 'yellow', 'black'], ['MEL', 'CBR', 'orange', 'purple'], ['ISA', 'CNS', 'white', 'red'], ['PAG', 'BHQ', 'green'],
+            ['LRE', 'ROK', 'blue'], ['BNE', 'CTL', 'yellow'], ['DBO', 'CTL', 'orange'], ['DBO', 'BNE', 'black'], ['BME', 'HCQ', 'green', 'blue'],
+            ['GER', 'NEW', 'yellow', 'orange'], ['KAL', 'AYQ', 'gray'], ['KAL', 'FOR', 'yellow'], ['KNX', 'KTR', 'black'], ['CPD', 'AYQ', 'green'],
+            ['ISA', 'TSV', 'gray'], ['DBO', 'SYD', 'red', 'green'], ['ESP', 'KAL', 'red', 'white'], ['PER', 'KAL', 'blue', 'green'],
+            ['CNS', 'TSV', 'yellow'], ['HCQ', 'KNX', 'gray'], ['ADL', 'PAG', 'purple'], ['ALB', 'ESP', 'purple'], ['ROK', 'TSV', 'red'],
+            ['BME', 'NEW', 'white'], ['CPD', 'FOR', 'black', 'purple'], ['ISA', 'LRE', 'purple'], ['BNE', 'ROK', 'orange'], ['CBR', 'DBO', 'white'],
+            ['CTL', 'ROK', 'white'], ['DBO', 'MQL', 'gray'], ['ASP', 'CPD', 'red']
           ],
           tickets: [
-            ['PER', 'DRW'], ['PER', 'BNE'], ['PER', 'ADL'], ['PER', 'ASP'], ['ALB', 'ADL'], ['GER', 'TCA'],
-            ['CAR', 'BME'], ['KAL', 'ADL'], ['ESP', 'MEL'], ['MEK', 'ASP'], ['NEW', 'DRW'], ['KTA', 'ISA'],
-            ['PHE', 'KNX'], ['BME', 'DRW'], ['FIT', 'ASP'], ['HCQ', 'TSV'], ['KNX', 'ISA'], ['WAR', 'BHQ'],
-            ['FOR', 'SYD'], ['DRW', 'ADL'], ['KTR', 'CNS'], ['TCA', 'ROK'], ['ASP', 'SYD'], ['AYQ', 'BNE'],
-            ['CPD', 'CBR'], ['TAR', 'MQL'], ['PAG', 'BNE'], ['ADL', 'SYD'], ['MGB', 'DBO'], ['BHQ', 'NTL'],
-            ['MQL', 'TMW'], ['BDO', 'MEL'], ['ISA', 'ADL'], ['LRE', 'ADL'], ['NRM', 'BNE'], ['HGD', 'WGA'],
-            ['CNS', 'MEL'], ['TSV', 'SYD'], ['MKY', 'CBR'], ['ROK', 'BAL'], ['BDB', 'MEL'], ['CTL', 'NTL'],
-            ['ROM', 'ABX'], ['BNE', 'MEL'], ['CBR', 'BNE'], ['BAL', 'GFN'], ['GER', 'WAR'], ['AYQ', 'KTR'],
-            ['MRA', 'ESP'], ['BUN', 'KAL'], ['PET', 'MEL'], ['BDT', 'SYD'], ['BLO', 'TMW'], ['GYM', 'DBO'],
-            ['CTW', 'ROM'], ['MBR', 'KTR'], ['TWB', 'MKY'], ['SAL', 'WGA'], ['CPD', 'ISA'], ['LRE', 'BRK'],
-            ['TMW', 'BNE'], ['ASP', 'ADL'], ['ISA', 'CNS'], ['MQL', 'SYD']
+            ['LRE', 'SYD'], ['ALB', 'ISA'], ['KTR', 'BNE'], ['BME', 'KTR'], ['GER', 'KNX'], ['AYQ', 'MQL'], ['PAG', 'ROK'], ['TSV', 'BNE'],
+            ['KTR', 'SYD'], ['TSV', 'MEL'], ['PHE', 'PAG'], ['PER', 'TCA'], ['HCQ', 'CNS'], ['ADL', 'ISA'], ['ESP', 'PHE'], ['DRW', 'ADL'],
+            ['KAL', 'KNX'], ['BNE', 'FOR'], ['AYQ', 'FOR'], ['PER', 'CPD'], ['PAG', 'MEL'], ['KAL', 'MQL'], ['BME', 'FOR'], ['ALB', 'MQL'],
+            ['DRW', 'LRE'], ['CNS', 'CBR'], ['DRW', 'MEL'], ['ESP', 'CPD'], ['NEW', 'ROK'], ['NEW', 'TCA'], ['GER', 'AYQ'], ['ALB', 'ASP'],
+            ['ASP', 'CTL'], ['ROK', 'DBO'], ['NEW', 'CTL'], ['ESP', 'BHQ'], ['GER', 'PHE'], ['BHQ', 'CBR'], ['HCQ', 'DBO'], ['KNX', 'SYD']
           ],
           // Coastlines and lakes simplified from Natural Earth 1:50m vectors (public domain).
           land: [
@@ -2752,89 +2684,47 @@
         },
         ch: {
           name: 'Switzerland',
-          blurb: 'Geneva to Scuol',
+          blurb: 'Geneva to St. Moritz',
+          // Revision 2 cut the map down to 20 cities; older saves of the previous layout don't resume.
+          rev: 2,
           cities: {
-            GVA: ['Geneva', 6.16, 46.18, 'r'], NYO: ['Nyon', 6.21, 46.39, 'l'], LSN: ['Lausanne', 6.64, 46.55, 'b'],
-            YVE: ['Yverdon', 6.64, 46.78, 't'], VAL: ['Vallorbe', 6.38, 46.71, 't'], MTX: ['Montreux', 6.96, 46.46, 't'],
-            AIG: ['Aigle', 6.97, 46.32, 'l'], MAR: ['Martigny', 7.07, 46.10, 'b'], SIO: ['Sion', 7.36, 46.23, 't'],
-            SIE: ['Sierre', 7.53, 46.29, 't'], BRG: ['Brig', 7.99, 46.32, 't'], ZMT: ['Zermatt', 7.75, 46.02, 'b'],
-            GST: ['Gstaad', 7.28, 46.48, 'b'], BUL: ['Bulle', 7.06, 46.62, 'l'], FRI: ['Fribourg', 7.16, 46.81, 't'],
-            PAY: ['Payerne', 6.94, 46.82, 't'], NEU: ['Neuchâtel', 6.91, 47.03, 'b'], CDF: ['La Chaux-de-Fonds', 6.80, 47.11, 'l'],
-            DEL: ['Delémont', 7.34, 47.36, 't'], POR: ['Porrentruy', 7.08, 47.42, 'l'], BIE: ['Biel', 7.27, 47.14, 'b'],
-            SOL: ['Solothurn', 7.54, 47.21, 't'], BRN: ['Bern', 7.44, 46.95, 'b'], BUR: ['Burgdorf', 7.63, 47.06, 'b'],
-            LGN: ['Langnau', 7.79, 46.94, 'b'], THU: ['Thun', 7.61, 46.77, 'l'], FRU: ['Frutigen', 7.65, 46.59, 'r'],
-            ITK: ['Interlaken', 7.86, 46.69, 'b'], MEI: ['Meiringen', 8.19, 46.73, 'b'], LTH: ['Langenthal', 7.79, 47.21, 'b'],
-            OLT: ['Olten', 7.90, 47.35, 't'], AAR: ['Aarau', 8.04, 47.39, 't'], BSL: ['Basel', 7.59, 47.55, 't'],
-            BAD: ['Baden', 8.31, 47.47, 'b'], ZRH: ['Zürich', 8.54, 47.38, 't'], WIN: ['Winterthur', 8.72, 47.50, 'l'],
-            SHA: ['Schaffhausen', 8.63, 47.70, 't'], FRF: ['Frauenfeld', 8.90, 47.56, 't'], KRZ: ['Kreuzlingen', 9.17, 47.64, 't'],
-            ROM: ['Romanshorn', 9.35, 47.55, 'r'], SGA: ['St. Gallen', 9.37, 47.42, 'r'], WIL: ['Wil', 9.05, 47.46, 't'],
-            SUR: ['Sursee', 8.10, 47.17, 'b'], LUZ: ['Lucerne', 8.29, 47.05, 'r'], ZUG: ['Zug', 8.54, 47.18, 'l'],
-            EIN: ['Einsiedeln', 8.75, 47.13, 't'], RAP: ['Rapperswil', 8.85, 47.26, 'b'], SWZ: ['Schwyz', 8.65, 47.02, 'r'],
-            ALT: ['Altdorf', 8.64, 46.88, 'r'], ENG: ['Engelberg', 8.41, 46.82, 'b'], SAR: ['Sarnen', 8.25, 46.90, 'l'],
-            AND: ['Andermatt', 8.59, 46.64, 'l'], AIR: ['Airolo', 8.61, 46.53, 'l'], BIA: ['Biasca', 8.97, 46.36, 'r'],
-            BEL: ['Bellinzona', 9.02, 46.19, 'r'], LOC: ['Locarno', 8.79, 46.20, 'l'], LUG: ['Lugano', 8.92, 46.02, 'b'],
-            GLA: ['Glarus', 9.07, 47.04, 'b'], SAG: ['Sargans', 9.44, 47.05, 'r'], BUC: ['Buchs', 9.48, 47.17, 'r'],
-            CHU: ['Chur', 9.53, 46.85, 'b'], DIS: ['Disentis', 8.85, 46.70, 't'], ILZ: ['Ilanz', 9.20, 46.77, 'b'],
-            THS: ['Thusis', 9.44, 46.70, 'l'], DAV: ['Davos', 9.84, 46.80, 't'], STM: ['St. Moritz', 9.84, 46.50, 't'],
-            ZER: ['Zernez', 10.10, 46.70, 't'], SCU: ['Scuol', 10.30, 46.80, 'r'], POS: ['Poschiavo', 10.06, 46.33, 'b'],
-            WAT: ['Wattwil', 9.09, 47.30, 'r'], OBW: ['Oberwald', 8.35, 46.53, 't']
+            GVA: ['Geneva', 6.16, 46.18, 'r'], LSN: ['Lausanne', 6.64, 46.55, 'b'], MTX: ['Montreux', 6.96, 46.46, 'l'],
+            SIO: ['Sion', 7.36, 46.23, 'b'], BRG: ['Brig', 7.99, 46.32, 'b'], FRI: ['Fribourg', 7.16, 46.81, 'l'],
+            NEU: ['Neuchâtel', 6.91, 47.03, 'r'], BSL: ['Basel', 7.59, 47.55, 't'], BRN: ['Bern', 7.44, 46.95, 't'],
+            ITK: ['Interlaken', 7.86, 46.69, 'l'], OLT: ['Olten', 7.90, 47.35, 'l'], LUZ: ['Lucerne', 8.29, 47.05, 'r'],
+            ZRH: ['Zürich', 8.54, 47.38, 'r'], WIN: ['Winterthur', 8.72, 47.50, 't'], SGA: ['St. Gallen', 9.37, 47.42, 'r'],
+            CHU: ['Chur', 9.53, 46.85, 'l'], STM: ['St. Moritz', 9.84, 46.50, 'r'], AND: ['Andermatt', 8.59, 46.64, 'l'],
+            BEL: ['Bellinzona', 9.02, 46.19, 'l'], LUG: ['Lugano', 8.92, 46.02, 'b']
           },
           proj: (lon, lat) => [Math.round((lon - 5.85) * 2500) / 10, Math.round((47.88 - lat) * 3650) / 10],
           full: { x: 0, y: 0, w: 1188, h: 778 },
           grat: [[6, 10.5, 0.5], [45.5, 48, 0.5]],
           // Switzerland is small and dense, so each car covers less ground than on the continental maps.
-          unit: 27,
+          unit: 40,
+          // Fewer cities means less track, so each player starts with fewer trains.
+          trains: 25,
           tunnels: [
-            'NEU-CDF', 'DEL-BIE', 'FRU-BRG', 'OLT-BSL', 'WAT-RAP', 'ZRH-ZUG', 'DIS-AND', 'AND-AIR',
-            'OBW-AND', 'BEL-LUG', 'THS-STM', 'DAV-ZER'
+            'OLT-BSL', 'BEL-LUG', 'BEL-AND', 'BRG-AND', 'CHU-STM', 'ZRH-AND'
           ],
           bends: {
-            'GVA-NYO': [[6.08, 46.204]], 'NYO-LSN': [[6.37, 46.517]],
-            'ZRH-ZUG': [[8.508, 47.347]], 'ZUG-LUZ': [[8.466, 47.224]],
-            'ITK-MEI': [[7.924, 46.675]], 'NEU-BIE': [[7.23, 47.162]],
-            'NEU-BRN': [[6.974, 47.041]], 'SAR-LUZ': [[8.266, 46.995]],
-            'THU-FRU': [[7.61, 46.737]], 'THU-ITK': [[7.658, 46.77]],
-            'YVE-NEU': [[6.608, 46.811]]
+            'LUZ-ITK': [[8.19, 46.73], [7.92, 46.67]], 'BRN-LUZ': [[7.79, 46.94]], 'BRN-ITK': [[7.66, 46.77]],
+            'ZRH-AND': [[8.51, 47.35], [8.65, 47.02], [8.64, 46.88]], 'MTX-FRI': [[7.06, 46.62]], 'LSN-NEU': [[6.64, 46.78], [6.61, 46.81]],
+            'GVA-LSN': [[6.08, 46.2], [6.21, 46.39], [6.37, 46.52]], 'FRI-LSN': [[6.86, 46.72]]
           },
           routes: [
-            ['GVA', 'NYO', 'gray'], ['NYO', 'LSN', 'purple'], ['NYO', 'VAL', 'white'], ['LSN', 'VAL', 'green'],
-            ['LSN', 'YVE', 'red'], ['VAL', 'YVE', 'black'], ['YVE', 'NEU', 'yellow'], ['YVE', 'PAY', 'white'],
-            ['LSN', 'FRI', 'orange', 'blue'], ['LSN', 'MTX', 'yellow'], ['MTX', 'AIG', 'gray'], ['MTX', 'BUL', 'orange'],
-            ['MTX', 'GST', 'white'], ['AIG', 'MAR', 'blue'], ['MAR', 'SIO', 'orange'], ['SIO', 'SIE', 'yellow'],
-            ['SIE', 'BRG', 'gray'], ['BRG', 'ZMT', 'red'], ['GST', 'FRU', 'blue'], ['GST', 'BUL', 'gray'],
-            ['BUL', 'FRI', 'purple'], ['PAY', 'FRI', 'red'], ['NEU', 'CDF', 'blue'], ['NEU', 'BIE', 'red'],
-            ['CDF', 'DEL', 'gray'], ['POR', 'DEL', 'black'], ['DEL', 'BSL', 'white'], ['DEL', 'BIE', 'orange'],
-            ['DEL', 'SOL', 'yellow'], ['BIE', 'SOL', 'green'], ['BIE', 'BRN', 'gray', 'blue'], ['FRI', 'BRN', 'green', 'white'],
-            ['NEU', 'BRN', 'black'], ['BRN', 'SOL', 'orange'], ['BRN', 'BUR', 'purple'], ['BUR', 'SOL', 'blue'],
-            ['BUR', 'LTH', 'orange'], ['BUR', 'LGN', 'black'], ['BRN', 'LGN', 'red'], ['BRN', 'THU', 'white', 'yellow'],
-            ['THU', 'ITK', 'blue'], ['THU', 'FRU', 'purple'], ['FRU', 'BRG', 'green'], ['ITK', 'MEI', 'purple'],
-            ['LGN', 'LUZ', 'white'], ['MEI', 'SAR', 'black'], ['SAR', 'LUZ', 'gray'], ['SAR', 'ENG', 'blue'],
-            ['LUZ', 'SUR', 'orange'], ['SUR', 'OLT', 'gray'], ['OLT', 'LTH', 'white'], ['OLT', 'AAR', 'green', 'orange'],
-            ['OLT', 'BSL', 'purple'], ['BSL', 'AAR', 'yellow'], ['AAR', 'BAD', 'white'], ['SUR', 'AAR', 'red'],
-            ['BAD', 'ZRH', 'gray', 'blue'], ['ZRH', 'WIN', 'white', 'black'], ['WIN', 'SHA', 'orange'], ['BAD', 'SHA', 'green'],
-            ['WIN', 'FRF', 'gray'], ['FRF', 'KRZ', 'purple'], ['FRF', 'WIL', 'red'], ['WIN', 'WIL', 'yellow'],
-            ['KRZ', 'ROM', 'yellow'], ['ROM', 'SGA', 'green'], ['WIL', 'SGA', 'white'], ['WIL', 'WAT', 'blue'],
-            ['SGA', 'BUC', 'black'], ['WAT', 'RAP', 'orange'], ['RAP', 'WIN', 'blue'], ['RAP', 'ZRH', 'yellow'],
-            ['ZRH', 'ZUG', 'purple'], ['ZUG', 'LUZ', 'yellow'], ['ZUG', 'EIN', 'orange'], ['ZUG', 'SWZ', 'red'],
-            ['SWZ', 'ALT', 'green'], ['GLA', 'SAG', 'black'], ['EIN', 'GLA', 'gray'], ['SAG', 'BUC', 'white'],
-            ['SAG', 'CHU', 'purple', 'orange'], ['CHU', 'THS', 'green'], ['CHU', 'ILZ', 'black'], ['ILZ', 'DIS', 'red'],
-            ['DIS', 'AND', 'green'], ['AND', 'ALT', 'black'], ['AND', 'AIR', 'yellow'], ['BRG', 'OBW', 'black'],
-            ['OBW', 'AND', 'blue'], ['AIR', 'BIA', 'red'], ['BIA', 'BEL', 'green', 'black'], ['BEL', 'LOC', 'red'],
-            ['BEL', 'LUG', 'purple'], ['THS', 'STM', 'purple'], ['CHU', 'DAV', 'red'], ['STM', 'ZER', 'orange'],
-            ['ZER', 'SCU', 'black'], ['STM', 'POS', 'green'], ['DAV', 'ZER', 'blue'], ['WAT', 'GLA', 'green'],
-            ['SGA', 'WAT', 'gray']
+            ['OLT', 'BSL', 'green', 'purple'], ['ZRH', 'WIN', 'blue', 'black'], ['BEL', 'LUG', 'purple', 'blue'], ['BEL', 'AND', 'yellow', 'orange'],
+            ['BRG', 'AND', 'purple'], ['LUZ', 'ITK', 'yellow'], ['SIO', 'BRG', 'red'], ['CHU', 'STM', 'blue', 'black'], ['CHU', 'SGA', 'white'],
+            ['BRN', 'LUZ', 'gray'], ['BRN', 'OLT', 'red'], ['LUZ', 'OLT', 'white'], ['OLT', 'ZRH', 'orange'], ['BRN', 'ITK', 'green'],
+            ['WIN', 'SGA', 'yellow'], ['ZRH', 'AND', 'gray'], ['LSN', 'MTX', 'white'], ['MTX', 'FRI', 'gray'], ['LSN', 'NEU', 'blue'],
+            ['FRI', 'BRN', 'yellow', 'orange'], ['GVA', 'LSN', 'green'], ['MTX', 'SIO', 'green', 'purple'], ['BEL', 'STM', 'white', 'red'],
+            ['BSL', 'NEU', 'black'], ['BRG', 'ITK', 'blue'], ['FRI', 'LSN', 'black'], ['ITK', 'SIO', 'orange']
           ],
           tickets: [
-            ['ZRH', 'KRZ'], ['FRI', 'ITK'], ['SWZ', 'AIR'], ['CDF', 'DEL'], ['WIN', 'WAT'], ['BSL', 'SUR'],
-            ['LUZ', 'GLA'], ['BIA', 'OBW'], ['BUL', 'BRN'], ['SAG', 'ZER'], ['EIN', 'AND'], ['NEU', 'LGN'],
-            ['NYO', 'VAL'], ['THU', 'MEI'], ['AIG', 'SIO'], ['MTX', 'PAY'], ['ROM', 'BUC'], ['CHU', 'STM'],
-            ['LTH', 'SAR'], ['DAV', 'SCU'], ['ZMT', 'ALT'], ['AAR', 'WIL'], ['YVE', 'MAR'], ['BEL', 'ILZ'],
-            ['OLT', 'SGA'], ['LUG', 'DIS'], ['FRF', 'ENG'], ['LSN', 'BRG'], ['SOL', 'SHA'], ['BUR', 'ZUG'],
-            ['GVA', 'GST'], ['RAP', 'THS'], ['BIE', 'BAD'], ['POR', 'FRU'], ['LOC', 'OBW'], ['BUC', 'POS'],
-            ['SIE', 'GST'], ['SWZ', 'LUG'], ['SHA', 'ALT'], ['BRG', 'DIS'], ['LGN', 'BSL'], ['FRU', 'LTH'],
-            ['WIL', 'ILZ'], ['BUR', 'ENG'], ['SIO', 'SUR'], ['NYO', 'AAR'], ['LSN', 'SAG'], ['YVE', 'ZUG'],
-            ['SGA', 'STM'], ['BIE', 'BEL'], ['WIN', 'ZER'], ['CDF', 'RAP'], ['BUL', 'CHU'], ['AIG', 'ZMT'],
-            ['PAY', 'KRZ'], ['MAR', 'LUZ'], ['POR', 'EIN'], ['FRI', 'LOC'], ['GVA', 'BAD'], ['BIA', 'THS']
+            ['BRG', 'STM'], ['CHU', 'AND'], ['NEU', 'LUZ'], ['SGA', 'BEL'], ['LUZ', 'CHU'], ['LSN', 'LUZ'], ['CHU', 'LUG'], ['STM', 'LUG'],
+            ['CHU', 'BEL'], ['ITK', 'WIN'], ['BRN', 'WIN'], ['FRI', 'ZRH'], ['OLT', 'SGA'], ['ITK', 'LUG'], ['GVA', 'BRN'], ['GVA', 'BRG'],
+            ['MTX', 'NEU'], ['MTX', 'AND'], ['BRN', 'SGA'], ['LSN', 'BEL'], ['ZRH', 'STM'], ['NEU', 'BSL'], ['SIO', 'AND'], ['BRG', 'BRN'],
+            ['LSN', 'ITK'], ['BSL', 'WIN'], ['LSN', 'BSL'], ['SIO', 'OLT'], ['GVA', 'SIO'], ['FRI', 'BEL'], ['GVA', 'BSL'], ['NEU', 'SGA'],
+            ['ITK', 'OLT'], ['BRG', 'FRI'], ['ZRH', 'AND'], ['MTX', 'LUG'], ['FRI', 'WIN'], ['SIO', 'ZRH'], ['OLT', 'BEL'], ['LUZ', 'SGA']
           ],
           // Borders and lakes simplified from Natural Earth 1:10m vectors (public domain).
           // Switzerland is landlocked: the neighbouring countries are drawn as muted land around it.
@@ -2977,106 +2867,56 @@
         jp: {
           name: 'Japan',
           blurb: 'Kagoshima to Wakkanai',
+          // Revision 2 cut the map down to 28 cities; older saves of the previous layout don't resume.
+          rev: 2,
           cities: {
-            KAG: ['Kagoshima', 130.53, 31.61, 'b'], MYZ: ['Miyazaki', 131.42, 31.91, 'b'], KUM: ['Kumamoto', 130.71, 32.80, 'r'],
-            NGS: ['Nagasaki', 129.87, 32.75, 'b'], FUK: ['Fukuoka', 130.40, 33.59, 'l'], KKY: ['Kitakyushu', 130.88, 33.88, 'l'],
-            OIT: ['Oita', 131.61, 33.24, 't'], NBO: ['Nobeoka', 131.66, 32.58, 'r'], YMG: ['Yamaguchi', 131.47, 34.18, 'b'],
-            HIR: ['Hiroshima', 132.46, 34.40, 'b'], OKA: ['Okayama', 133.92, 34.70, 'r'], MAT: ['Matsue', 133.05, 35.47, 't'],
-            TOT: ['Tottori', 134.24, 35.50, 'b'], NIM: ['Niimi', 133.47, 34.98, 'l'], TAK: ['Takamatsu', 134.05, 34.34, 'r'],
-            TKS: ['Tokushima', 134.55, 34.07, 'b'], KOC: ['Kochi', 133.53, 33.56, 'b'], MTY: ['Matsuyama', 132.77, 33.84, 't'],
-            UWA: ['Uwajima', 132.56, 33.22, 'b'], HIM: ['Himeji', 134.69, 34.83, 'l'], OSA: ['Osaka', 135.50, 34.69, 'l'],
-            KYO: ['Kyoto', 135.76, 35.01, 'l'], WAK: ['Wakayama', 135.17, 34.23, 'r'], SNG: ['Shingu', 135.99, 33.73, 'b'],
-            TOY: ['Toyooka', 134.82, 35.54, 't'], TSU: ['Tsu', 136.51, 34.72, 'r'], NGY: ['Nagoya', 136.91, 35.17, 'r'],
-            TSG: ['Tsuruga', 136.06, 35.63, 'l'], FUI: ['Fukui', 136.22, 36.06, 'l'], KNZ: ['Kanazawa', 136.66, 36.56, 't'],
-            TYM: ['Toyama', 137.21, 36.70, 't'], TKY: ['Takayama', 137.25, 36.14, 'l'], HMM: ['Hamamatsu', 137.73, 34.71, 'b'],
-            SZK: ['Shizuoka', 138.38, 34.98, 'r'], IID: ['Iida', 137.82, 35.51, 'l'], MTM: ['Matsumoto', 137.97, 36.24, 't'],
-            NAG: ['Nagano', 138.19, 36.65, 'l'], KOF: ['Kofu', 138.57, 35.66, 'l'], JOE: ['Joetsu', 138.25, 37.15, 't'],
-            NII: ['Niigata', 139.04, 37.92, 't'], TYO: ['Tokyo', 139.77, 35.68, 'b'], ODA: ['Odawara', 139.14, 35.28, 'b'],
-            NRT: ['Narita', 140.32, 35.78, 'b'], MIT: ['Mito', 140.47, 36.37, 'l'], UTS: ['Utsunomiya', 139.88, 36.56, 't'],
-            TKT: ['Takasaki', 139.00, 36.32, 'b'], SHR: ['Shirakawa', 140.21, 37.13, 'l'], IWK: ['Iwaki', 140.89, 37.05, 'r'],
-            FKS: ['Fukushima', 140.47, 37.75, 'l'], YGT: ['Yamagata', 140.36, 38.24, 't'], SEN: ['Sendai', 140.87, 38.27, 'r'],
-            MUR: ['Murakami', 139.48, 38.22, 'l'], SKT: ['Sakata', 139.84, 38.91, 'l'], SJO: ['Shinjo', 140.30, 38.76, 'r'],
-            ICH: ['Ichinoseki', 141.13, 38.93, 'r'], YKT: ['Yokote', 140.56, 39.31, 't'], AKT: ['Akita', 140.10, 39.72, 'l'],
-            MRK: ['Morioka', 141.15, 39.70, 'b'], MYK: ['Miyako', 141.93, 39.65, 'b'], ODT: ['Odate', 140.57, 40.27, 'l'],
-            AOM: ['Aomori', 140.74, 40.82, 't'], HCN: ['Hachinohe', 141.49, 40.51, 'r'], HKD: ['Hakodate', 140.73, 41.77, 'r'],
-            OSM: ['Oshamambe', 140.35, 42.53, 'l'], MRN: ['Muroran', 141.00, 42.35, 'b'], TMK: ['Tomakomai', 141.60, 42.63, 'b'],
-            SPR: ['Sapporo', 141.35, 43.06, 'l'], ASA: ['Asahikawa', 142.36, 43.77, 'l'], NYR: ['Nayoro', 142.46, 44.36, 'l'],
-            WKN: ['Wakkanai', 141.67, 45.41, 't'], FRN: ['Furano', 142.38, 43.34, 'r'], OBH: ['Obihiro', 143.20, 42.92, 'b'],
-            KSR: ['Kushiro', 144.41, 42.99, 'b'], ABS: ['Abashiri', 144.27, 44.02, 't']
+            KAG: ['Kagoshima', 130.53, 31.61, 'b'], KUM: ['Kumamoto', 130.71, 32.80, 'r'], NGS: ['Nagasaki', 129.87, 32.75, 'b'],
+            FUK: ['Fukuoka', 130.40, 33.59, 'l'], HIR: ['Hiroshima', 132.46, 34.40, 'b'], OKA: ['Okayama', 133.92, 34.70, 'r'],
+            MAT: ['Matsue', 133.05, 35.47, 't'], TAK: ['Takamatsu', 134.05, 34.34, 'r'], KOC: ['Kochi', 133.53, 33.56, 'b'],
+            MTY: ['Matsuyama', 132.77, 33.84, 't'], OSA: ['Osaka', 135.50, 34.69, 'b'], KYO: ['Kyoto', 135.76, 35.01, 'l'],
+            NGY: ['Nagoya', 136.91, 35.17, 'b'], KNZ: ['Kanazawa', 136.66, 36.56, 't'], SZK: ['Shizuoka', 138.38, 34.98, 'r'],
+            MTM: ['Matsumoto', 137.97, 36.24, 't'], NII: ['Niigata', 139.04, 37.92, 't'], TYO: ['Tokyo', 139.77, 35.68, 'b'],
+            FKS: ['Fukushima', 140.47, 37.75, 'r'], SEN: ['Sendai', 140.87, 38.27, 'r'], AKT: ['Akita', 140.10, 39.72, 'l'],
+            MRK: ['Morioka', 141.15, 39.70, 'r'], AOM: ['Aomori', 140.74, 40.82, 'r'], HKD: ['Hakodate', 140.73, 41.77, 'r'],
+            SPR: ['Sapporo', 141.35, 43.06, 'l'], ASA: ['Asahikawa', 142.36, 43.77, 'r'], WKN: ['Wakkanai', 141.67, 45.41, 't'],
+            KSR: ['Kushiro', 144.41, 42.99, 'b']
           },
           proj: (lon, lat) => [Math.round((lon - 129.2) * 720) / 10, Math.round((45.75 - lat) * 910) / 10],
           full: { x: 0, y: 0, w: 1210, h: 1352 },
           grat: [[130, 146, 2], [32, 44, 2]],
           // Japan is long and narrow, so each car covers less ground than on the continental maps.
-          unit: 28,
-          // KKY-YMG runs through the undersea Kanmon tunnel and AOM-HKD through the undersea Seikan tunnel.
+          unit: 27,
+          // Fewer cities means less track, so each player starts with fewer trains.
+          trains: 31,
+          // HIR-FUK runs through the undersea Kanmon tunnel and AOM-HKD through the undersea Seikan tunnel.
           tunnels: [
-            'KKY-YMG', 'HIM-OSA', 'KYO-TSG', 'TSG-FUI', 'SZK-ODA', 'KOF-TYO', 'TKT-NII', 'HCN-AOM',
-            'AOM-HKD', 'FRN-OBH'
+            'KSR-ASA', 'HIR-FUK', 'SZK-TYO', 'KYO-KNZ', 'OKA-OSA', 'AOM-HKD'
           ],
           // Tracks that bend round water pass through these points (longitude, latitude).
           // OKA-TAK crosses the Seto Inland Sea on the rail deck of the Great Seto Bridge.
           bends: {
-            'OKA-TAK': [[133.85, 34.58], [133.835, 34.48], [133.86, 34.31], [133.97, 34.3]], 'AOM-HKD': [[140.606, 40.847], [140.439, 41.11], [140.397, 41.143], [140.564, 41.836]],
-            'KKY-YMG': [[131.006, 34.081]], 'ABS-ASA': [[144.082, 43.932]],
-            'FUK-KKY': [[130.567, 33.616]], 'HIM-OSA': [[135.357, 34.918]],
-            'HKD-OSM': [[140.183, 42.266], [140.225, 42.431]], 'IWK-SEN': [[140.814, 37.742]],
-            'JOE-NII': [[138.639, 37.261]], 'KAG-KUM': [[130.753, 32.624]],
-            'KAG-MYZ': [[130.518, 31.663], [130.594, 31.774]], 'MAT-TOT': [[133.606, 35.324]],
-            'MIT-IWK': [[140.747, 36.962]], 'MRN-TMK': [[141.042, 42.432], [141.375, 42.63]],
-            'MTY-UWA': [[132.782, 33.752]], 'MUR-SKT': [[139.869, 38.823]],
-            'MYZ-NBO': [[131.364, 32.228]], 'OBH-KSR': [[144.256, 43.077]],
-            'ODA-TYO': [[139.251, 35.46]], 'OIT-KKY': [[131.047, 33.308]],
-            'OKA-HIM': [[134.364, 35.006]], 'OSA-WAK': [[135.503, 34.426]],
-            'OSM-SPR': [[140.37, 42.587]], 'SKT-AKT': [[140.229, 39.325]],
-            'SNG-TSU': [[135.935, 33.841]], 'SZK-ODA': [[138.51, 35.16]],
-            'TAK-MTY': [[133.603, 33.901]], 'TMK-OBH': [[141.767, 42.701]],
-            'TSG-FUI': [[136.171, 35.708]], 'TSU-NGY': [[136.454, 34.994]],
-            'TYM-JOE': [[137.321, 36.666]], 'TYO-NRT': [[139.936, 35.736]],
-            'YMG-HIR': [[132.247, 34.487]], 'OSM-MRN': [[140.436, 42.591], [140.451, 42.632], [140.666, 42.655], [140.916, 42.582]],
-            'KYO-NGY': [[135.885, 34.84], [136.718, 35.17]], 'FUK-NGS': [[130.059, 33.159], [130.038, 33.004], [130.006, 32.846]],
-            'NII-MUR': [[139.143, 37.878], [139.465, 38.055]]
+            'KAG-KUM': [[130.75, 32.62]], 'KNZ-NII': [[137.32, 36.67], [138.64, 37.26]],
+            'HIR-FUK': [[132.25, 34.49], [131.01, 34.08], [130.88, 33.88]], 'SZK-TYO': [[138.62, 35.27]], 'KYO-KNZ': [[135.98, 35.43], [136.3, 35.87]],
+            'FUK-NGS': [[130.06, 33.28], [130.06, 32.93], [129.98, 32.83]], 'KUM-FUK': [[130.55, 33.33]], 'MTY-KOC': [[132.88, 33.71]],
+            'TAK-MTY': [[133.57, 33.93]], 'KYO-NGY': [[135.99, 34.82], [136.53, 34.97], [136.14, 34.91]], 'OKA-OSA': [[134.84, 34.98]],
+            'HKD-SPR': [[140.21, 42.11], [140.16, 42.35], [140.3, 42.56], [140.42, 42.65]], 'AOM-HKD': [[140.5, 40.97], [141.03, 41.37]],
+            'KOC-TAK': [[134.09, 33.83]], 'KNZ-MTM': [[137.23, 36.19]], 'AOM-MRK': [[141.09, 40.29]]
           },
           routes: [
-            ['KAG', 'MYZ', 'blue'], ['KAG', 'KUM', 'black'], ['MYZ', 'KUM', 'yellow'], ['MYZ', 'NBO', 'gray'],
-            ['NBO', 'OIT', 'orange'], ['OIT', 'KKY', 'white'], ['KUM', 'OIT', 'purple'], ['KUM', 'FUK', 'orange', 'green'],
-            ['FUK', 'NGS', 'gray'], ['FUK', 'KKY', 'yellow', 'purple'], ['KKY', 'YMG', 'blue'], ['YMG', 'HIR', 'black', 'white'],
-            ['YMG', 'MAT', 'gray'], ['HIR', 'MAT', 'yellow'], ['HIR', 'NIM', 'purple'], ['HIR', 'OKA', 'green'],
-            ['NIM', 'OKA', 'black'], ['NIM', 'MAT', 'white'], ['MAT', 'TOT', 'red'], ['TOT', 'HIM', 'orange'],
-            ['TOT', 'TOY', 'purple'], ['OKA', 'HIM', 'red', 'gray'], ['OKA', 'TAK', 'purple'], ['TAK', 'TKS', 'black'],
-            ['TAK', 'MTY', 'green'], ['MTY', 'UWA', 'purple'], ['UWA', 'KOC', 'gray'], ['TKS', 'KOC', 'purple'],
-            ['MTY', 'KOC', 'black'], ['HIM', 'OSA', 'yellow', 'white'], ['HIM', 'TOY', 'green'], ['OSA', 'KYO', 'red', 'gray'],
-            ['OSA', 'WAK', 'green'], ['WAK', 'SNG', 'orange'], ['SNG', 'TSU', 'purple'], ['OSA', 'TSU', 'blue'],
-            ['KYO', 'TOY', 'black'], ['KYO', 'TSG', 'green'], ['KYO', 'NGY', 'purple', 'white'], ['TSU', 'NGY', 'gray'],
-            ['TSG', 'FUI', 'red'], ['FUI', 'KNZ', 'purple'], ['KNZ', 'TYM', 'orange'], ['TYM', 'TKY', 'yellow'],
-            ['TKY', 'NGY', 'blue'], ['TYM', 'JOE', 'black'], ['JOE', 'NAG', 'white'], ['NAG', 'MTM', 'yellow'],
-            ['MTM', 'NGY', 'red'], ['MTM', 'KOF', 'orange'], ['MTM', 'IID', 'blue'], ['IID', 'HMM', 'gray'],
-            ['NGY', 'HMM', 'orange', 'green'], ['HMM', 'SZK', 'black'], ['SZK', 'ODA', 'purple'], ['SZK', 'KOF', 'blue'],
-            ['KOF', 'TYO', 'black'], ['ODA', 'TYO', 'green', 'gray'], ['NAG', 'TKT', 'black'], ['TKT', 'TYO', 'orange'],
-            ['JOE', 'NII', 'red'], ['TKT', 'NII', 'blue'], ['TYO', 'NRT', 'blue'], ['TYO', 'UTS', 'white', 'red'],
-            ['UTS', 'MIT', 'yellow'], ['MIT', 'NRT', 'red'], ['TKT', 'UTS', 'gray'], ['MIT', 'IWK', 'gray'],
-            ['UTS', 'SHR', 'green'], ['SHR', 'FKS', 'white'], ['SHR', 'IWK', 'yellow'], ['IWK', 'SEN', 'white'],
-            ['FKS', 'SEN', 'gray', 'green'], ['FKS', 'YGT', 'yellow'], ['YGT', 'SEN', 'purple'], ['YGT', 'SJO', 'white'],
-            ['NII', 'MUR', 'yellow'], ['NII', 'FKS', 'black'], ['MUR', 'SKT', 'red'], ['SKT', 'SJO', 'blue'],
-            ['SKT', 'AKT', 'green'], ['SJO', 'YKT', 'orange'], ['YKT', 'AKT', 'blue'], ['SEN', 'ICH', 'red'],
-            ['ICH', 'MRK', 'green'], ['MRK', 'AKT', 'white'], ['MRK', 'MYK', 'gray'], ['MYK', 'HCN', 'blue'],
-            ['MRK', 'HCN', 'black'], ['MRK', 'ODT', 'yellow'], ['AKT', 'ODT', 'purple'], ['ODT', 'AOM', 'blue'],
-            ['HCN', 'AOM', 'orange'], ['AOM', 'HKD', 'red'], ['HKD', 'OSM', 'orange'], ['OSM', 'MRN', 'red'],
-            ['OSM', 'SPR', 'yellow'], ['MRN', 'TMK', 'white'], ['TMK', 'SPR', 'green', 'black'], ['SPR', 'ASA', 'red'],
-            ['ASA', 'NYR', 'blue'], ['NYR', 'WKN', 'yellow'], ['ASA', 'FRN', 'purple'], ['FRN', 'OBH', 'orange'],
-            ['TMK', 'OBH', 'blue'], ['OBH', 'KSR', 'purple'], ['KSR', 'ABS', 'yellow'], ['ABS', 'ASA', 'orange']
+            ['KAG', 'KUM', 'white'], ['HIR', 'MAT', 'black'], ['HIR', 'OKA', 'white'], ['OKA', 'TAK', 'purple'], ['MTM', 'NGY', 'blue'],
+            ['FKS', 'SEN', 'purple', 'black'], ['NII', 'FKS', 'green'], ['MRK', 'AKT', 'white', 'blue'], ['SPR', 'ASA', 'yellow', 'green'],
+            ['SEN', 'MRK', 'yellow'], ['ASA', 'WKN', 'red'], ['KSR', 'ASA', 'gray'], ['NGY', 'SZK', 'black', 'red'], ['MTM', 'SZK', 'white'],
+            ['OKA', 'MAT', 'green', 'red'], ['AKT', 'AOM', 'gray'], ['KNZ', 'NII', 'orange'], ['HIR', 'FUK', 'gray'], ['SZK', 'TYO', 'yellow'],
+            ['KYO', 'KNZ', 'green'], ['FUK', 'NGS', 'green'], ['KUM', 'FUK', 'yellow', 'black'], ['MTY', 'KOC', 'orange'], ['TAK', 'MTY', 'blue'],
+            ['KYO', 'NGY', 'purple', 'white'], ['OKA', 'OSA', 'black'], ['OSA', 'KYO', 'orange', 'yellow'], ['HKD', 'SPR', 'purple'],
+            ['AOM', 'HKD', 'red'], ['FKS', 'TYO', 'blue', 'orange'], ['KOC', 'TAK', 'red'], ['KNZ', 'MTM', 'purple'], ['AOM', 'MRK', 'orange']
           ],
           tickets: [
-            ['OSM', 'NYR'], ['SZK', 'MIT'], ['IID', 'SHR'], ['NAG', 'TYO'], ['KYO', 'TYM'], ['NIM', 'WAK'],
-            ['NGS', 'OIT'], ['YMG', 'TAK'], ['KOF', 'JOE'], ['SNG', 'TSG'], ['TKT', 'IWK'], ['OSA', 'FUI'],
-            ['NRT', 'SEN'], ['HKD', 'FRN'], ['SKT', 'HCN'], ['TOT', 'NGY'], ['SPR', 'ABS'], ['TOY', 'TSU'],
-            ['TKS', 'HIM'], ['OKA', 'KOC'], ['YKT', 'MRN'], ['MTM', 'ODT'], ['NBO', 'MAT'], ['HMM', 'YGT'],
-            ['UTS', 'AKT'], ['TKY', 'MRK'], ['KNZ', 'SJO'], ['MYZ', 'HIR'], ['WKN', 'KSR'], ['ODA', 'MYK'],
-            ['FUK', 'MTY'], ['KKY', 'UWA'], ['ICH', 'TMK'], ['NII', 'AOM'], ['FUI', 'FKS'], ['KUM', 'TOT'],
-            ['OSA', 'MUR'], ['KAG', 'HIR'], ['ODT', 'OBH'], ['MRK', 'ASA'], ['SNG', 'TYO'], ['IID', 'FKS'],
-            ['AKT', 'FRN'], ['HIM', 'NAG'], ['MTY', 'MIT'], ['YMG', 'KNZ'], ['KOC', 'TYM'], ['UTS', 'MRN'],
-            ['MUR', 'ABS'], ['MYZ', 'UWA'], ['KUM', 'WAK'], ['NGS', 'TSG'], ['SHR', 'ASA'], ['OIT', 'NII'],
-            ['MAT', 'AOM'], ['YGT', 'KSR'], ['SEN', 'SPR'], ['TAK', 'NRT'], ['KYO', 'YKT'], ['TSU', 'HCN']
+            ['TAK', 'TYO'], ['AOM', 'WKN'], ['NII', 'HKD'], ['KUM', 'MAT'], ['NGS', 'TAK'], ['MTM', 'TYO'], ['NII', 'MRK'], ['KOC', 'KYO'],
+            ['TYO', 'AOM'], ['KNZ', 'SZK'], ['KAG', 'HIR'], ['SZK', 'FKS'], ['FKS', 'AKT'], ['SEN', 'HKD'], ['KNZ', 'AKT'], ['FUK', 'KOC'],
+            ['HIR', 'OSA'], ['AKT', 'SPR'], ['AOM', 'SPR'], ['OKA', 'FKS'], ['ASA', 'WKN'], ['MTY', 'NGY'], ['KAG', 'OSA'], ['HIR', 'KNZ'],
+            ['SPR', 'KSR'], ['KUM', 'KYO'], ['OKA', 'MTM'], ['MAT', 'NII'], ['SZK', 'MRK'], ['NGS', 'MAT'], ['KUM', 'OKA'], ['MTY', 'MTM'],
+            ['KAG', 'FUK'], ['SEN', 'ASA'], ['KYO', 'SEN'], ['TAK', 'NGY'], ['MTY', 'OSA'], ['MRK', 'ASA'], ['HKD', 'KSR'], ['FUK', 'NGY']
           ],
           // Coastlines and lakes simplified from Natural Earth 1:10m vectors (public domain).
           // Neighbouring countries are drawn as muted land.
@@ -3406,95 +3246,53 @@
         de: {
           name: 'Germany',
           blurb: 'Flensburg to Garmisch',
+          // Revision 2 cut the map down to 29 cities; older saves of the previous layout don't resume.
+          rev: 2,
           cities: {
-            FLE: ['Flensburg', 9.44, 54.79, 'r'], HUS: ['Husum', 9.05, 54.48, 'l'], KIE: ['Kiel', 10.13, 54.32, 'r'],
-            LUB: ['Lübeck', 10.69, 53.87, 't'], HAM: ['Hamburg', 9.99, 53.55, 'r'], BHV: ['Bremerhaven', 8.58, 53.55, 'r'],
-            LER: ['Leer', 7.45, 53.23, 't'], OLD: ['Oldenburg', 8.21, 53.14, 'b'], BRE: ['Bremen', 8.80, 53.08, 'r'],
-            LIN: ['Lingen', 7.32, 52.52, 'l'], OSN: ['Osnabrück', 8.05, 52.28, 'r'], MUN: ['Münster', 7.63, 51.96, 'l'],
-            BIE: ['Bielefeld', 8.53, 52.02, 'l'], HAN: ['Hannover', 9.73, 52.37, 'l'], LUN: ['Lüneburg', 10.41, 53.25, 'r'],
-            BRA: ['Braunschweig', 10.52, 52.27, 'b'], GOE: ['Göttingen', 9.93, 51.54, 'l'], PAD: ['Paderborn', 8.75, 51.72, 'r'],
-            KAS: ['Kassel', 9.48, 51.31, 'l'], SWN: ['Schwerin', 11.41, 53.63, 'r'], ROS: ['Rostock', 12.10, 54.09, 'l'],
-            STR: ['Stralsund', 13.08, 54.31, 'r'], BGR: ['Bergen', 13.43, 54.42, 'r'], NBR: ['Neubrandenburg', 13.26, 53.56, 'l'],
-            PRZ: ['Prenzlau', 13.86, 53.32, 'r'], WTB: ['Wittenberge', 11.75, 53.00, 'r'], STD: ['Stendal', 11.86, 52.61, 'l'],
-            BER: ['Berlin', 13.40, 52.52, 'r'], EBW: ['Eberswalde', 13.82, 52.83, 'r'], FFO: ['Frankfurt (Oder)', 14.55, 52.35, 'r'],
-            COT: ['Cottbus', 14.33, 51.76, 'r'], MAG: ['Magdeburg', 11.63, 52.13, 'r'], DES: ['Dessau', 12.24, 51.84, 'r'],
-            HAL: ['Halle', 11.97, 51.48, 't'], LEI: ['Leipzig', 12.37, 51.34, 'r'], DRE: ['Dresden', 13.74, 51.05, 'b'],
-            GOR: ['Görlitz', 14.99, 51.15, 'b'], CHE: ['Chemnitz', 12.92, 50.83, 'b'], ZWI: ['Zwickau', 12.50, 50.72, 'b'],
-            GER: ['Gera', 12.08, 50.88, 't'], JEN: ['Jena', 11.59, 50.93, 't'], ERF: ['Erfurt', 11.03, 50.98, 'b'],
-            EIS: ['Eisenach', 10.32, 50.98, 'l'], NDH: ['Nordhausen', 10.79, 51.50, 'b'], SAA: ['Saalfeld', 11.37, 50.65, 'r'],
-            HOF: ['Hof', 11.92, 50.31, 'r'], FUL: ['Fulda', 9.68, 50.55, 'r'], GIE: ['Gießen', 8.68, 50.58, 'r'],
-            SIE: ['Siegen', 8.02, 50.87, 't'], DOR: ['Dortmund', 7.47, 51.51, 'r'], DUS: ['Düsseldorf', 6.78, 51.23, 'l'],
-            KOL: ['Cologne', 6.96, 50.94, 'b'], AAC: ['Aachen', 6.08, 50.78, 'b'], KOB: ['Koblenz', 7.59, 50.36, 'l'],
-            TRI: ['Trier', 6.64, 49.75, 'l'], SAB: ['Saarbrücken', 6.99, 49.24, 'b'], KAI: ['Kaiserslautern', 7.77, 49.44, 't'],
-            MAI: ['Mainz', 8.27, 50.00, 'b'], FRA: ['Frankfurt', 8.68, 50.11, 'r'], MAN: ['Mannheim', 8.47, 49.49, 'r'],
-            KAR: ['Karlsruhe', 8.40, 49.01, 'l'], HEI: ['Heilbronn', 9.22, 49.14, 'r'], STU: ['Stuttgart', 9.18, 48.78, 'l'],
-            OFF: ['Offenburg', 7.94, 48.47, 'l'], FRE: ['Freiburg', 7.85, 47.99, 'l'], VIL: ['Villingen', 8.46, 48.06, 'r'],
-            SIN: ['Singen', 8.84, 47.76, 'b'], ULM: ['Ulm', 9.99, 48.40, 'l'], FRH: ['Friedrichshafen', 9.48, 47.65, 'b'],
-            KEM: ['Kempten', 10.32, 47.73, 'b'], AUG: ['Augsburg', 10.90, 48.37, 't'], MUC: ['Munich', 11.58, 48.14, 'r'],
-            GAP: ['Garmisch', 11.10, 47.49, 'b'], ROH: ['Rosenheim', 12.12, 47.86, 'l'], BGD: ['Berchtesgaden', 13.00, 47.63, 'b'],
-            PAS: ['Passau', 13.43, 48.57, 'r'], REG: ['Regensburg', 12.10, 49.01, 'l'], ING: ['Ingolstadt', 11.43, 48.76, 'l'],
-            NUR: ['Nuremberg', 11.08, 49.45, 'l'], WEI: ['Weiden', 12.16, 49.68, 'r'], BAM: ['Bamberg', 10.89, 49.89, 'r'],
-            WUR: ['Würzburg', 9.93, 49.79, 'l'], ASC: ['Aschaffenburg', 9.15, 49.97, 'b']
+            FLE: ['Flensburg', 9.44, 54.79, 'r'], KIE: ['Kiel', 10.13, 54.32, 'r'], HAM: ['Hamburg', 9.99, 53.55, 'r'],
+            ROS: ['Rostock', 12.10, 54.09, 't'], SWN: ['Schwerin', 11.41, 53.63, 'r'], BRE: ['Bremen', 8.80, 53.08, 'l'],
+            OSN: ['Osnabrück', 8.05, 52.28, 'l'], HAN: ['Hannover', 9.73, 52.37, 'b'], BER: ['Berlin', 13.40, 52.52, 'r'],
+            MAG: ['Magdeburg', 11.63, 52.13, 'r'], LEI: ['Leipzig', 12.37, 51.34, 'b'], DRE: ['Dresden', 13.74, 51.05, 'b'],
+            COT: ['Cottbus', 14.33, 51.76, 'r'], ERF: ['Erfurt', 11.03, 50.98, 'r'], KAS: ['Kassel', 9.48, 51.31, 'l'],
+            DOR: ['Dortmund', 7.47, 51.51, 'r'], KOL: ['Cologne', 6.96, 50.94, 'l'], KOB: ['Koblenz', 7.59, 50.36, 'l'],
+            FRA: ['Frankfurt', 8.68, 50.11, 'r'], SAB: ['Saarbrücken', 6.99, 49.24, 'b'], MAN: ['Mannheim', 8.47, 49.49, 'r'],
+            STU: ['Stuttgart', 9.18, 48.78, 'l'], FRE: ['Freiburg', 7.85, 47.99, 'l'], ULM: ['Ulm', 9.99, 48.40, 'l'],
+            MUC: ['Munich', 11.58, 48.14, 'r'], GAP: ['Garmisch', 11.10, 47.49, 'b'], NUR: ['Nuremberg', 11.08, 49.45, 'r'],
+            REG: ['Regensburg', 12.10, 49.01, 'r'], WUR: ['Würzburg', 9.93, 49.79, 'l']
           },
           proj: (lon, lat) => [Math.round((lon - 5.4) * 1150) / 10, Math.round((55.25 - lat) * 1820) / 10],
           full: { x: 0, y: 0, w: 1170, h: 1490 },
           grat: [[6, 15, 1], [47, 55, 1]],
-          unit: 44,
+          unit: 47,
           // Mountain and high-speed lines through the uplands and the Alps.
           tunnels: [
-            'KAS-FUL', 'FUL-WUR', 'BAM-ERF', 'SAA-HOF', 'KOL-SIE', 'ULM-STU', 'OFF-VIL', 'FRE-VIL',
-            'KEM-GAP', 'ROH-BGD'
+            'ULM-STU', 'NUR-ERF', 'KAS-WUR', 'FRE-STU'
           ],
           // Tracks that bend round water pass through these points (longitude, latitude).
-          // STR-BGR is the only track over water: it crosses the Strelasund on the Rügen causeway.
+          // No track crosses water.
           bends: {
-            'FLE-KIE': [[9.82, 54.455]], 'SWN-ROS': [[11.37, 53.75]],
-            'BER-STD': [[13.24, 52.535]], 'SIN-FRH': [[9.05, 47.9], [9.3, 47.82]],
-            'MUC-GAP': [[11.4, 47.865]]
+            'FLE-KIE': [[9.82, 54.45]], 'SWN-ROS': [[11.37, 53.75]], 'MUC-GAP': [[11.4, 47.87]], 'HAM-SWN': [[10.69, 53.87]],
+            'HAM-HAN': [[10.41, 53.25]], 'FRA-KAS': [[8.68, 50.58]], 'FRE-STU': [[8.46, 48.06]], 'LEI-MAG': [[11.97, 51.48]],
+            'BER-SWN': [[11.58, 53.51]], 'MUC-REG': [[11.98, 48.54]], 'GAP-ULM': [[10.4, 47.87]], 'FLE-HAM': [[9.32, 54.1]]
           },
           routes: [
-            ['FLE', 'HUS', 'orange'], ['FLE', 'KIE', 'purple'], ['HUS', 'HAM', 'blue'], ['KIE', 'HAM', 'white'],
-            ['HAM', 'LUB', 'orange'], ['LUB', 'SWN', 'purple'], ['SWN', 'ROS', 'green'], ['ROS', 'STR', 'black'],
-            ['STR', 'NBR', 'blue'], ['STR', 'BGR', 'yellow'], ['NBR', 'PRZ', 'gray'], ['NBR', 'BER', 'orange'],
-            ['PRZ', 'EBW', 'white'], ['EBW', 'BER', 'blue'], ['BER', 'FFO', 'gray'], ['FFO', 'COT', 'red'],
-            ['BER', 'COT', 'purple'], ['BER', 'STD', 'yellow'], ['STD', 'WTB', 'white'], ['WTB', 'SWN', 'red'],
-            ['HAM', 'LUN', 'yellow', 'red'], ['LUN', 'HAN', 'gray'], ['HAM', 'BRE', 'purple', 'green'], ['BRE', 'BHV', 'gray'],
-            ['BRE', 'OLD', 'black'], ['OLD', 'LER', 'blue'], ['LER', 'LIN', 'gray'], ['BRE', 'OSN', 'red'],
-            ['BRE', 'HAN', 'yellow'], ['OSN', 'BIE', 'yellow'], ['BIE', 'HAN', 'red', 'black'], ['OSN', 'MUN', 'black', 'blue'],
-            ['MUN', 'DOR', 'purple'], ['LIN', 'MUN', 'green'], ['HAN', 'BRA', 'orange', 'white'], ['BRA', 'MAG', 'purple'],
-            ['HAN', 'GOE', 'green'], ['BIE', 'PAD', 'gray'], ['PAD', 'KAS', 'orange'], ['PAD', 'DOR', 'blue'],
-            ['DOR', 'DUS', 'yellow', 'red'], ['DUS', 'KOL', 'green', 'purple'], ['KOL', 'AAC', 'red'], ['KOL', 'KOB', 'yellow'],
-            ['KOL', 'SIE', 'black'], ['SIE', 'GIE', 'green'], ['KOB', 'MAI', 'green'], ['KOB', 'TRI', 'black'],
-            ['TRI', 'SAB', 'purple'], ['SAB', 'KAI', 'blue'], ['KAI', 'MAN', 'red'], ['MAI', 'FRA', 'blue'],
-            ['FRA', 'GIE', 'red'], ['GIE', 'KAS', 'white'], ['KAS', 'FUL', 'green'], ['KAS', 'GOE', 'red'],
-            ['FUL', 'FRA', 'orange'], ['FRA', 'ASC', 'green'], ['FRA', 'MAN', 'yellow', 'white'], ['MAN', 'KAR', 'gray'],
-            ['KAR', 'STU', 'white'], ['HEI', 'STU', 'yellow'], ['HEI', 'WUR', 'orange'], ['ASC', 'WUR', 'blue'],
-            ['FUL', 'WUR', 'white'], ['KAR', 'OFF', 'green'], ['OFF', 'FRE', 'black'], ['FRE', 'VIL', 'orange'],
-            ['OFF', 'VIL', 'blue'], ['VIL', 'SIN', 'green'], ['VIL', 'STU', 'red'], ['SIN', 'FRH', 'orange'],
-            ['FRH', 'ULM', 'white'], ['FRH', 'KEM', 'purple'], ['ULM', 'STU', 'blue', 'orange'], ['ULM', 'AUG', 'yellow'],
-            ['KEM', 'AUG', 'blue'], ['AUG', 'MUC', 'green', 'purple'], ['MUC', 'GAP', 'blue'], ['MUC', 'ROH', 'black'],
-            ['ROH', 'BGD', 'white'], ['MUC', 'ING', 'yellow'], ['ING', 'NUR', 'black'], ['REG', 'PAS', 'green'],
-            ['MUC', 'PAS', 'gray'], ['REG', 'NUR', 'white'], ['REG', 'WEI', 'yellow'], ['WEI', 'NUR', 'orange'],
-            ['WEI', 'HOF', 'red'], ['NUR', 'BAM', 'yellow'], ['NUR', 'WUR', 'gray'], ['BAM', 'ERF', 'black'],
-            ['HOF', 'GER', 'gray'], ['ZWI', 'CHE', 'white'], ['CHE', 'DRE', 'purple'], ['ZWI', 'GER', 'black'],
-            ['ZWI', 'LEI', 'purple'], ['LEI', 'DRE', 'white'], ['DRE', 'GOR', 'red'], ['GOR', 'COT', 'blue'],
-            ['DRE', 'COT', 'orange'], ['LEI', 'HAL', 'black', 'blue'], ['HAL', 'MAG', 'yellow'], ['MAG', 'DES', 'black'],
-            ['DES', 'BER', 'green'], ['MAG', 'STD', 'red'], ['HAL', 'ERF', 'gray'], ['GER', 'JEN', 'purple'],
-            ['JEN', 'ERF', 'yellow'], ['JEN', 'SAA', 'blue'], ['SAA', 'HOF', 'green'], ['ERF', 'EIS', 'orange', 'white'],
-            ['EIS', 'FUL', 'yellow'], ['EIS', 'KAS', 'purple'], ['NDH', 'GOE', 'white'], ['NDH', 'HAL', 'orange'],
-            ['BRA', 'NDH', 'black'], ['KEM', 'GAP', 'black'], ['PAS', 'BGD', 'purple']
+            ['FLE', 'KIE', 'white'], ['SWN', 'ROS', 'blue'], ['BER', 'COT', 'yellow'], ['HAM', 'BRE', 'blue', 'yellow'], ['BRE', 'OSN', 'purple'],
+            ['BRE', 'HAN', 'orange'], ['KOL', 'KOB', 'red', 'green'], ['FRA', 'MAN', 'orange', 'green'], ['ULM', 'STU', 'red', 'black'],
+            ['MUC', 'GAP', 'black'], ['REG', 'NUR', 'green'], ['NUR', 'WUR', 'orange', 'black'], ['LEI', 'DRE', 'red'],
+            ['DRE', 'COT', 'white', 'purple'], ['FRA', 'WUR', 'yellow'], ['NUR', 'ERF', 'gray'], ['DOR', 'KOL', 'white', 'purple'],
+            ['STU', 'WUR', 'gray'], ['MUC', 'NUR', 'blue'], ['SAB', 'MAN', 'yellow'], ['HAM', 'SWN', 'green'], ['HAM', 'HAN', 'black', 'red'],
+            ['KOB', 'FRA', 'white', 'purple'], ['OSN', 'DOR', 'yellow', 'blue'], ['ULM', 'MUC', 'orange'], ['KOB', 'SAB', 'blue'],
+            ['HAN', 'MAG', 'white'], ['ERF', 'KAS', 'yellow', 'blue'], ['KAS', 'WUR', 'white'], ['FRA', 'KAS', 'red'], ['FRE', 'MAN', 'gray'],
+            ['FRE', 'STU', 'yellow'], ['KAS', 'OSN', 'black'], ['KIE', 'HAM', 'purple'], ['LEI', 'MAG', 'gray'], ['BER', 'SWN', 'purple'],
+            ['BER', 'LEI', 'green', 'orange'], ['MUC', 'REG', 'red'], ['GAP', 'ULM', 'green'], ['FLE', 'HAM', 'orange'], ['ERF', 'LEI', 'black'],
+            ['MAN', 'STU', 'blue'], ['HAN', 'KAS', 'purple'], ['HAN', 'OSN', 'green']
           ],
           tickets: [
-            ['SAB', 'REG'], ['ULM', 'NUR'], ['SAB', 'SIN'], ['KAS', 'FFO'], ['HAN', 'DES'], ['HAM', 'LIN'],
-            ['MAN', 'VIL'], ['STU', 'MUC'], ['ZWI', 'ULM'], ['EIS', 'DUS'], ['KAS', 'KAR'], ['BER', 'HAL'],
-            ['ROS', 'NBR'], ['KEM', 'BGD'], ['BGR', 'ERF'], ['MUN', 'ASC'], ['FRE', 'AUG'], ['OFF', 'GAP'],
-            ['LUN', 'NDH'], ['BGD', 'BAM'], ['FRH', 'ROH'], ['KOB', 'KAI'], ['DRE', 'FRA'], ['TRI', 'MAI'],
-            ['SWN', 'PRZ'], ['BIE', 'HOF'], ['EBW', 'BAM'], ['GOE', 'FUL'], ['LUB', 'KOL'], ['KIE', 'STR'],
-            ['HEI', 'REG'], ['BRA', 'KAI'], ['PAD', 'KEM'], ['ROH', 'ASC'], ['AUG', 'PAS'], ['BGR', 'STD'],
-            ['BHV', 'BRA'], ['BRE', 'PAD'], ['WTB', 'LEI'], ['GIE', 'KOL'], ['DRE', 'AAC'], ['CHE', 'DUS'],
-            ['LER', 'DOR'], ['COT', 'SAA'], ['BIE', 'MAG'], ['ZWI', 'ING'], ['EBW', 'FFO'], ['MUN', 'PAS'],
-            ['DOR', 'HEI'], ['FLE', 'OLD'], ['OSN', 'AAC'], ['HUS', 'LUB'], ['GOR', 'CHE'], ['STD', 'ERF'],
-            ['WTB', 'FUL'], ['JEN', 'WUR'], ['KIE', 'MAI'], ['GOR', 'STU'], ['GER', 'WEI'], ['SIE', 'WEI']
+            ['FLE', 'MAG'], ['SAB', 'ULM'], ['KIE', 'SWN'], ['KIE', 'COT'], ['SWN', 'KOB'], ['SWN', 'MUC'], ['OSN', 'GAP'], ['BRE', 'ULM'],
+            ['KOL', 'STU'], ['DRE', 'STU'], ['LEI', 'WUR'], ['ERF', 'KOL'], ['HAN', 'MUC'], ['OSN', 'NUR'], ['KIE', 'NUR'], ['DRE', 'KAS'],
+            ['ROS', 'BER'], ['HAM', 'WUR'], ['BRE', 'ERF'], ['GAP', 'REG'], ['HAM', 'ULM'], ['ROS', 'REG'], ['BRE', 'MAN'], ['LEI', 'SAB'],
+            ['HAN', 'KOB'], ['MAG', 'SAB'], ['BER', 'KOL'], ['FLE', 'ROS'], ['DOR', 'STU'], ['HAM', 'DOR'], ['FRE', 'MUC'], ['FLE', 'KOB'],
+            ['KAS', 'GAP'], ['OSN', 'FRA'], ['BER', 'REG'], ['FRA', 'FRE'], ['DRE', 'DOR'], ['MAN', 'NUR'], ['COT', 'FRE'], ['MAG', 'COT']
           ],
           // Borders, coastlines and lakes simplified from Natural Earth 1:10m vectors (public domain).
           // Neighbouring countries are drawn as muted land, tucked under Germany's edge so no sea shows along the borders.
@@ -4057,114 +3855,57 @@
         uk: {
           name: 'United Kingdom',
           blurb: 'Penzance to Thurso',
+          // Revision 2 cut the map down to 27 cities; older saves of the previous layout don't resume.
+          rev: 2,
           cities: {
-            THU: ['Thurso', -3.52, 58.59, 't'], LAI: ['Lairg', -4.40, 58.02, 'l'], WIC: ['Wick', -3.09, 58.44, 'r'],
-            INV: ['Inverness', -4.22, 57.48, 'l'], KYL: ['Kyle of Lochalsh', -5.71, 57.28, 'b'], FTW: ['Fort William', -5.11, 56.82, 'l'],
-            ELG: ['Elgin', -3.32, 57.65, 't'], ABD: ['Aberdeen', -2.10, 57.15, 'r'], AVI: ['Aviemore', -3.83, 57.19, 'r'],
-            PER: ['Perth', -3.44, 56.40, 'l'], DUN: ['Dundee', -2.97, 56.46, 'r'], MON: ['Montrose', -2.47, 56.71, 'r'],
-            STI: ['Stirling', -3.94, 56.12, 'r'], EDI: ['Edinburgh', -3.19, 55.95, 'l'], GLA: ['Glasgow', -4.25, 55.86, 'l'],
-            AYR: ['Ayr', -4.63, 55.46, 'l'], STR: ['Stranraer', -5.03, 54.90, 'l'], DUM: ['Dumfries', -3.61, 55.07, 'b'],
-            GAL: ['Galashiels', -2.81, 55.62, 'l'], BER: ['Berwick', -2.00, 55.77, 'r'], CAR: ['Carlisle', -2.93, 54.89, 'l'],
-            NEW: ['Newcastle', -1.61, 54.97, 'r'], DAR: ['Darlington', -1.55, 54.52, 'l'], SCA: ['Scarborough', -0.40, 54.28, 'r'],
-            LAN: ['Lancaster', -2.80, 54.05, 'l'], PRE: ['Preston', -2.70, 53.76, 'l'], YOR: ['York', -1.08, 53.96, 'r'],
-            LEE: ['Leeds', -1.55, 53.80, 'l'], MAN: ['Manchester', -2.24, 53.48, 'r'], LIV: ['Liverpool', -2.98, 53.41, 'l'],
-            SHE: ['Sheffield', -1.47, 53.38, 'b'], HUL: ['Hull', -0.33, 53.74, 'r'], LIN: ['Lincoln', -0.54, 53.23, 'r'],
-            NOT: ['Nottingham', -1.15, 52.95, 'l'], CRE: ['Crewe', -2.44, 53.09, 'r'], BIR: ['Birmingham', -1.90, 52.48, 'l'],
-            SHR: ['Shrewsbury', -2.75, 52.71, 'l'], LEI: ['Leicester', -1.13, 52.64, 't'], PET: ['Peterborough', -0.24, 52.57, 'r'],
-            NOR: ['Norwich', 1.30, 52.63, 't'], IPS: ['Ipswich', 1.16, 52.06, 'r'], CAM: ['Cambridge', 0.12, 52.21, 'l'],
-            OXF: ['Oxford', -1.26, 51.75, 'r'], MKY: ['Milton Keynes', -0.76, 52.04, 'l'], LON: ['London', -0.13, 51.51, 'r'],
-            REA: ['Reading', -0.97, 51.45, 'l'], SWI: ['Swindon', -1.78, 51.56, 'b'], BRI: ['Bristol', -2.59, 51.45, 'l'],
-            GLO: ['Gloucester', -2.24, 51.86, 'r'], WOR: ['Worcester', -2.22, 52.19, 'r'], HER: ['Hereford', -2.72, 52.06, 'l'],
-            CDF: ['Cardiff', -3.18, 51.48, 'l'], SWA: ['Swansea', -3.94, 51.62, 'l'], CMN: ['Carmarthen', -4.31, 51.86, 'l'],
-            ABY: ['Aberystwyth', -4.08, 52.41, 'l'], BAN: ['Bangor', -4.13, 53.23, 'b'], HOL: ['Holyhead', -4.63, 53.31, 't'],
-            WRE: ['Wrexham', -2.99, 53.05, 't'], LLD: ['Llandrindod', -3.38, 52.24, 'l'], EXE: ['Exeter', -3.53, 50.72, 'l'],
-            PLY: ['Plymouth', -4.14, 50.37, 'b'], PEN: ['Penzance', -5.54, 50.12, 'b'], TRU: ['Truro', -5.05, 50.26, 'b'],
-            BNP: ['Barnstaple', -4.06, 51.08, 'l'], TAU: ['Taunton', -3.10, 51.02, 'r'], SAL: ['Salisbury', -1.79, 51.07, 'l'],
-            BOU: ['Bournemouth', -1.88, 50.72, 'b'], WEY: ['Weymouth', -2.46, 50.61, 'b'], SOU: ['Southampton', -1.40, 50.90, 'l'],
-            GUI: ['Guildford', -0.57, 51.24, 'b'], BTN: ['Brighton', -0.14, 50.83, 'b'], HAS: ['Hastings', 0.57, 50.86, 'b'],
-            DOV: ['Dover', 1.31, 51.13, 'r'], BEL: ['Belfast', -5.93, 54.60, 'r'], DRY: ['Derry/Londonderry', -7.31, 55.00, 'l'],
-            COL: ['Coleraine', -6.67, 55.13, 't'], BMN: ['Ballymena', -6.28, 54.86, 'r'], NRY: ['Newry', -6.34, 54.18, 'r'],
-            ENN: ['Enniskillen', -7.64, 54.34, 'b'], OMA: ['Omagh', -7.30, 54.60, 'l']
+            THU: ['Thurso', -3.52, 58.59, 't'], INV: ['Inverness', -4.22, 57.48, 'l'], FTW: ['Fort William', -5.11, 56.82, 'l'],
+            ABD: ['Aberdeen', -2.10, 57.15, 'r'], PER: ['Perth', -3.44, 56.40, 'r'], EDI: ['Edinburgh', -3.19, 55.95, 't'],
+            GLA: ['Glasgow', -4.25, 55.86, 'l'], CAR: ['Carlisle', -2.93, 54.89, 'l'], NEW: ['Newcastle', -1.61, 54.97, 'r'],
+            YOR: ['York', -1.08, 53.96, 'r'], LEE: ['Leeds', -1.55, 53.80, 'l'], MAN: ['Manchester', -2.24, 53.48, 'r'],
+            LIV: ['Liverpool', -2.98, 53.41, 'l'], BIR: ['Birmingham', -1.90, 52.48, 'l'], NOR: ['Norwich', 1.30, 52.63, 't'],
+            CAM: ['Cambridge', 0.12, 52.21, 'l'], LON: ['London', -0.13, 51.51, 'r'], BRI: ['Bristol', -2.59, 51.45, 'l'],
+            CDF: ['Cardiff', -3.18, 51.48, 'l'], ABY: ['Aberystwyth', -4.08, 52.41, 'l'], BAN: ['Bangor', -4.13, 53.23, 't'],
+            EXE: ['Exeter', -3.53, 50.72, 'b'], PEN: ['Penzance', -5.54, 50.12, 'b'], SOU: ['Southampton', -1.40, 50.90, 'b'],
+            BEL: ['Belfast', -5.93, 54.60, 'r'], DRY: ['Derry/Londonderry', -7.31, 55.00, 'l'], NRY: ['Newry', -6.34, 54.18, 'b']
           },
           proj: (lon, lat) => [Math.round((lon + 8.3) * 1080) / 10, Math.round((58.75 - lat) * 1800) / 10],
           full: { x: -20, y: 0, w: 1110, h: 1590 },
           grat: [[-8, 1, 1], [50, 58, 1]],
-          unit: 40,
+          unit: 44,
+          // Fewer cities means less track, so each player starts with fewer trains.
+          trains: 33,
           // Mountain lines through the Highlands, the Pennines and Snowdonia, plus the Severn Tunnel (BRI-CDF).
           tunnels: [
-            'BRI-CDF', 'FTW-GLA', 'FTW-AVI', 'AVI-PER', 'CAR-LAN', 'LAN-LEE', 'LEE-MAN', 'MAN-SHE',
-            'WRE-BAN', 'LLD-ABY', 'GLA-DUM'
+            'FTW-GLA', 'LEE-MAN', 'BRI-CDF', 'GLA-CAR', 'INV-PER', 'MAN-BAN'
           ],
           // Tracks that bend round water pass through these points (longitude, latitude).
-          // Only four tracks cross water, each on a real fixed link: DUN-EDI over the Tay and Forth bridges,
-          // BRI-CDF through the Severn Tunnel, LIV-CRE over the Runcorn railway bridge, and PLY-TRU over the Tamar on the Royal Albert Bridge.
+          // Only two tracks cross water, each on a real fixed link: BRI-CDF through the Severn Tunnel,
+          // and EXE-PEN over the Tamar on the Royal Albert Bridge at Plymouth.
           // Northern Ireland has no fixed link to Great Britain, so its network stands alone and its tickets stay within it.
           bends: {
-            'LAI-INV': [[-4.48, 57.57]], 'WIC-LAI': [[-4.29, 58.01]],
-            'INV-KYL': [[-4.95, 57.33], [-5.28, 57.41]], 'INV-ELG': [[-3.96, 57.51]],
-            'FTW-GLA': [[-4.99, 56.745]], 'THU-LAI': [[-3.9, 58.3]],
-            'BER-NEW': [[-1.61, 55.06]], 'LON-REA': [[-0.55, 51.5]],
-            'LLD-SWA': [[-3.89, 51.77]], 'SOU-GUI': [[-1.1, 51.1]],
-            'HER-CDF': [[-3.2, 51.6]], 'ABD-MON': [[-2.45, 56.77]],
-            'DUN-PER': [[-3.08, 56.49]], 'AYR-STR': [[-4.94, 54.96]],
-            'DUM-CAR': [[-3.01, 55.025]], 'EDI-BER': [[-3.07, 55.92]],
-            'CAR-LAN': [[-2.73, 54.17]], 'DOV-HAS': [[1, 51.12]],
-            'HAS-BTN': [[0.46, 50.86]], 'CDF-SWA': [[-3.82, 51.66]],
-            'CMN-ABY': [[-4.07, 52.34]], 'BOU-WEY': [[-2.28, 50.835]],
-            'WEY-EXE': [[-2.77, 50.775]], 'SOU-BTN': [[-0.28, 50.86]],
-            'COL-DRY': [[-7.05, 55.015]], 'LON-DOV': [[1.17, 51.23]],
-            'MAN-LIV': [[-2.6, 53.49]], 'DUN-EDI': [[-2.99, 56.4], [-3.39, 56.01], [-3.33, 55.97]],
-            'BRI-CDF': [[-2.7, 51.565], [-3, 51.59]], 'PLY-TRU': [[-4.21, 50.41], [-4.7, 50.43]],
-            'LIV-CRE': [[-2.73, 53.345]], 'GLA-EDI': [[-3.32, 55.87]],
-            'STR-DUM': [[-4.74, 54.9]], 'EDI-GAL': [[-3.19, 55.92]],
-            'GAL-NEW': [[-1.99, 55.14]], 'HUL-LEE': [[-0.79, 53.8], [-1.32, 53.7]],
-            'LAN-LEE': [[-2.05, 53.96]], 'MAN-SHE': [[-2.09, 53.41]],
-            'CRE-SHR': [[-2.58, 52.96]], 'BIR-MKY': [[-1.83, 52.43]],
-            'SAL-BRI': [[-2.46, 51.34]], 'SWI-BRI': [[-1.98, 51.51]],
-            'BRI-GLO': [[-2.56, 51.52]], 'LEE-SHE': [[-1.52, 53.71]]
+            'FTW-GLA': [[-4.99, 56.74]], 'BRI-CDF': [[-2.7, 51.56], [-3, 51.59]], 'BEL-DRY': [[-6.67, 55.13], [-7.05, 55.02]],
+            'PER-GLA': [[-3.94, 56.12]], 'GLA-CAR': [[-3.01, 55.02]], 'THU-INV': [[-4.4, 58.02], [-4.48, 57.57]], 'BIR-BRI': [[-2.24, 51.86]],
+            'MAN-BAN': [[-2.44, 53.09], [-2.99, 53.05]], 'BIR-LEE': [[-1.29, 53.1]], 'CAR-LIV': [[-2.71, 54.15]],
+            'ABY-BAN': [[-3.79, 52.62], [-3.81, 52.87]], 'FTW-INV': [[-4.88, 57.26]], 'LON-NOR': [[0.96, 51.9]],
+            'BIR-MAN': [[-2.25, 52.75], [-1.89, 53.21]]
           },
           routes: [
-            ['THU', 'WIC', 'red'], ['THU', 'LAI', 'black'], ['WIC', 'LAI', 'blue'], ['LAI', 'INV', 'gray'],
-            ['INV', 'KYL', 'purple'], ['INV', 'AVI', 'orange'], ['INV', 'ELG', 'white'], ['ELG', 'ABD', 'green'],
-            ['AVI', 'PER', 'yellow'], ['FTW', 'GLA', 'gray'], ['FTW', 'AVI', 'purple'], ['ABD', 'MON', 'orange'],
-            ['MON', 'DUN', 'yellow'], ['DUN', 'PER', 'purple'], ['PER', 'STI', 'black'], ['DUN', 'EDI', 'white'],
-            ['STI', 'GLA', 'orange'], ['GLA', 'EDI', 'yellow'], ['GLA', 'AYR', 'black'], ['AYR', 'STR', 'blue'],
-            ['STR', 'DUM', 'yellow'], ['GLA', 'DUM', 'green'], ['DUM', 'CAR', 'purple'], ['EDI', 'GAL', 'black'],
-            ['GAL', 'NEW', 'white'], ['EDI', 'BER', 'orange'], ['BER', 'NEW', 'gray'], ['CAR', 'NEW', 'green'],
-            ['CAR', 'LAN', 'blue'], ['NEW', 'DAR', 'red', 'blue'], ['DAR', 'YOR', 'green'], ['DAR', 'SCA', 'black'],
-            ['SCA', 'YOR', 'orange'], ['SCA', 'HUL', 'red'], ['YOR', 'LEE', 'red', 'purple'], ['HUL', 'LEE', 'orange'],
-            ['LAN', 'PRE', 'green'], ['PRE', 'LIV', 'red'], ['PRE', 'MAN', 'blue'], ['LAN', 'LEE', 'white'],
-            ['LEE', 'MAN', 'green', 'yellow'], ['MAN', 'SHE', 'orange'], ['LEE', 'SHE', 'black'], ['MAN', 'LIV', 'gray'],
-            ['LIV', 'CRE', 'green'], ['MAN', 'CRE', 'red'], ['CRE', 'WRE', 'yellow'], ['WRE', 'BAN', 'gray'],
-            ['BAN', 'HOL', 'blue'], ['WRE', 'SHR', 'blue'], ['CRE', 'SHR', 'gray'], ['CRE', 'BIR', 'black', 'white'],
-            ['SHE', 'NOT', 'purple'], ['SHE', 'LIN', 'yellow'], ['LIN', 'NOT', 'white'], ['LIN', 'PET', 'black'],
-            ['NOT', 'LEI', 'red'], ['LEI', 'BIR', 'orange', 'purple'], ['LEI', 'PET', 'yellow'], ['BIR', 'MKY', 'red'],
-            ['LON', 'MKY', 'green'], ['MKY', 'OXF', 'white'], ['PET', 'CAM', 'white'], ['CAM', 'NOR', 'black'],
-            ['NOR', 'IPS', 'purple'], ['IPS', 'CAM', 'gray'], ['IPS', 'LON', 'red'], ['CAM', 'LON', 'purple'],
-            ['LON', 'DOV', 'yellow'], ['DOV', 'HAS', 'green'], ['HAS', 'BTN', 'blue'], ['BTN', 'LON', 'white'],
-            ['LON', 'GUI', 'blue'], ['GUI', 'REA', 'white'], ['LON', 'REA', 'orange'], ['REA', 'OXF', 'purple'],
-            ['REA', 'SWI', 'red'], ['SWI', 'BRI', 'blue', 'orange'], ['BRI', 'CDF', 'black'], ['BRI', 'GLO', 'white'],
-            ['GLO', 'WOR', 'blue'], ['WOR', 'BIR', 'gray'], ['WOR', 'HER', 'black'], ['HER', 'SHR', 'orange'],
-            ['HER', 'CDF', 'blue'], ['CDF', 'SWA', 'yellow'], ['SWA', 'CMN', 'red'], ['CMN', 'ABY', 'blue'],
-            ['ABY', 'SHR', 'red'], ['LLD', 'SWA', 'orange'], ['LLD', 'HER', 'purple'], ['LLD', 'ABY', 'green'],
-            ['OXF', 'WOR', 'red'], ['SWI', 'GLO', 'yellow'], ['BRI', 'TAU', 'gray'], ['TAU', 'EXE', 'black'],
-            ['EXE', 'PLY', 'green'], ['PLY', 'TRU', 'white'], ['TRU', 'PEN', 'black'], ['EXE', 'BNP', 'red'],
-            ['BNP', 'TAU', 'purple'], ['SAL', 'BRI', 'green'], ['SAL', 'SOU', 'white'], ['SOU', 'BOU', 'blue'],
-            ['BOU', 'WEY', 'orange'], ['WEY', 'EXE', 'yellow'], ['SOU', 'BTN', 'purple'], ['SOU', 'GUI', 'red'],
-            ['BEL', 'BMN', 'yellow'], ['BEL', 'NRY', 'gray'], ['BMN', 'COL', 'white'], ['COL', 'DRY', 'purple'],
-            ['DRY', 'OMA', 'green'], ['OMA', 'ENN', 'blue'], ['ENN', 'NRY', 'orange'], ['OMA', 'BMN', 'black']
+            ['FTW', 'GLA', 'green'], ['GLA', 'EDI', 'purple'], ['CAR', 'NEW', 'black'], ['YOR', 'LEE', 'purple', 'green'],
+            ['LEE', 'MAN', 'orange', 'white'], ['MAN', 'LIV', 'green', 'yellow'], ['CAM', 'NOR', 'white'], ['CAM', 'LON', 'orange'],
+            ['BRI', 'CDF', 'purple'], ['BEL', 'NRY', 'blue', 'black'], ['EDI', 'NEW', 'orange'], ['BEL', 'DRY', 'green'], ['BRI', 'SOU', 'blue'],
+            ['NEW', 'YOR', 'blue', 'white'], ['PER', 'GLA', 'yellow'], ['GLA', 'CAR', 'orange'], ['BRI', 'EXE', 'green'],
+            ['PEN', 'EXE', 'purple', 'red'], ['THU', 'INV', 'yellow'], ['INV', 'PER', 'white'], ['PER', 'ABD', 'red'],
+            ['LON', 'SOU', 'green', 'yellow'], ['CDF', 'ABY', 'orange', 'black'], ['BIR', 'BRI', 'yellow'], ['MAN', 'BAN', 'red'],
+            ['BIR', 'LON', 'black'], ['BIR', 'LEE', 'blue'], ['CAM', 'YOR', 'gray'], ['CAR', 'LIV', 'white'], ['EXE', 'SOU', 'black'],
+            ['ABY', 'BAN', 'blue'], ['FTW', 'INV', 'red'], ['DRY', 'NRY', 'gray'], ['ABD', 'INV', 'purple'], ['LON', 'NOR', 'gray'],
+            ['BIR', 'MAN', 'purple']
           ],
           tickets: [
-            ['PER', 'NOR'], ['GAL', 'DOV'], ['CAR', 'LIV'], ['MON', 'LEE'], ['ENN', 'BEL'], ['REA', 'PLY'],
-            ['SCA', 'PLY'], ['SHR', 'BNP'], ['HUL', 'HOL'], ['DUN', 'BIR'], ['LEE', 'HOL'], ['BER', 'WEY'],
-            ['GLA', 'BRI'], ['KYL', 'PRE'], ['LAI', 'DAR'], ['LON', 'BOU'], ['BIR', 'TAU'], ['ABD', 'DUM'],
-            ['NOR', 'BTN'], ['STI', 'GAL'], ['YOR', 'SAL'], ['PER', 'DAR'], ['DUN', 'NEW'], ['INV', 'AYR'],
-            ['CMN', 'WEY'], ['SHE', 'BAN'], ['SCA', 'CRE'], ['STR', 'IPS'], ['LEI', 'SWI'], ['EDI', 'GLO'],
-            ['TRU', 'BOU'], ['NRY', 'COL'], ['THU', 'AVI'], ['EDI', 'HUL'], ['DUM', 'MAN'], ['LON', 'LLD'],
-            ['CAM', 'MKY'], ['SWA', 'SAL'], ['MON', 'BER'], ['CAR', 'LEI'], ['PET', 'OXF'], ['BRI', 'GUI'],
-            ['LAN', 'HER'], ['PRE', 'LIN'], ['WOR', 'EXE'], ['LAI', 'KYL'], ['WIC', 'FTW'], ['AYR', 'NEW'],
-            ['CMN', 'HAS'], ['NOT', 'HAS'], ['AVI', 'STR'], ['PEN', 'SOU'], ['FTW', 'WRE'], ['BEL', 'DRY'],
-            ['IPS', 'DOV'], ['CDF', 'LLD'], ['GLO', 'WRE'], ['YOR', 'ABY'], ['ELG', 'GLA'], ['LIV', 'BTN']
+            ['EXE', 'PEN'], ['CAR', 'BIR'], ['BAN', 'PEN'], ['FTW', 'LIV'], ['CAM', 'EXE'], ['NOR', 'SOU'], ['LEE', 'ABY'], ['INV', 'MAN'],
+            ['ABD', 'YOR'], ['PER', 'LEE'], ['INV', 'LIV'], ['GLA', 'LON'], ['THU', 'INV'], ['NOR', 'ABY'], ['FTW', 'NOR'], ['BIR', 'SOU'],
+            ['THU', 'LIV'], ['NOR', 'LON'], ['THU', 'CAR'], ['CDF', 'BAN'], ['FTW', 'CAM'], ['NEW', 'EXE'], ['LEE', 'CDF'], ['EDI', 'LON'],
+            ['YOR', 'CAM'], ['PER', 'EDI'], ['CDF', 'PEN'], ['FTW', 'CAR'], ['LIV', 'BRI'], ['YOR', 'BRI'], ['MAN', 'ABY'], ['ABD', 'NEW'],
+            ['BEL', 'DRY'], ['NEW', 'BIR'], ['EDI', 'BRI'], ['PER', 'MAN'], ['DRY', 'NRY'], ['GLA', 'BAN'], ['ABD', 'GLA'], ['CAR', 'SOU']
           ],
           // Borders, coastlines and lakes simplified from Natural Earth 1:10m vectors (public domain).
           // Neighbouring countries are drawn as muted land, tucked under the UK's edge so no sea shows along the Irish border.
@@ -4872,7 +4613,7 @@
         shuffle(deck);
         S = {
           v: 1, map: MAP_ID, rev: MAP.rev || 1,
-          players: players.map((p, i) => ({ name: p.name, cpu: p.cpu, level: p.level, color: PCOLORS[i], trains: 40, score: 0, hand: Object.fromEntries([...CC, 'loco'].map(c => [c, 0])), tickets: [], pending: [] })),
+          players: players.map((p, i) => ({ name: p.name, cpu: p.cpu, level: p.level, color: PCOLORS[i], trains: MAP.trains || 40, score: 0, hand: Object.fromEntries([...CC, 'loco'].map(c => [c, 0])), tickets: [], pending: [] })),
           cur: 0, phase: 'tickets', setup: true, deck, discard: [], market: [],
           tdeck: shuffle(TICKETS.map(t => t.id)), owner: {}, stations: {}, tunnel: null,
           final: null, over: null, log: [], curtain: false, minKeep: 2, turns: 0
@@ -6009,7 +5750,7 @@
         mapPick.innerHTML = Object.entries(MAPS).map(([id, m]) => `<label class="${id === seatMap ? 'on' : ''}">
             <input type="radio" name="map" value="${id}" ${id === seatMap ? 'checked' : ''}>
             <svg class="map-preview" aria-hidden="true" focusable="false"></svg>
-            <b>${esc(m.name)}</b><small>${Object.keys(m.cities).length} cities · ${esc(m.blurb)}</small></label>`).join('');
+            <b>${esc(m.name)}</b><small>${Object.keys(m.cities).length} cities · ${m.trains || 40} trains · ${esc(m.blurb)}</small></label>`).join('');
         mapPick.querySelectorAll('label').forEach(label => {
           drawMapPreview(label.querySelector('svg'), MAPS[label.querySelector('input').value]);
         });
@@ -6215,7 +5956,7 @@
       } else {
         openSetup();
       }
-      console.info('Iron Routes — Railway Empire | Prompt: Suggest another 2 games in the current collection. How about a property-trading game? Or a railway route-building game? (paraphrased to remove third-party brand names) | Date: 2 October 2026 | v2 prompt: Make all the changes to derisk as much as possible (original rail network, colours, tickets and scoring) | v2 date: 2 October 2026 | v3 prompt: for Iron Routes; provide an EU map | v3 date: 27 November 2026 | v3 model: Claude Sonnet 5.5 | v4 prompt: For Iron Routes: have a new map for the Middle East. Ensure only land routes exist and none over sea or lakes. Update the Asia map to exclude middle east; and ensure routes are over land only! | v4 date: 27 November 2026 | v4 model: Claude Opus 5.5 | v5 prompt: Ensure all routes are over land only; they must not be over water. the only exception is if in real life there is an under water tunnel like the channel tunnel between calai and folkstone | v5 date: 28 November 2026 | v5 model: Claude Opus 5.5 | v6 prompt: for Iron Routes; create a new map for Australia | v6 date: 28 November 2026 | v6 model: Claude Sonnet 5.5 | v7 prompt: Iron Route: Create a Map for Switzerland | v7 date: 28 November 2026 | v7 model: Claude Sonnet 5.5 | v8 prompt: Iron Route: Create a Map for Japan | v8 date: 28 November 2026 | v8 model: Claude Sonnet 5.5 | v9 prompt: Iron Route: Create a Map for Germany | v9 date: 28 November 2026 | v9 model: Claude Sonnet 5.5 | v10 prompt: Iron Routes: Provide a map for the UK | v10 date: 28 November 2026 | v10 model: Claude Sonnet 5.5 | Built with Claude Code');
+      console.info('Iron Routes — Railway Empire | Prompt: Suggest another 2 games in the current collection. How about a property-trading game? Or a railway route-building game? (paraphrased to remove third-party brand names) | Date: 2 October 2026 | v2 prompt: Make all the changes to derisk as much as possible (original rail network, colours, tickets and scoring) | v2 date: 2 October 2026 | v3 prompt: for Iron Routes; provide an EU map | v3 date: 27 November 2026 | v3 model: Claude Sonnet 5.5 | v4 prompt: For Iron Routes: have a new map for the Middle East. Ensure only land routes exist and none over sea or lakes. Update the Asia map to exclude middle east; and ensure routes are over land only! | v4 date: 27 November 2026 | v4 model: Claude Opus 5.5 | v5 prompt: Ensure all routes are over land only; they must not be over water. the only exception is if in real life there is an under water tunnel like the channel tunnel between calai and folkstone | v5 date: 28 November 2026 | v5 model: Claude Opus 5.5 | v6 prompt: for Iron Routes; create a new map for Australia | v6 date: 28 November 2026 | v6 model: Claude Sonnet 5.5 | v7 prompt: Iron Route: Create a Map for Switzerland | v7 date: 28 November 2026 | v7 model: Claude Sonnet 5.5 | v8 prompt: Iron Route: Create a Map for Japan | v8 date: 28 November 2026 | v8 model: Claude Sonnet 5.5 | v9 prompt: Iron Route: Create a Map for Germany | v9 date: 28 November 2026 | v9 model: Claude Sonnet 5.5 | v10 prompt: Iron Routes: Provide a map for the UK | v10 date: 28 November 2026 | v10 model: Claude Sonnet 5.5 | v11 prompt: Iron Routes: check there\'s 20 to 45 cities. smaller maps/countries on the lower end; larger maps on the higher end like continents | v11 date: 28 November 2026 | v11 model: Claude Sonnet 5.5 | Built with Claude Code');
     })();
   </script>
 </body>
