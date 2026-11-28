@@ -245,6 +245,25 @@
     .mappick label.on { border-color: var(--brass); background: rgba(232, 176, 75, .14); box-shadow: 0 0 0 1px var(--brass) inset; }
     .mappick label.on b { color: var(--brass); }
     .mappick label:has(input:focus-visible) { outline: 3px solid var(--brass); outline-offset: 2px; }
+    .mapcard { position: relative; min-width: 0; display: grid; }
+    .peek-btn {
+      position: absolute; top: 4px; right: 4px; z-index: 1; width: 44px; height: 44px; display: grid; place-items: center;
+      padding: 0; border: 1px solid rgba(40, 30, 20, .35); border-radius: 10px; background: rgba(250, 244, 230, .92); color: #2b2218;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, .3);
+    }
+    .peek-btn svg { width: 20px; height: 20px; }
+    .peek-sheet { width: min(1100px, 100%); display: flex; flex-direction: column; gap: 10px; padding: 16px; overflow: hidden; }
+    .peek-head { display: flex; align-items: flex-start; gap: 10px; }
+    .peek-head > div { flex: 1 1 auto; min-width: 0; }
+    .peek-head h2 { margin: 0 0 4px; }
+    .peek-head p { margin: 0; color: var(--muted); font: 700 10.5px/1.35 var(--mono); letter-spacing: .04em; text-transform: uppercase; }
+    .peek-view {
+      position: relative; align-self: center; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #a9c9d4;
+      width: min(100%, calc(max(180px, 100vh - 230px) * var(--ar, 1.6))); width: min(100%, calc(max(180px, 100dvh - 230px) * var(--ar, 1.6)));
+    }
+    #peekMap { display: block; width: 100%; height: auto; aspect-ratio: var(--ar, 1.6); touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; }
+    @media (pointer: fine) { .peek-btn { width: 34px; height: 34px; } .peek-btn svg { width: 18px; height: 18px; } }
+    #peekMap .city text { pointer-events: none; }
     .counter output { min-width: 2ch; font: 900 20px/1 var(--mono); text-align: center; }
     .curtain { text-align: center; }
     .curtain .badge { width: 64px; height: 64px; margin: 6px auto 14px; border-radius: 18px; background: var(--pc); box-shadow: 0 0 0 4px rgba(255, 255, 255, .15); }
@@ -323,6 +342,27 @@
     </form>
   </div>
 
+  <div class="overlay soft" id="peekSheet" role="dialog" aria-modal="true" aria-labelledby="peekTitle" hidden>
+    <div class="sheet peek-sheet">
+      <div class="peek-head">
+        <div><h2 id="peekTitle">Map</h2><p id="peekInfo"></p></div>
+        <button class="icon-btn" type="button" data-close aria-label="Close map preview">✕</button>
+      </div>
+      <div class="peek-view">
+        <svg id="peekMap" role="img" aria-labelledby="peekTitle"></svg>
+        <div class="zoom" role="group" aria-label="Preview zoom">
+          <button type="button" id="peekIn" aria-label="Zoom in">+</button>
+          <button type="button" id="peekOut" aria-label="Zoom out">−</button>
+          <button type="button" id="peekFit" aria-label="Show the whole map">⤢</button>
+        </div>
+      </div>
+      <div class="sheet-actions" style="margin-top:0">
+        <button class="btn primary grow" type="button" id="peekChoose">Choose this map</button>
+        <button class="btn" type="button" data-close>Back</button>
+      </div>
+    </div>
+  </div>
+
   <div class="overlay" id="ticketSheet" role="dialog" aria-modal="true" aria-labelledby="ticketTitle" hidden>
     <div class="sheet">
       <h2 id="ticketTitle">Destination tickets</h2>
@@ -379,7 +419,7 @@
       </ul>
       <h3>Details</h3>
       <ul>
-        <li>New games on every map include tunnels and stations.</li>
+        <li>New games on every map include tunnels and stations. On the New game screen, tap the magnifier on a map to see it full size, with city names, before you choose.</li>
         <li>Everyone starts with 40 trains (fewer on maps with less track, as shown when you pick a map), 4 train cards, and 3 tickets, and keeps at least 2 of the tickets.</li>
         <li>If three locomotives are ever face up together, all five face-up cards are replaced.</li>
         <li>Double routes: one player can't claim both tracks. With 2 or 3 players, only one track of each pair can be used.</li>
@@ -424,6 +464,9 @@
         <div><span>v11 prompt</span> Iron Routes: check there's 20 to 45 cities. smaller maps/countries on the lower end; larger maps on the higher end like continents</div>
         <div><span>v11 date</span> 28 November 2026</div>
         <div><span>v11 model</span> Claude Sonnet 5.5</div>
+        <div><span>v12 prompt</span> provide a way to peek at map fo iron routes during "new game" section</div>
+        <div><span>v12 date</span> 28 November 2026</div>
+        <div><span>v12 model</span> Claude Sonnet 5.5</div>
         <div><span>built with</span> Claude Code</div>
       </div>
       <div class="sheet-actions"><button class="btn primary grow" type="button" data-close>Got it</button></div>
@@ -5716,10 +5759,9 @@
       }
 
       // ---------- Sheets ----------
-      let lastFocus = null;
       function openSheet(o) {
         if (!o.hidden) return;
-        lastFocus = document.activeElement;
+        o.lastFocus = document.activeElement;
         o.hidden = false;
         const f = o.querySelector('button:not([disabled]), input, select');
         if (f) f.focus({ preventScroll: true });
@@ -5727,7 +5769,9 @@
       function closeSheet(o) {
         if (o.hidden) return;
         o.hidden = true;
-        if (lastFocus && document.contains(lastFocus) && typeof lastFocus.focus === 'function') lastFocus.focus({ preventScroll: true });
+        const back = o.lastFocus;
+        o.lastFocus = null;
+        if (back && document.contains(back) && typeof back.focus === 'function') back.focus({ preventScroll: true });
       }
       const setupOpen = () => !$('#setup').hidden;
 
@@ -5747,14 +5791,163 @@
 
       function renderMapPick() {
         const mapPick = $('#mapPick');
-        mapPick.innerHTML = Object.entries(MAPS).map(([id, m]) => `<label class="${id === seatMap ? 'on' : ''}">
+        mapPick.innerHTML = Object.entries(MAPS).map(([id, m]) => `<div class="mapcard"><label class="${id === seatMap ? 'on' : ''}">
             <input type="radio" name="map" value="${id}" ${id === seatMap ? 'checked' : ''}>
             <svg class="map-preview" aria-hidden="true" focusable="false"></svg>
-            <b>${esc(m.name)}</b><small>${Object.keys(m.cities).length} cities · ${m.trains || 40} trains · ${esc(m.blurb)}</small></label>`).join('');
+            <b>${esc(m.name)}</b><small>${mapStats(m)} · ${esc(m.blurb)}</small></label>
+            <button class="peek-btn" type="button" data-peek="${id}" aria-label="Peek at the ${esc(m.name)} map" title="Peek at the map"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M14.5 14.5L20 20M10 7v6M7 10h6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button></div>`).join('');
         mapPick.querySelectorAll('label').forEach(label => {
           drawMapPreview(label.querySelector('svg'), MAPS[label.querySelector('input').value]);
         });
       }
+      const mapStats = m => `${Object.keys(m.cities).length} cities · ${m.trains || 40} trains`;
+      function selectMap(id) {
+        seatMap = id;
+        $('#mapPick').querySelectorAll('label').forEach(l => {
+          const input = l.querySelector('input');
+          input.checked = input.value === id;
+          l.classList.toggle('on', input.checked);
+        });
+      }
+
+      // ---------- Map peek (full-size preview from the setup screen) ----------
+      const peekSvg = $('#peekMap');
+      let peekId = '';
+      let peekFull = null;
+      let peekView = null;
+      function drawPeek(map) {
+        peekSvg.textContent = '';
+        drawMapTerrain(peekSvg, map);
+        const cities = Object.fromEntries(Object.entries(map.cities).map(([k, c]) => [k, map.proj(c[1], c[2])]));
+        const gr = el('g', { 'aria-hidden': 'true' }, peekSvg);
+        map.routes.forEach(([a, b, c1, c2]) => {
+          const pts = routePoints(map, a, b);
+          const len = Math.max(1, Math.min(6, Math.round(pathLength(pts) / (map.unit || 38))));
+          const tunnel = map.tunnels.includes(`${a}-${b}`);
+          (c2 ? [[c1, -1], [c2, 1]] : [[c1, 0]]).forEach(([c, side]) => {
+            const g = el('g', { class: 'route' + (tunnel ? ' tunnel' : '') }, gr);
+            const { d } = routeGeom({ pts, side, len });
+            el('path', { class: 'out', d }, g);
+            el('path', { class: 'car', d, stroke: CARD[c].c }, g);
+            if (tunnel) el('path', { class: 'bore', d, stroke: c === 'black' ? '#fffaf0' : '#2c241b' }, g);
+          });
+        });
+        const gc = el('g', {}, peekSvg);
+        Object.entries(map.cities).forEach(([k, c]) => {
+          const [x, y] = cities[k];
+          const g = el('g', { class: 'city' }, gc);
+          el('circle', { class: 'dot', cx: x, cy: y, r: 6 }, g);
+          const side = c[3];
+          const t = el('text', {
+            x: x + (side === 'l' ? -10 : side === 'r' ? 10 : 0),
+            y: y + (side === 't' ? -11 : side === 'b' ? 19 : 4),
+            'text-anchor': side === 'l' ? 'end' : side === 'r' ? 'start' : 'middle'
+          }, g);
+          t.textContent = c[0];
+        });
+      }
+      function applyPeek() {
+        const F = peekFull;
+        const v = peekView;
+        v.w = Math.max(F.w / 6, Math.min(F.w, v.w));
+        v.h = v.w * F.h / F.w;
+        v.x = Math.max(F.x - v.w * 0.25, Math.min(F.x + F.w - v.w * 0.75, v.x));
+        v.y = Math.max(F.y - v.h * 0.25, Math.min(F.y + F.h - v.h * 0.75, v.y));
+        if (v.w >= F.w) { v.x = F.x; v.y = F.y; }
+        peekSvg.setAttribute('viewBox', `${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}`);
+      }
+      function peekPoint(cx, cy) {
+        const m = peekSvg.getScreenCTM();
+        if (!m) return { x: peekView.x + peekView.w / 2, y: peekView.y + peekView.h / 2 };
+        const pt = peekSvg.createSVGPoint();
+        pt.x = cx;
+        pt.y = cy;
+        return pt.matrixTransform(m.inverse());
+      }
+      function peekZoomAt(cx, cy, f) {
+        const p = peekPoint(cx, cy);
+        const nw = Math.max(peekFull.w / 6, Math.min(peekFull.w, peekView.w * f));
+        const k = nw / peekView.w;
+        peekView.x = p.x - (p.x - peekView.x) * k;
+        peekView.y = p.y - (p.y - peekView.y) * k;
+        peekView.w = nw;
+        applyPeek();
+      }
+      function peekZoomCenter(f) {
+        const b = peekSvg.getBoundingClientRect();
+        peekZoomAt(b.left + b.width / 2, b.top + b.height / 2, f);
+      }
+      function openPeek(id) {
+        const map = MAPS[id];
+        if (!map) return;
+        peekId = id;
+        peekFull = map.full;
+        peekView = Object.assign({}, peekFull);
+        $('#peekSheet .peek-view').style.setProperty('--ar', (peekFull.w / peekFull.h).toFixed(4));
+        $('#peekTitle').textContent = map.name;
+        $('#peekInfo').textContent = `${mapStats(map)} · ${map.routes.length} routes · ${map.tickets.length} tickets · ${map.blurb}`;
+        drawPeek(map);
+        applyPeek();
+        $('#peekChoose').textContent = id === seatMap ? 'Use this map' : 'Choose this map';
+        openSheet($('#peekSheet'));
+      }
+      const peekPointers = new Map();
+      let peekGesture = null;
+      peekSvg.addEventListener('pointerdown', e => {
+        peekPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        try { peekSvg.setPointerCapture(e.pointerId); } catch (err) { /* optional */ }
+        const list = [...peekPointers.values()];
+        if (list.length === 1) peekGesture = { kind: 'pan', sx: list[0].x, sy: list[0].y, view: Object.assign({}, peekView) };
+        else if (list.length === 2) {
+          const [a, b] = list;
+          peekGesture = { kind: 'pinch', d: Math.hypot(a.x - b.x, a.y - b.y), w: peekView.w, mid: peekPoint((a.x + b.x) / 2, (a.y + b.y) / 2) };
+        }
+      });
+      peekSvg.addEventListener('pointermove', e => {
+        if (!peekPointers.has(e.pointerId) || !peekGesture) return;
+        peekPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        const list = [...peekPointers.values()];
+        const rect = peekSvg.getBoundingClientRect();
+        if (peekGesture.kind === 'pan' && list.length === 1) {
+          const scale = Math.max(peekView.w / rect.width, peekView.h / rect.height);
+          peekView.x = peekGesture.view.x - (list[0].x - peekGesture.sx) * scale;
+          peekView.y = peekGesture.view.y - (list[0].y - peekGesture.sy) * scale;
+          applyPeek();
+        } else if (peekGesture.kind === 'pinch' && list.length === 2) {
+          const [a, b] = list;
+          const d = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+          const nw = Math.max(peekFull.w / 6, Math.min(peekFull.w, peekGesture.w * peekGesture.d / d));
+          const nh = nw * peekFull.h / peekFull.w;
+          const scale = Math.max(nw / rect.width, nh / rect.height);
+          const mx = (a.x + b.x) / 2 - rect.left - (rect.width - nw / scale) / 2;
+          const my = (a.y + b.y) / 2 - rect.top - (rect.height - nh / scale) / 2;
+          peekView.w = nw;
+          peekView.x = peekGesture.mid.x - mx * scale;
+          peekView.y = peekGesture.mid.y - my * scale;
+          applyPeek();
+        }
+      });
+      const endPeekPointer = e => {
+        if (!peekPointers.delete(e.pointerId)) return;
+        const list = [...peekPointers.values()];
+        peekGesture = list.length === 1 ? { kind: 'pan', sx: list[0].x, sy: list[0].y, view: Object.assign({}, peekView) } : null;
+      };
+      peekSvg.addEventListener('pointerup', endPeekPointer);
+      peekSvg.addEventListener('pointercancel', endPeekPointer);
+      peekSvg.addEventListener('wheel', e => { e.preventDefault(); peekZoomAt(e.clientX, e.clientY, e.deltaY > 0 ? 1.15 : 1 / 1.15); }, { passive: false });
+      $('#peekIn').addEventListener('click', () => peekZoomCenter(1 / 1.4));
+      $('#peekOut').addEventListener('click', () => peekZoomCenter(1.4));
+      $('#peekFit').addEventListener('click', () => { peekView = Object.assign({}, peekFull); applyPeek(); });
+      $('#peekChoose').addEventListener('click', () => {
+        const sheet = $('#peekSheet');
+        selectMap(peekId);
+        sheet.lastFocus = $(`#mapPick input[value="${peekId}"]`);
+        closeSheet(sheet);
+      });
+      $('#mapPick').addEventListener('click', e => {
+        const b = e.target.closest('[data-peek]');
+        if (b) openPeek(b.dataset.peek);
+      });
       $('#mapPick').addEventListener('change', e => {
         if (e.target.name !== 'map') return;
         seatMap = e.target.value;
@@ -5956,7 +6149,7 @@
       } else {
         openSetup();
       }
-      console.info('Iron Routes — Railway Empire | Prompt: Suggest another 2 games in the current collection. How about a property-trading game? Or a railway route-building game? (paraphrased to remove third-party brand names) | Date: 2 October 2026 | v2 prompt: Make all the changes to derisk as much as possible (original rail network, colours, tickets and scoring) | v2 date: 2 October 2026 | v3 prompt: for Iron Routes; provide an EU map | v3 date: 27 November 2026 | v3 model: Claude Sonnet 5.5 | v4 prompt: For Iron Routes: have a new map for the Middle East. Ensure only land routes exist and none over sea or lakes. Update the Asia map to exclude middle east; and ensure routes are over land only! | v4 date: 27 November 2026 | v4 model: Claude Opus 5.5 | v5 prompt: Ensure all routes are over land only; they must not be over water. the only exception is if in real life there is an under water tunnel like the channel tunnel between calai and folkstone | v5 date: 28 November 2026 | v5 model: Claude Opus 5.5 | v6 prompt: for Iron Routes; create a new map for Australia | v6 date: 28 November 2026 | v6 model: Claude Sonnet 5.5 | v7 prompt: Iron Route: Create a Map for Switzerland | v7 date: 28 November 2026 | v7 model: Claude Sonnet 5.5 | v8 prompt: Iron Route: Create a Map for Japan | v8 date: 28 November 2026 | v8 model: Claude Sonnet 5.5 | v9 prompt: Iron Route: Create a Map for Germany | v9 date: 28 November 2026 | v9 model: Claude Sonnet 5.5 | v10 prompt: Iron Routes: Provide a map for the UK | v10 date: 28 November 2026 | v10 model: Claude Sonnet 5.5 | v11 prompt: Iron Routes: check there\'s 20 to 45 cities. smaller maps/countries on the lower end; larger maps on the higher end like continents | v11 date: 28 November 2026 | v11 model: Claude Sonnet 5.5 | Built with Claude Code');
+      console.info('Iron Routes — Railway Empire | Prompt: Suggest another 2 games in the current collection. How about a property-trading game? Or a railway route-building game? (paraphrased to remove third-party brand names) | Date: 2 October 2026 | v2 prompt: Make all the changes to derisk as much as possible (original rail network, colours, tickets and scoring) | v2 date: 2 October 2026 | v3 prompt: for Iron Routes; provide an EU map | v3 date: 27 November 2026 | v3 model: Claude Sonnet 5.5 | v4 prompt: For Iron Routes: have a new map for the Middle East. Ensure only land routes exist and none over sea or lakes. Update the Asia map to exclude middle east; and ensure routes are over land only! | v4 date: 27 November 2026 | v4 model: Claude Opus 5.5 | v5 prompt: Ensure all routes are over land only; they must not be over water. the only exception is if in real life there is an under water tunnel like the channel tunnel between calai and folkstone | v5 date: 28 November 2026 | v5 model: Claude Opus 5.5 | v6 prompt: for Iron Routes; create a new map for Australia | v6 date: 28 November 2026 | v6 model: Claude Sonnet 5.5 | v7 prompt: Iron Route: Create a Map for Switzerland | v7 date: 28 November 2026 | v7 model: Claude Sonnet 5.5 | v8 prompt: Iron Route: Create a Map for Japan | v8 date: 28 November 2026 | v8 model: Claude Sonnet 5.5 | v9 prompt: Iron Route: Create a Map for Germany | v9 date: 28 November 2026 | v9 model: Claude Sonnet 5.5 | v10 prompt: Iron Routes: Provide a map for the UK | v10 date: 28 November 2026 | v10 model: Claude Sonnet 5.5 | v11 prompt: Iron Routes: check there\'s 20 to 45 cities. smaller maps/countries on the lower end; larger maps on the higher end like continents | v11 date: 28 November 2026 | v11 model: Claude Sonnet 5.5 | v12 prompt: provide a way to peek at map fo iron routes during "new game" section | v12 date: 28 November 2026 | v12 model: Claude Sonnet 5.5 | Built with Claude Code');
     })();
   </script>
 </body>
